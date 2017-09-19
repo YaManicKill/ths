@@ -1,0 +1,20 @@
+{
+  "name": "rantswithal",
+  "version": "1.0.0",
+  "description": "Website for Rants With Al",
+  "main": "package.json",
+  "scripts": {
+    "build": "rm -rf public/ && hugo",
+    "dev": "rm -rf public/ && hugo server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yamanickill/rantswithal.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yamanickill/rantswithal/issues"
+  },
+  "homepage": "https://github.com/yamanickill/rantswithal#readme"
+}

@@ -1,0 +1,9 @@
+baseURL = "http://rantswithal.com/"
+languageCode = "en-gb"
+title = "Rants With Al"
+theme = "hyde"
+
+[params]
+  themeColor = "theme-base-08"
+  layoutReverse = true
+  description = "A short podcast about what frustrates Al"
