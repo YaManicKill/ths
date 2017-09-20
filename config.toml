@@ -1,4 +1,4 @@
-baseURL = "http://rantswithal.com/"
+baseURL = "https://www.rantswithal.com/"
 languageCode = "en-gb"
 title = "Rants With Al"
 theme = "hyde"
