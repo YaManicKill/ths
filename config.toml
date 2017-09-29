@@ -4,6 +4,6 @@ title = "Rants With Al"
 theme = "hyde"
 
 [params]
-  themeColor = "theme-base-08"
+  themeColor = "theme-base-0b"
   layoutReverse = true
   description = "A short podcast about what frustrates Al"
