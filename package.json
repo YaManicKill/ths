@@ -5,7 +5,7 @@
   "main": "package.json",
   "scripts": {
     "build": "rm -rf public/ && hugo",
-    "dev": "rm -rf public/ && hugo server"
+    "dev": "rm -rf public/ && hugo server --bind 0.0.0.0"
   },
   "repository": {
     "type": "git",
