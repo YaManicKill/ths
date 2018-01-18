@@ -1,6 +1,6 @@
 ---
 title: "Intellectual Property"
-episode: "003"
+episode: "3"
 Description: "In this episode, Al talks about Intellectual Property, and how he thinks it has gone too far."
 podcast: "https://www.rantswithal.com/episodes/3.mp3"
 podcast_bytes: "6579930"

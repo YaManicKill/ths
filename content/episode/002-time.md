@@ -1,6 +1,6 @@
 ---
 title: "Time"
-episode: "002"
+episode: "2"
 Description: "In this episode, Al talks about timezones, daylight saving time, and his annoyances with them."
 podcast: "https://www.rantswithal.com/episodes/2.mp3"
 podcast_bytes: "23035819"

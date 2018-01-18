@@ -1,6 +1,6 @@
 ---
 title: "Temperature Scales (Pilot)"
-episode: "001"
+episode: "1"
 Description: "In this episode, Al talks about temperature scales and his frustrations with the different ones."
 podcast: "https://www.rantswithal.com/episodes/1.mp3"
 podcast_bytes: "14118912"
