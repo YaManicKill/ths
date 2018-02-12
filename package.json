@@ -16,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/yamanickill/rantswithal/issues"
   },
-  "homepage": "https://github.com/yamanickill/rantswithal#readme"
+  "homepage": "https://github.com/yamanickill/rantswithal#readme",
+  "dependencies": {
+    "hugo": "0.0.3",
+    "hugo-cli": "^0.5.4"
+  }
 }
