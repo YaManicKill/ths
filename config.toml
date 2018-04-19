@@ -1,9 +1,9 @@
-baseURL = "https://www.rantswithal.com/"
+baseURL = "" # TODO: Buy domain
 languageCode = "en-gb"
-title = "Rants With Al"
+title = "Podcast Driven Development"
 theme = "hyde"
 
 [params]
-  themeColor = "theme-base-0b"
+  themeColor = "theme-base-09"
   layoutReverse = true
-  description = "A short podcast about what frustrates Al"
+  description = "Something about PDD" # TODO: Set up description
