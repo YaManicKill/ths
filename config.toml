@@ -1,6 +1,6 @@
 baseURL = "https://www.harvestseason.club/"
 languageCode = "en-gb"
-title = "The Harvist Season"
+title = "The Harvest Season"
 theme = "hyde"
 
 [params]
