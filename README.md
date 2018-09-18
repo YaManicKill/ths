@@ -1,6 +1,6 @@
-# Podcast Driven Development
+# The Harvest Season
 
-Code for the PDD site
+Code for the THS site
 
 ## Dev
 

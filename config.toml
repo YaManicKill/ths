@@ -1,9 +1,9 @@
-baseURL = "" # TODO: Buy domain
+baseURL = "harvestseason.club" # TODO: Buy domain
 languageCode = "en-gb"
-title = "Podcast Driven Development"
+title = "The Harvist Season"
 theme = "hyde"
 
 [params]
-  themeColor = "theme-base-09"
+  themeColor = "theme-base-0f"
   layoutReverse = true
-  description = "Something about PDD" # TODO: Set up description
+  description = "A podcast about farming sims"
