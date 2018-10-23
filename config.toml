@@ -7,3 +7,4 @@ theme = "hyde"
   themeColor = "theme-base-0b"
   layoutReverse = true
   description = "A short podcast about what frustrates Al"
+  creator = "TheScotBot"
