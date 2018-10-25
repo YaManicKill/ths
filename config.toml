@@ -3,6 +3,9 @@ languageCode = "en-gb"
 title = "The Harvest Season"
 theme = "hyde"
 
+[blackfriday]
+  extensions = ["hardLineBreak"]
+
 [params]
   themeColor = "theme-base-0f"
   layoutReverse = true
