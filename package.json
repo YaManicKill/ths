@@ -4,8 +4,8 @@
   "description": "Website for Rants With Al",
   "main": "package.json",
   "scripts": {
-    "build": "rm -rf public/ && hugo",
-    "dev": "rm -rf public/ && hugo server --bind 0.0.0.0"
+    "build": "rimraf public/ && hugo",
+    "dev": "rimraf public/ && hugo server --bind 0.0.0.0"
   },
   "repository": {
     "type": "git",
@@ -19,6 +19,7 @@
   "homepage": "https://github.com/yamanickill/rantswithal#readme",
   "dependencies": {
     "hugo": "0.0.3",
-    "hugo-cli": "^0.5.4"
+    "hugo-cli": "^0.5.4",
+    "rimraf": "^2.6.2"
   }
 }
