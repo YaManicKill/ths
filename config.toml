@@ -10,3 +10,4 @@ theme = "hyde"
   themeColor = "theme-base-0f"
   layoutReverse = true
   description = "A podcast about farming sims"
+  creator = "TheScotBot"
