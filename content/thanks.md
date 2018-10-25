@@ -2,4 +2,4 @@
 layout: "page"
 ---
 
-Thanks for your reply
+Thanks for your email.
