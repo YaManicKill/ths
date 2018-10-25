@@ -14,13 +14,16 @@ categories: []
 
 Times are provisional, these notes are for testing purposes only.
 
+## Timings
+
 [01:00] Introduction to the podcast
 [10:00] What are farming games
 [20:00] Who are we
 [30:00] What are we playing?
 [40:00] What are we looking forward to?
 
-Links:
+## Links
+
 Stardew Valley: https://stardewvalley.net/
 Stardew Valley mobile: https://stardewvalley.net/stardew-valley-coming-to-mobile/
 Trio of Towns for 3DS: https://www.nintendo.co.uk/Games/Nintendo-3DS/Story-of-Seasons-Trio-of-Towns-1248829.html
@@ -31,7 +34,8 @@ Other games that we mentioned that I'll add in once I edit: http://linkylinklink
 
 Transcript: [link to the transcript]
 
-Contact:
+## Contact
+
 Raschelle: https://twitter.com/missdellaney
 Al: https://twitter.com/TheScotBot
 Website: http://harvestseason.club
