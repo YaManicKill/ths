@@ -11,3 +11,12 @@ theme = "hyde"
   layoutReverse = true
   description = "A podcast about farming sims"
   creator = "TheScotBot"
+
+[menu]
+
+  [[menu.main]]
+    identifier = "contact"
+    name = "Contact"
+    pre = "<i class='fa fa-heart'></i>"
+    url = "/contact/"
+    weight = -110
