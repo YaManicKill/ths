@@ -19,6 +19,7 @@ Times are provisional, these notes are for testing purposes only.
 [01:00] Introduction to the podcast
 [10:00] What are farming games
 [20:00] Who are we
+[25:00] Our favourite games
 [30:00] What are we playing?
 [40:00] What are we looking forward to?
 
@@ -27,10 +28,12 @@ Times are provisional, these notes are for testing purposes only.
 Stardew Valley: https://stardewvalley.net/
 Stardew Valley mobile: https://stardewvalley.net/stardew-valley-coming-to-mobile/
 Trio of Towns for 3DS: https://www.nintendo.co.uk/Games/Nintendo-3DS/Story-of-Seasons-Trio-of-Towns-1248829.html
+Ooblets: https://ooblets.com/
+New Friend screen on Ooblets: https://twitter.com/nonplayercat/status/1051486114593329152?s=19
+World's Dawn on Steam: https://store.steampowered.com/app/432010/Worlds_Dawn/
+Stardew Valley Multiplayer Update: https://stardewvalley.net/stardew-valley-1-3-multiplayer-update-is-now-available/
 Garden Paws on Steam: https://store.steampowered.com/app/840010/Garden_Paws/
 Garden Paws on Twitter: https://twitter.com/gardenpawsgame?lang=en
-Ooblets: https://ooblets.com/
-Other games that we mentioned that I'll add in once I edit: http://linkylinklink.links
 
 Transcript: [link to the transcript]
 
