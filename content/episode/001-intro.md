@@ -21,7 +21,7 @@ Times are provisional, these notes are for testing purposes only.
 [20:00] Who are we
 [25:00] Our favourite games
 [30:00] What are we playing?
-[40:00] What are we looking forward to?
+[40:00] What are we looking forward to? 
 
 ## Links
 
@@ -32,6 +32,7 @@ Ooblets: https://ooblets.com/
 New Friend screen on Ooblets: https://twitter.com/nonplayercat/status/1051486114593329152?s=19
 World's Dawn on Steam: https://store.steampowered.com/app/432010/Worlds_Dawn/
 Stardew Valley Multiplayer Update: https://stardewvalley.net/stardew-valley-1-3-multiplayer-update-is-now-available/
+Story of Seasons Switch Announcement: https://nichegamer.com/2017/01/14/story-of-seasons-games-coming-to-nintendo-switch/
 Garden Paws on Steam: https://store.steampowered.com/app/840010/Garden_Paws/
 Garden Paws on Twitter: https://twitter.com/gardenpawsgame?lang=en
 
