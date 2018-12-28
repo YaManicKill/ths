@@ -9,8 +9,9 @@ theme = "hyde"
 [params]
   themeColor = "theme-base-0f"
   layoutReverse = true
-  description = "A podcast about farming sims"
+  description = "A podcast about farming simulators"
   creator = "TheScotBot"
+  author = "Al McKinlay and Raschelle Dellaney 
 
 [menu]
 
