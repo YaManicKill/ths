@@ -11,3 +11,9 @@ author: "Al McKinlay and Raschelle Dellaney"
 aliases: []
 categories: []
 ---
+
+The Harvest Season is a new podcast from Al McKinlay and Raschelle Dellaney.
+
+It'll cover farming games, what we like, what we play, what we dislike, our favourites.
+
+Coming in 2019. 
