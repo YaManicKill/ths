@@ -11,7 +11,7 @@ theme = "hyde"
   layoutReverse = true
   description = "A podcast about farming simulators"
   creator = "TheScotBot"
-  author = "Al McKinlay and Raschelle Dellaney 
+  author = "Al McKinlay and Raschelle Dellaney"
 
 [menu]
 
