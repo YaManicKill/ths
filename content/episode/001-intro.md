@@ -5,7 +5,7 @@ Description: "We talk about who we are, and what the podcast will be about."
 podcast: "ths-001.mp3"
 podcast_bytes: ""
 podcast_duration: ""
-date: 2019-01-16T00:21:00+00:00
+date: 2019-01-16T21:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
 aliases: []
