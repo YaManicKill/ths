@@ -1,27 +1,26 @@
 ---
-title: "Introduction (Pilot)"
-episode: "1"
+title: "New Beginnings"
+episode: "Spring 1"
 Description: "We talk about who we are, and what the podcast will be about."
-podcast: "ths-001.mp3"
+podcast: "ths-1-1-1.mp3"
 podcast_bytes: ""
 podcast_duration: ""
 date: 2019-01-16T21:00:00+00:00
 
-author: "Al McKinlay and Raschelle Dellaney"
+author: "Al McKinlay and Raschelle Dellaney" 
 aliases: []
 categories: []
 ---
 
-Times are provisional, these notes are for testing purposes only.
-
 ## Timings
 
-[01:00] Introduction to the podcast
-[10:00] What are farming games
-[20:00] Who are we
-[25:00] Our favourite games
-[30:00] What are we playing?
-[40:00] What are we looking forward to? 
+[00:30] Intro to the podcast
+[02:04] What are farming games
+[07:13] Who are we
+[17:00] Our favourite games
+[20:19] What are we playing?
+[24:11] What are we looking forward to? 
+[27:44] Outro
 
 ## Links
 
