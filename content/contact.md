@@ -1,6 +1,7 @@
 ---
 layout: "contact"
 menu: "main"
+title: "Contact"
 ---
 
 ## Contact
