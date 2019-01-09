@@ -3,9 +3,9 @@ title: "New Beginnings"
 episode: "Spring 1"
 Description: "We talk about who we are, and what the podcast will be about."
 podcast: "ths-1-1-1.mp3"
-podcast_bytes: ""
-podcast_duration: ""
-date: 2019-01-16T21:00:00+00:00
+podcast_bytes: "21028835"
+podcast_duration: "00:29:34"
+date: 2019-01-09T21:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney" 
 aliases: []
@@ -35,7 +35,7 @@ Story of Seasons Switch Announcement: https://nichegamer.com/2017/01/14/story-of
 Garden Paws on Steam: https://store.steampowered.com/app/840010/Garden_Paws/
 Garden Paws on Twitter: https://twitter.com/gardenpawsgame?lang=en
 
-Transcript: [link to the transcript]
+Transcript: https://docs.google.com/document/d/1CdPRr2vFpkWQ_C4lMnb-vxfP024PoN19p6puwxxfYfU/edit?usp=sharing
 
 ## Contact
 
