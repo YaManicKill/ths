@@ -1,9 +1,9 @@
 ---
-title: ""
+title: "Meeting the Villagers"
 episode: "Spring 2"
 Description: "We talk about one of the biggest farming games, and an indie sensation of the last few years ... stardew valley"
 podcast: "ths-1-1-2.mp3"
-podcast_bytes: ""
+podcast_bytes: "67082030"
 podcast_duration: "01:09:52"
 date: 2019-01-23T21:00:00+00:00
 
