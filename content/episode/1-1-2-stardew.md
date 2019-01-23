@@ -44,7 +44,7 @@ Stardew 1.3 update: https://www.stardewvalley.net/stardew-valley-1-3-multiplayer
 "What's in store for Stardew Valley": https://www.stardewvalley.net/whats-in-store-for-stardew-valley/
 
 
-Transcript: 
+Transcript: https://docs.google.com/document/d/1L2MERbwAIgnHKs4AyfYYFtVsbMElGoKynL5cz92FYQg/edit?usp=sharing
 
 ## Contact
 
