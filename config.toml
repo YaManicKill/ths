@@ -11,6 +11,6 @@ theme = "hyde"
   layoutReverse = true
   description = "A podcast about farming simulators"
   author = "Al McKinlay and Raschelle Dellaney"
-  category = "Games &amp; Hobbies"
+  category = "Games & Hobbies"
   subcategory = "Video Games"
   year = "2019"
