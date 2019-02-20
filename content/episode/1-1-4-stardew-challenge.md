@@ -23,8 +23,9 @@ author: "Al McKinlay and Raschelle Dellaney"
 
 Stardew Valley for Android: https://twitter.com/ChucklefishLTD/status/1096087279465058305?s=09
 Stardew Valley 1.4 "beginner's" fishing rod: https://twitter.com/ConcernedApe/status/1093686536443293697
-Rune Factory 4 Special for Switch: 
-Rune Factory 5: 
+Rune Factory 4 Special for Switch: https://twitter.com/NintendoAmerica/status/1095810112562782208
+Rune Factory 5 tweet: https://twitter.com/NintendoAmerica/status/1095810362740375552
+Rune Factory 5 Japanese website: https://www.marv.jp/special/game/runefactory5/
 Summer in Mara: https://www.kickstarter.com/projects/1602345155/summer-in-mara-an-adventure-set-in-a-tropical-ocea?ref=TW1
 Factory Town: https://store.steampowered.com/app/860890/Factory_Town/
 Re:Legend Alpha Release: https://twitter.com/playrelegend/status/1094231728061702144?s=09
