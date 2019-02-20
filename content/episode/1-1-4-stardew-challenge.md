@@ -32,7 +32,7 @@ Re:Legend Alpha Release: https://twitter.com/playrelegend/status/109423172806170
 Fishing Star World Tour: https://www.nintendo.com/games/detail/fishing-star-world-tour-switch
 Hint about Forager Release Date: https://twitter.com/_HopFrog/status/1095431829983805447?s=09
 
-Transcript: https://docs.google.com/document/d/1FBj72bRYuzD7damWTwxfqOvAyV1XGbGnGhcQ5_5Jw8w/edit?usp=sharing
+Transcript: https://docs.google.com/document/d/1mpccOGuJy-VTgcSR1GNuQsc4Vw-p4j_9ztpFiqfO-4Q
 
 ## Contact
 
