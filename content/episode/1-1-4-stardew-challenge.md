@@ -1,5 +1,5 @@
 ---
-title: ""
+title: "Mining is a Dangerous Profession"
 episode: "Spring 4"
 Description: "Raschelle and Al talk about their first Challenge, mining in Stardew."
 podcast: "ths-1-1-4.mp3"
