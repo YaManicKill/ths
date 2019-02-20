@@ -12,12 +12,12 @@ author: "Al McKinlay and Raschelle Dellaney"
 
 ## Timings
 
-[00:] Intro
-[] Feedback
-[] What are we playing?
-[] News
-[] Stardew Challenge
-[] Outro
+[00:26] Intro
+[01:45] Feedback
+[03:05] What are we playing?
+[05:57] News
+[23:47] Stardew Challenge
+[1:04:02] Outro
 
 ## Links
 
