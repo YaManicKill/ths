@@ -5,7 +5,7 @@ Description: "We look at Trio of Towns, and discuss the underlying story and all
 podcast: "ths-1-1-7.mp3"
 podcast_bytes: "124578167"
 podcast_duration: "02:09:46"
-date: 2019-04-03T21:00:00+00:00
+date: 2019-04-03T20:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
 ---
