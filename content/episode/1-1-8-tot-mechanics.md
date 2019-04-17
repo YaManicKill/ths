@@ -3,7 +3,7 @@ title: "100 years of Mechanics"
 episode: "Spring 8"
 Description: "We look at Trio of Towns, and discuss the mechanics and how you play the game."
 podcast: "ths-1-1-8.mp3"
-podcast_bytes: ""
+podcast_bytes: "107697213"
 podcast_duration: "1:52:11"
 date: 2019-04-17T20:00:00+00:00
 
@@ -39,7 +39,7 @@ Farm Folks Alpha: https://twitter.com/farmfolksgame/status/1113214958160863232
 
 Story of Seasons, Trio of Towns: https://harvestmoon.fandom.com/wiki/Story_of_Seasons:_Trio_of_Towns
 
-Transcript: 
+Transcript: Coming soon
 
 ## Contact
 
