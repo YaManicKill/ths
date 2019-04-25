@@ -576,10 +576,10 @@ http-cache-semantics@3.8.1:
   resolved "https://registry.yarnpkg.com/http-cache-semantics/-/http-cache-semantics-3.8.1.tgz#39b0e16add9b605bf0a9ef3d9daaf4843b4cacd2"
   integrity sha512-5ai2iksyV8ZXmnZhHH4rWPoxxistEexSi5936zIQ1bnNTW5VnA85B6P/VpXiRM017IgRvb2kKo1a//y+0wSp3w==
 
-hugo-bin@^0.43.3:
-  version "0.43.3"
-  resolved "https://registry.yarnpkg.com/hugo-bin/-/hugo-bin-0.43.3.tgz#29d3b348cd03d6f5be99e127cf253a1e9f9e91c2"
-  integrity sha512-E+Xb+WH0Rvr8BQ9tLQ1CcClIEn1Bjd0LOOM0cRgz0M2aHunn7WDwRJs5oJYL3I2oWYXcdf8a0AVS/QgSCgupCQ==
+hugo-bin@0.43.4:
+  version "0.43.4"
+  resolved "https://registry.yarnpkg.com/hugo-bin/-/hugo-bin-0.43.4.tgz#884ffe345f5eab17bad1f700ee752b56a6227ade"
+  integrity sha512-A9zJMjfS2dslUaOLq/nHif5jiYbMk9Hp7r7cnJYWiLGdki0xl69sjMlunCZc7GWJcOb24WBALxJ3wncsVwswgA==
   dependencies:
     bin-wrapper "^4.1.0"
     pkg-conf "^3.1.0"
@@ -1009,7 +1009,7 @@ responselike@1.0.2:
   dependencies:
     lowercase-keys "^1.0.0"
 
-rimraf@^2.6.2:
+rimraf@2.6.2:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.6.2.tgz#2ed8150d24a16ea8651e6d6ef0f47c4158ce7a36"
   integrity sha512-lreewLK/BlghmxtfH36YYVg1i8IAce4TI7oao75I1g245+6BctqTVQiBP3YUJ9C6DQOXJmkYR9X9fCLtCOJc5w==
