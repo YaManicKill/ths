@@ -2,5 +2,5 @@
   "extends": [
     "config:base"
   ],
-  "reviewers": ["McInkay"]
+  "assignees": ["McInkay"]
 }
