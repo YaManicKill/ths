@@ -5,7 +5,7 @@ Description: "We talk about "
 podcast: "ths-1-1-12.mp3"
 podcast_bytes: "46786768"
 podcast_duration: "48:44"
-date: 2019-06-13T20:00:00+00:00
+date: 2019-06-12T20:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
 ---
