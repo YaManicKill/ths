@@ -1,8 +1,9 @@
 ---
 title: "The Expert at Being Mildly Satisfied"
 episode: "Spring 12"
-Description: "We talk about "
-podcast: "ths-1-1-12.mp3"
+Description: "We talk about games we are loking forward to coming out"
+guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-12.mp3"
+podcast: "ths/year1/spring/ths-1-1-12.mp3"
 podcast_bytes: "46786768"
 podcast_duration: "48:44"
 date: 2019-06-12T20:00:00+00:00

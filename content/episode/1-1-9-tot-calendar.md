@@ -2,7 +2,8 @@
 title: "100 Years of Festivals"
 episode: "Spring 9"
 Description: "We discuss all the calendar related events in Story of Seasons: Trio of Towns"
-podcast: "ths-1-1-9.mp3"
+guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-9.mp3"
+podcast: "ths/year1/spring/ths-1-1-09.mp3"
 podcast_bytes: "70046383"
 podcast_duration: "01:08:33"
 date: 2019-05-01T20:00:00+00:00

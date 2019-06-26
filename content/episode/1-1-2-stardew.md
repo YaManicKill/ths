@@ -2,7 +2,8 @@
 title: "Meeting the Villagers"
 episode: "Spring 2"
 Description: "We talk about one of the biggest farming games, and an indie sensation of the last few years ... stardew valley"
-podcast: "ths-1-1-2.mp3"
+guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-2.mp3"
+podcast: "ths/year1/spring/ths-1-1-02.mp3"
 podcast_bytes: "67082030"
 podcast_duration: "01:09:52"
 date: 2019-01-23T21:00:00+00:00
@@ -42,7 +43,6 @@ Stardew 1.1 update: https://www.stardewvalley.net/stardew-valley-v1-1-changelog/
 Stardew 1.2 update: https://www.stardewvalley.net/stardew-valley-1-2-is-here/
 Stardew 1.3 update: https://www.stardewvalley.net/stardew-valley-1-3-multiplayer-update-is-now-available/
 "What's in store for Stardew Valley": https://www.stardewvalley.net/whats-in-store-for-stardew-valley/
-
 
 Transcript: https://docs.google.com/document/d/1L2MERbwAIgnHKs4AyfYYFtVsbMElGoKynL5cz92FYQg/edit?usp=sharing
 

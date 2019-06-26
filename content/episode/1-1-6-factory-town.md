@@ -2,7 +2,8 @@
 title: "Automate All The Things!!"
 episode: "Spring 6"
 Description: "Al and Raschelle look at the new game Factory Town. Raschelle gets addicted."
-podcast: "ths-1-1-6.mp3"
+guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-6.mp3"
+podcast: "ths/year1/spring/ths-1-1-06.mp3"
 podcast_bytes: "75021164"
 podcast_duration: "01:18:08"
 date: 2019-03-20T21:00:00+00:00
@@ -25,7 +26,7 @@ You can get Factory Town on Steam now. https://store.steampowered.com/app/860890
 
 The Good Life: https://www.kickstarter.com/projects/476090608/the-good-life/
 Forager on mobile screenshot: https://twitter.com/_HopFrog/status/1103330053423841283
-Confirmation of Forager coming to mobile: https://twitter.com/_HopFrog/status/1103681095197970434 
+Confirmation of Forager coming to mobile: https://twitter.com/_HopFrog/status/1103681095197970434
 Farm Folks development roadmap: https://trello.com/b/i8jAzlrv/farm-folks-development-roadmap
 Islanders: https://twitter.com/_grizzlygames/status/1105135020128256000?s=09
 
