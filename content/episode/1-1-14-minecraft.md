@@ -27,7 +27,7 @@ author: "Al McKinlay and Raschelle Dellaney"
 
 [Minecraft](https://www.minecraft.net/en-us/)
 
-[Transcript]()
+[Transcript](https://docs.google.com/document/d/1ig5fLfieK5TxmKS_NAYChO2RdyZ8y0WSiwP-YXvLEe0/edit?usp=sharing)
 
 ## Contact
 
