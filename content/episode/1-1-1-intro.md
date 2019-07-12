@@ -2,12 +2,13 @@
 title: "New Beginnings"
 episode: "Spring 1"
 Description: "We talk about who we are, and what the podcast will be about."
-podcast: "ths-1-1-1.mp3"
+guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-1.mp3"
+podcast: "ths/year1/spring/ths-1-1-01.mp3"
 podcast_bytes: "21028835"
 podcast_duration: "00:29:34"
 date: 2019-01-09T21:00:00+00:00
 
-author: "Al McKinlay and Raschelle Dellaney" 
+author: "Al McKinlay and Raschelle Dellaney"
 aliases: []
 categories: []
 ---
@@ -19,7 +20,7 @@ categories: []
 [07:13] Who are we
 [17:00] Our favourite games
 [20:19] What are we playing?
-[24:11] What are we looking forward to? 
+[24:11] What are we looking forward to?
 [27:44] Outro
 
 ## Links

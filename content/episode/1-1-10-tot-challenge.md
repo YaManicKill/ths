@@ -2,7 +2,8 @@
 title: "The Best Soybeans in the World"
 episode: "Spring 10"
 Description: "We talk about our Trio of Towns challenge. Who will win this one?"
-podcast: "ths-1-1-10.mp3"
+guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-10.mp3"
+podcast: "ths/year1/spring/ths-1-1-10.mp3"
 podcast_bytes: "67967267"
 podcast_duration: "01:10:47"
 date: 2019-05-15T20:00:00+00:00

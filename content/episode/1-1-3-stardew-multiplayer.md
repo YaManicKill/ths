@@ -2,7 +2,8 @@
 title: "Farming With Friends"
 episode: "Spring 3"
 Description: "We talk about the newest update for Stardew Valley, including the multiplayer functionality"
-podcast: "ths-1-1-3.mp3"
+guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-3.mp3"
+podcast: "ths/year1/spring/ths-1-1-03.mp3"
 podcast_bytes: "70143854"
 podcast_duration: "01:08:09"
 date: 2019-02-06T21:00:00+00:00
@@ -19,7 +20,7 @@ author: "Al McKinlay and Raschelle Dellaney"
 [24:50] Stardew 1.3 update intro
 [29:18] Intro to multiplayer
 [39:29] New single player content
-[55:36] Multiplayer opinions 
+[55:36] Multiplayer opinions
 [1:04:00] Stardew Challenge (next episode)
 [1:06:14] Outro
 
