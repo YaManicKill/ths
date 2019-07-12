@@ -2,7 +2,6 @@
 title: "A Very Well Structured Episode"
 episode: "Spring 14"
 Description: "We talk about Minecraft, and why it is, infact, a farming game."
-podcast: "ths-1-1-14.mp3"
 guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-14.mp3"
 podcast: "ths/year1/spring/ths-1-1-14.mp3"
 podcast_bytes: "73026245"
