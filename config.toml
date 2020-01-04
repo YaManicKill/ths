@@ -3,6 +3,9 @@ languageCode = "en-gb"
 title = "The Harvest Season"
 theme = "hyde"
 
+[markup]
+    defaultMarkdownHandler = "blackfriday"
+
 [blackfriday]
   extensions = ["hardLineBreak"]
 
