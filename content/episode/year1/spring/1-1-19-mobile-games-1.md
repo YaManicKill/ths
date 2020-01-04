@@ -1,6 +1,7 @@
 ---
 title: "Microtransactions!!!!!"
-episode: "Spring 19"
+episode: "19"
+season: "Year 1, Spring"
 Description: "We talk about a couple of mobile farming games."
 guid: "ths-1-1-19"
 podcast: "ths/year1/spring/ths-1-1-19.mp3"

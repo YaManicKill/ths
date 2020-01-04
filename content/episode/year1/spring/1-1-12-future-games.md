@@ -1,6 +1,7 @@
 ---
 title: "The Expert at Being Mildly Satisfied"
-episode: "Spring 12"
+episode: "12"
+season: "Year 1, Spring"
 Description: "We talk about games we are loking forward to coming out"
 guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-12.mp3"
 podcast: "ths/year1/spring/ths-1-1-12.mp3"

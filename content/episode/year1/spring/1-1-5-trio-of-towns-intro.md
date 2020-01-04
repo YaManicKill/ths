@@ -1,6 +1,7 @@
 ---
 title: "Read All About It"
-episode: "Spring 5"
+episode: "5"
+season: "Year 1, Spring"
 Description: "An introduction to Story of Seasons: Trio of Towns, a whole lot of news, and some discussion about Pokémon."
 guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-5.mp3"
 podcast: "ths/year1/spring/ths-1-1-05.mp3"

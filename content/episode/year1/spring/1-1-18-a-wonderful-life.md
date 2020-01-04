@@ -1,6 +1,7 @@
 ---
 title: "A/Nother Wonderful Life (SE)"
-episode: "Spring 18"
+episode: "18"
+season: "Year 1, Spring"
 Description: "We talk about the classic game Harvest Moon: A Wonderful Life."
 guid: "ths-1-1-18"
 podcast: "ths/year1/spring/ths-1-1-18.mp3"

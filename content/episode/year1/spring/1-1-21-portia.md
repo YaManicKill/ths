@@ -1,6 +1,7 @@
 ---
 title: "the most high energy episode"
-episode: "Spring 21"
+episode: "21"
+season: "Year 1, Spring"
 Description: "We talk about My Time at Portia. Finally."
 guid: "ths-1-1-21"
 podcast: "ths/year1/spring/ths-1-1-21.mp3"

@@ -1,6 +1,7 @@
 ---
 title: "Farming With Friends"
-episode: "Spring 3"
+episode: "3"
+season: "Year 1, Spring"
 Description: "We talk about the newest update for Stardew Valley, including the multiplayer functionality"
 guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-3.mp3"
 podcast: "ths/year1/spring/ths-1-1-03.mp3"

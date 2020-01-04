@@ -1,6 +1,7 @@
 ---
 title: "Spooky Scary Skeletons"
-episode: "Spring 22"
+episode: "22"
+season: "Year 1, Spring"
 Description: "We talk about Graveyard Keeper, a spooky scary game."
 guid: "ths-1-1-22"
 podcast: "ths/year1/spring/ths-1-1-22.mp3"

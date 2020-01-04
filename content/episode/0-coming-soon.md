@@ -7,6 +7,7 @@ podcast: "ths/ths-0.mp3"
 podcast_bytes: "627702"
 podcast_duration: "00:00:36"
 date: 2018-12-31T09:00:00+00:00
+type: "trailer"
 
 author: "Al McKinlay and Raschelle Dellaney"
 aliases: []

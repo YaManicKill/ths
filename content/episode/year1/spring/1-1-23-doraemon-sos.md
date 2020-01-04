@@ -1,6 +1,7 @@
 ---
 title: "Watch Doraemon, Play Picross"
-episode: "Spring 23"
+episode: "23"
+season: "Year 1, Spring"
 Description: "We talk about Doraemon Story of Seasons, with a special guest."
 guid: "ths-1-1-23"
 podcast: "ths/year1/spring/ths-1-1-23.mp3"

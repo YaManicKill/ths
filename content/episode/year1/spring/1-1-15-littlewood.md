@@ -1,6 +1,7 @@
 ---
 title: "You say gif, I say gif, let's call the whole thing off"
-episode: "Spring 15"
+episode: "15"
+season: "Year 1, Spring"
 Description: "We talk about Littlewood. Is it the best farming game ever?"
 guid: "ths-1-1-15"
 podcast: "ths/year1/spring/ths-1-1-15.mp3"

@@ -1,6 +1,7 @@
 ---
 title: "Automate All The Things!!"
-episode: "Spring 6"
+episode: "6"
+season: "Year 1, Spring"
 Description: "Al and Raschelle look at the new game Factory Town. Raschelle gets addicted."
 guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-6.mp3"
 podcast: "ths/year1/spring/ths-1-1-06.mp3"

@@ -1,6 +1,7 @@
 ---
 title: "100 years of Mechanics"
-episode: "Spring 8"
+episode: "8"
+season: "Year 1, Spring"
 Description: "We look at Trio of Towns, and discuss the mechanics and how you play the game."
 guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-8.mp3"
 podcast: "ths/year1/spring/ths-1-1-08.mp3"

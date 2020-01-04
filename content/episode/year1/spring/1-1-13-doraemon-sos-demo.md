@@ -1,6 +1,7 @@
 ---
 title: "The Hat is Evil"
-episode: "Spring 13"
+episode: "13"
+season: "Year 1, Spring"
 Description: "We talk about the demo for Doraemon Story of Seaons, and initial thoughts on the game."
 guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-13.mp3"
 podcast: "ths/year1/spring/ths-1-1-13.mp3"
