@@ -1,7 +1,9 @@
 ---
 title: "We are now a Pokemon podcast"
 episode: "24"
-season: "Year 1, Spring"
+season: "1"
+seasonName: "Spring"
+year: "1"
 Description: "We talk about Pokemon. Because we are a relevant podcast."
 guid: "ths-1-1-24"
 podcast: "ths/year1/spring/ths-1-1-24.mp3"

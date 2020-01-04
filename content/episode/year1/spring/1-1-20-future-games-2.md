@@ -1,7 +1,9 @@
 ---
 title: "Hashtag Swimsuits For All"
 episode: "20"
-season: "Year 1, Spring"
+season: "1"
+seasonName: "Spring"
+year: "1"
 Description: "We talk about a number of games we want to play."
 guid: "ths-1-1-20"
 podcast: "ths/year1/spring/ths-1-1-20.mp3"

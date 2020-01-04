@@ -1,7 +1,9 @@
 ---
 title: "Mining is a Dangerous Profession"
 episode: "4"
-season: "Year 1, Spring"
+season: "1"
+seasonName: "Spring"
+year: "1"
 Description: "Raschelle and Al talk about their first Challenge, mining in Stardew."
 guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-4.mp3"
 podcast: "ths/year1/spring/ths-1-1-04.mp3"

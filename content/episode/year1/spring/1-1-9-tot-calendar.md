@@ -1,7 +1,9 @@
 ---
 title: "100 Years of Festivals"
 episode: "9"
-season: "Year 1, Spring"
+season: "1"
+seasonName: "Spring"
+year: "1"
 Description: "We discuss all the calendar related events in Story of Seasons: Trio of Towns"
 guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-9.mp3"
 podcast: "ths/year1/spring/ths-1-1-09.mp3"

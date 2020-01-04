@@ -1,7 +1,9 @@
 ---
 title: "I Played Some Forager, True Story"
 episode: "16"
-season: "Year 1, Spring"
+season: "1"
+seasonName: "Spring"
+year: "1"
 Description: "We talk about Forager, and how it might have been designed with Al in mind."
 guid: "ths-1-1-16"
 podcast: "ths/year1/spring/ths-1-1-16.mp3"

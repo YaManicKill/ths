@@ -1,7 +1,9 @@
 ---
 title: "100 Years Of Characters"
 episode: "7"
-season: "Year 1, Spring"
+season: "1"
+seasonName: "Spring"
+year: "1"
 Description: "We look at Trio of Towns, and discuss the underlying story and all about the characters."
 guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-1-1-7.mp3"
 podcast: "ths/year1/spring/ths-1-1-07.mp3"
