@@ -17,3 +17,12 @@ theme = "hyde"
   category = "Leisure"
   subcategory = "Video Games"
   year = "2019"
+
+[menu]
+
+  [[menu.main]]
+    identifier = "patreon"
+    name = "Patreon"
+    title = "patreon"
+    url = "https://www.patreon.com/thspod"
+    weight = -110
