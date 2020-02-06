@@ -25,4 +25,11 @@ theme = "hyde"
     name = "Patreon"
     title = "patreon"
     url = "https://www.patreon.com/thspod"
-    weight = -110
+    weight = -1
+
+  [[menu.main]]
+    identifier = "twitter"
+    name = "Twitter"
+    title = "twitter"
+    url = "https://www.twitter.com/thspod"
+    weight = -1
