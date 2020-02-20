@@ -17,6 +17,10 @@ theme = "hyde"
   category = "Leisure"
   subcategory = "Video Games"
   year = "2019"
+  itunes = "https://itunes.apple.com/podcast/the-harvest-season/id1449112246?mt=2"
+  pocketcasts = "https://pca.st/z5HX"
+  overcast = "https://overcast.fm/itunes1449112246"
+  spotify = "https://open.spotify.com/show/1T6fbWhiBgH2Ym85KloVEs"
 
 [menu]
 
