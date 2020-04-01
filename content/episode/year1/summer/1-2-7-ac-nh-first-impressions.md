@@ -9,7 +9,7 @@ guid: "ths-1-2-7"
 podcast: "ths/year1/summer/ths-1-2-7.mp3"
 podcast_bytes: "74572276"
 podcast_duration: "01:17:40"
-date: 2020-04-01T19:00:00+00:00
+date: 2020-04-01T18:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
 ---
