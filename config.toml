@@ -21,6 +21,7 @@ theme = "hyde"
   pocketcasts = "https://pca.st/z5HX"
   overcast = "https://overcast.fm/itunes1449112246"
   spotify = "https://open.spotify.com/show/1T6fbWhiBgH2Ym85KloVEs"
+  youtube = "https://www.youtube.com/channel/UCQFJD0AzhVTQCAlHTQS7RMQ"
 
 [menu]
 
