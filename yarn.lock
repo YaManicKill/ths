@@ -576,10 +576,10 @@ http-cache-semantics@3.8.1:
   resolved "https://registry.yarnpkg.com/http-cache-semantics/-/http-cache-semantics-3.8.1.tgz#39b0e16add9b605bf0a9ef3d9daaf4843b4cacd2"
   integrity sha512-5ai2iksyV8ZXmnZhHH4rWPoxxistEexSi5936zIQ1bnNTW5VnA85B6P/VpXiRM017IgRvb2kKo1a//y+0wSp3w==
 
-hugo-bin@0.62.1:
-  version "0.62.1"
-  resolved "https://registry.yarnpkg.com/hugo-bin/-/hugo-bin-0.62.1.tgz#bb6c62509bbb29bc97774106e5a297b22b017f88"
-  integrity sha512-Ig7QcnPMaqmLmYtFeEt3NblBjd/FRPC/MyRhoj6QCEVOVK5R1WZ+mIbNhuxJ+3U+120z0Z1qc3rrOi/gr0YjNg==
+hugo-bin@0.62.2:
+  version "0.62.2"
+  resolved "https://registry.yarnpkg.com/hugo-bin/-/hugo-bin-0.62.2.tgz#125b0de45efe2a03834011c3d0d9626905f44848"
+  integrity sha512-9H1u0T9Rlf82OzMQIIVdXQdvRfIoDVzxQE6BZH9dcoLFB10Awk/nDd0E0Wvj/aoJ/ymLk7aMtASFc789zqVqwA==
   dependencies:
     bin-wrapper "^4.1.0"
     pkg-conf "^3.1.0"
