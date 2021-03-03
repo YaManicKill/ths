@@ -14,7 +14,7 @@ date: 2021-03-03T19:00:00+00:00
 author: "Al McKinlay and Raschelle Dellaney"
 ---
 
-Also, news about 
+Also, news about Forager, Roots of Pacha, Witchery Acamdemy, and the new Stardew Valley Boardgame.
 
 ## Timings
 
