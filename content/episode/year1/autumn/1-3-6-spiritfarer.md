@@ -14,7 +14,7 @@ date: 2021-03-17T19:00:00+00:00
 author: "Al McKinlay and Raschelle Dellaney"
 ---
 
-Also, news about 
+Also, news about Spiritfarer, Len's Island, Ooblets, and an Animal Crossing/Build a bear crossover.
 
 ## Timings
 
