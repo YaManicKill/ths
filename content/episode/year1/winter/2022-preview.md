@@ -6,7 +6,7 @@ seasonName: "Winter"
 year: "1"
 Description: "Al, Codey, and Kevin talk about the games upcoming in 2022"
 guid: "ths-1-4-1"
-podcast: "ths/year1/autumn/ths-1-4-1.mp3"
+podcast: "ths/year1/winter/ths-1-4-1.mp3"
 podcast_bytes: "140976540"
 podcast_duration: "01:37:45"
 date: 2022-01-12T19:00:00+01:00
