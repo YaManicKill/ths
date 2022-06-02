@@ -9,7 +9,7 @@ guid: "ths-1-4-11"
 podcast: "ths/year1/winter/ths-1-4-11.mp3"
 podcast_bytes: "97973512"
 podcast_duration: "01:07:53"
-date: 2022-06-02T19:00:00+01:00
+date: 2022-06-01T19:00:00+01:00
 
 author: "Al McKinlay"
 ---
