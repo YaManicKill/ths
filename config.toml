@@ -4,9 +4,9 @@ title = "The Harvest Season"
 theme = "hyde"
 
 [markup]
-    defaultMarkdownHandler = "blackfriday"
+    defaultMarkdownHandler = "goldmark"
 
-[blackfriday]
+[goldmark]
   extensions = ["hardLineBreak"]
 
 [params]
