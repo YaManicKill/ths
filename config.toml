@@ -6,8 +6,8 @@ theme = "hyde"
 [markup]
     defaultMarkdownHandler = "goldmark"
 
-[goldmark]
-  extensions = ["hardLineBreak"]
+[markup.goldmark.renderer]
+  hardWraps = true
 
 [params]
   themeColor = "theme-base-0f"
