@@ -1,7 +1,7 @@
 ---
 title: "Pikmin on a Pedestal"
 episode: "7"
-season: "6"
+season: "5"
 seasonName: "Spring"
 year: "2"
 Description: "Al and Kev talk about Garden Galaxy"
