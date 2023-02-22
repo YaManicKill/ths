@@ -1,7 +1,7 @@
 ---
 title: "Very Little Knowledge"
 episode: "6"
-season: "6"
+season: "5"
 seasonName: "Spring"
 year: "2"
 Description: "Kev and Jonnie talk about the 3DS and Wii U farming games we are about to lose"
