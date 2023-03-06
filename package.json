@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/yamanickill/rantswithal#readme",
   "dependencies": {
-    "hugo-bin": "0.99.1",
+    "hugo-bin": "0.99.2",
     "rimraf": "4.2.0"
   }
 }
