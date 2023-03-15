@@ -32,6 +32,7 @@ author: "Al McKinlay"
 [Before The Green Moon](https://store.steampowered.com/app/2323580/Before_The_Green_Moon/)
 [Season: A Letter to the future](https://twitter.com/SeasonTheGame/status/1620488109053054977)
 
+[Original Cult of the Lamb Episode](https://www.harvestseason.club/episode/year1/winter/1-4-22-cult-of-the-lamb/)
 [Cult of the Lamb](https://www.devolverdigital.com/games/cult-of-the-lamb)
 
 ## Contact
