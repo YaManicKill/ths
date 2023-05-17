@@ -32,6 +32,9 @@ Also, Al and Kev go through the news of the week.
 [Go-Go Town Power Tools](https://twitter.com/GoGoTownGame/status/1656433466085609475)
 [Farming Simulator Competitive Mode](https://farming-simulator.com/newsArticle.php?&news_id=469)
 
+[Valerie's Linktree](https://linktr.ee/valerieroselohman)
+[Kev on Twitter](https://twitter.com/koopaprez)
+
 ## Contact
 
 Al on Twitter: https://twitter.com/TheScotBot
