@@ -1,5 +1,5 @@
 ---
-title: ""
+title: "A Wonderful Chat"
 episode: "2"
 season: "6"
 seasonName: "Summer"
