@@ -4,7 +4,7 @@ episode: "9"
 season: "6"
 seasonName: "Summer"
 year: "2"
-Description: "Kev interviews Ray Chase."
+Description: "Kev interviews Wylde Flowers voice actor Ray Chase."
 guid: "ths-2-2-9"
 podcast: "ths/year2/summer/ths-2-2-9.mp3"
 podcast_bytes: "151858006"
@@ -12,6 +12,8 @@ podcast_duration: "01:45:16"
 date: 2023-08-30T19:00:00+01:00
 author: "Al McKinlay"
 ---
+
+Also, Al and Kev go through the news of the week.
 
 ## Timings
 
