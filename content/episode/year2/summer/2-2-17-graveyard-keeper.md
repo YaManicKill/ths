@@ -1,4 +1,4 @@
-œ---
+---
 title: "Zombie Doing Yardwork"
 episode: "17"
 season: "6"
@@ -11,7 +11,6 @@ podcast_bytes: "114574514"
 podcast_duration: "01:19:22"
 date: 2023-10-25T19:00:00+01:00
 author: "Al McKinlay"
-
 ---
 
 ## Timings
