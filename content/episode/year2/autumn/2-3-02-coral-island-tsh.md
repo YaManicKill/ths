@@ -6,7 +6,7 @@ seasonName: "Autumn"
 year: "2"
 Description: "Al and Codey talk about Coral Island"
 guid: "ths-2-3-2"
-podcast: "ths/year2/autumn/ths-2-3-2.mp3"
+podcast: "ths/year2/autumn/ths-2-3-02.mp3"
 podcast_bytes: "121479577"
 podcast_duration: "01:24:10"
 date: 2024-01-10T19:00:00+01:00
