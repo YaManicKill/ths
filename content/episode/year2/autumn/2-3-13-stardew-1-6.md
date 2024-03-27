@@ -9,7 +9,7 @@ guid: "ths-2-3-13"
 podcast: "ths/year2/autumn/ths-2-3-13.mp3"
 podcast_bytes: "156262799"
 podcast_duration: "01:48:19"
-date: 2024-03-27T19:00:00+01:00
+date: 2024-03-27T18:00:00+01:00
 author: "Al McKinlay"
 ---
 
@@ -24,14 +24,14 @@ author: "Al McKinlay"
 
 ## Links
 
-[Fae Farm "Spring" Update](https://store.steampowered.com/news/app/2230110/view/4109044532270267533)
-[Ikonei Island "Blooming Beginnings" Update](https://store.steampowered.com/news/app/1550730/view/4148450398124001094)
-[Steamworld Build "Mechanicsl Meadows" Update](https://store.steampowered.com/news/app/2134770/view/7353887524191048844)
-[Palia 0.178 Update](https://palia.com/news/dev-update-6)
-[Travelers Rest "Fishing" Update](https://twitter.com/TravRestGame/status/1770172639979487646)
-[Tales of the Shire Teaser](https://twitter.com/talesoftheshire/status/1770601258526613762)
+Fae Farm "Spring" Update: https://store.steampowered.com/news/app/2230110/view/4109044532270267533
+Ikonei Island "Blooming Beginnings" Update: https://store.steampowered.com/news/app/1550730/view/4148450398124001094
+Steamworld Build "Mechanicsl Meadows" Update: https://store.steampowered.com/news/app/2134770/view/7353887524191048844
+Palia 0.178 Update: https://palia.com/news/dev-update-6
+Travelers Rest "Fishing" Update: https://twitter.com/TravRestGame/status/1770172639979487646
+Tales of the Shire Teaser: https://twitter.com/talesoftheshire/status/1770601258526613762
 
-[Sakuna: Of Rice and Ruin Anime](https://www.youtube.com/shorts/cwDFZkICRpA)
+Sakuna: Of Rice and Ruin Anime: https://www.youtube.com/shorts/cwDFZkICRpA
 
 ## Contact
 
