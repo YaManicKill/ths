@@ -11,6 +11,7 @@ podcast_bytes: "154424201"
 podcast_duration: "01:47:03"
 date: 2024-03-13T19:00:00+01:00
 author: "Al McKinlay"
+aliases: [2-3-11-coral-island-hopes-and-dreams]
 ---
 
 ## Timings

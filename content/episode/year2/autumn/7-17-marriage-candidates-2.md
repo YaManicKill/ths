@@ -11,6 +11,7 @@ podcast_bytes: "120805100"
 podcast_duration: "01:23:42"
 date: 2024-04-24T19:00:00+01:00
 author: "Al McKinlay"
+aliases: [2-3-17-marriage-candidates-2]
 ---
 
 ## Timings

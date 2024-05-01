@@ -11,6 +11,7 @@ podcast_bytes: "108923951"
 podcast_duration: "01:15:27"
 date: 2024-01-17T19:00:00+01:00
 author: "Al McKinlay"
+aliases: [2-3-03-cottagecore-ideas]
 ---
 
 ## Timings

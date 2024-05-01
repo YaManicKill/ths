@@ -11,6 +11,7 @@ podcast_bytes: "153997692"
 podcast_duration: "01:46:45"
 date: 2024-03-20T19:00:00+01:00
 author: "Al McKinlay"
+aliases: [2-3-12-spells-and-secrets.md]
 ---
 
 ## Timings

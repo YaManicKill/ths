@@ -11,6 +11,7 @@ podcast_bytes: "121479577"
 podcast_duration: "01:24:10"
 date: 2024-01-10T19:00:00+01:00
 author: "Al McKinlay"
+aliases: [2-3-02-coral-island-tsh]
 ---
 
 ## Timings

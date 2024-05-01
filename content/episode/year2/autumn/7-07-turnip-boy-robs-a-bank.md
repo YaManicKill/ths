@@ -11,6 +11,7 @@ podcast_bytes: "92836682"
 podcast_duration: "01:04:17"
 date: 2024-02-14T19:00:00+01:00
 author: "Al McKinlay"
+aliases: [2-3-07-turnip-boy-robs-a-bank]
 ---
 
 ## Timings

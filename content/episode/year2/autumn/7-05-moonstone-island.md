@@ -11,6 +11,7 @@ podcast_bytes: "160459545"
 podcast_duration: "01:51:14"
 date: 2024-01-31T19:00:00+01:00
 author: "Al McKinlay"
+aliases: [2-3-05-moonstone-island]
 ---
 
 ## Timings

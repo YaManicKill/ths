@@ -11,6 +11,7 @@ podcast_bytes: "97798107"
 podcast_duration: "01:07:43"
 date: 2024-02-21T19:00:00+01:00
 author: "Al McKinlay"
+aliases: [2-3-08-demo-bonanza]
 ---
 
 ## Timings
