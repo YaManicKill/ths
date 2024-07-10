@@ -6,7 +6,7 @@ seasonName: "Winter"
 year: "2"
 Description: "Al and Codey talk about their first impressions of Go Go Town, now that it is in Early Access."
 guid: "ths-8-2"
-podcast: "ths/year2/winter/ths-8-2.mp3"
+podcast: "ths/year2/winter/ths-8-02.mp3"
 podcast_bytes: "95160813"
 podcast_duration: "01:05:53"
 date: 2024-07-10T19:00:00+01:00
