@@ -1,8 +1,10 @@
 {
   "extends": [
-    "config:base"
+    "config:recommended"
   ],
-  "assignees": ["AlMcKinlay"],
+  "assignees": [
+    "AlMcKinlay"
+  ],
   "automerge": true,
   "major": {
     "automerge": false
