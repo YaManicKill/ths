@@ -13,6 +13,8 @@ date: 2024-11-13T19:00:00+01:00
 author: "Al McKinlay"
 ---
 
+Disclosure: We received a free review copy of this product from https://www.keymailer.co #livingroom
+
 ## Timings
 
 00:00:00: Theme Tune
