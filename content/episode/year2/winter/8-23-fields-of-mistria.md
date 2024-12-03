@@ -1,5 +1,5 @@
 ---
-title: "Fields of Mistria"
+title: "Episode About A Game"
 episode: "23"
 season: "8"
 seasonName: "Winter"
