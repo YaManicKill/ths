@@ -1,12 +1,12 @@
 ---
 title: "Upcoming 2025"
 episode: "01"
-season: "8"
+season: "9"
 seasonName: "Winter"
 year: "2"
 Description: "Al and Kevin discuss their most anticipated games of 2025"
-guid: "ths-8-01"
-podcast: "ths/year2/winter/ths-8-01.mp3"
+guid: "ths-9-01"
+podcast: "ths/year2/winter/ths-9-01.mp3"
 podcast_bytes: "90963958"
 podcast_duration: "01:02:59"
 date: 2025-01-01T19:00:00+01:00
