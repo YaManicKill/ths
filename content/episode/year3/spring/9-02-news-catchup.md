@@ -6,7 +6,7 @@ seasonName: "Spring"
 year: "3"
 Description: "Codey and Kev catch up on all the recent news"
 guid: "ths-9-02"
-podcast: "ths/year2/winter/ths-9-02.mp3"
+podcast: "ths/year3/spring/ths-9-02.mp3"
 podcast_bytes: "145892776"
 podcast_duration: "01:41:07"
 date: 2025-01-08T19:00:00+00:00
