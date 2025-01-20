@@ -34,6 +34,9 @@ author: "Al McKinlay"
 [Webfishing Cat Plush](https://www.makeship.com/products/webfishing-cat-plush)
 [Animal Crossing Aquarium UK Tour](https://www.nintendo.com/en-gb/News/2025/January/The-Animal-Crossing-New-Horizons-collaboration-event-at-SEA-LIFE-UK-kicks-off-in-February--2732646.html)
 
+[Rusty's Retirement on Steam](https://store.steampowered.com/app/2666510/Rustys_Retirement/)
+[Rusty's Retirement Links](https://tap.bio/@MisterMorrisGames)
+
 ## Contact
 
 Al on Mastodon: https://mastodon.scot/@TheScotBot
