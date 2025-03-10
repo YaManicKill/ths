@@ -11,6 +11,7 @@ podcast_bytes: "142089188"
 podcast_duration: "01:38:29"
 date: 2025-03-05T19:00:00+00:00
 author: "Al McKinlay"
+aliases: [9-10-piczel-cross-rf]
 ---
 
 ## Timings
