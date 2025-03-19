@@ -13,6 +13,8 @@ date: 2025-03-19T19:00:00+00:00
 author: "Al McKinlay"
 ---
 
+Disclosure: We received a free review code for Grimoire Groves. #gifted
+
 ## Timings
 
 00:00:00: Theme Tune
