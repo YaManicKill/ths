@@ -6,7 +6,7 @@ seasonName: "Summer"
 year: "3"
 Description: "Al and Kev talk about whether or not farming game remakes are worth it."
 guid: "ths-10-01"
-podcast: "ths/year3/spring/ths-10-01.mp3"
+podcast: "ths/year3/summer/ths-10-01.mp3"
 podcast_bytes: "165,769,167"
 podcast_duration: "01:54:55"
 date: 2025-07-02T19:00:00+01:00
