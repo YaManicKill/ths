@@ -6,7 +6,7 @@ seasonName: "Summer"
 year: "3"
 Description: "Al and Codey take another look at Len's Island, now that it has released 1.0"
 guid: "ths-10-02"
-podcast: "ths/year3/spring/ths-10-02.mp3"
+podcast: "ths/year3/summer/ths-10-02.mp3"
 podcast_bytes: "140153118"
 podcast_duration: "01:37:08"
 date: 2025-07-09T19:00:00+01:00
