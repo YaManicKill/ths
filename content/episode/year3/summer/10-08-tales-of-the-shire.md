@@ -1,0 +1,1510 @@
+---
+title: "Proportionally Big Feet"
+episode: "08"
+season: "10"
+seasonName: "Summer"
+year: "3"
+Description: "Codey and Spencer talk about Tales of the Shire"
+guid: "ths-10-08"
+podcast: "ths/year3/summer/ths-10-08.mp3"
+podcast_bytes: "136281041"
+podcast_duration: "01:34:27"
+date: 2025-09-03T19:00:00+01:00
+author: "Al McKinlay"
+---
+
+## Timings
+
+00:00:00: Theme Tune
+00:00:30: Intro
+00:03:55: What Have We Been Up To
+00:12:04: Game News
+00:35:27: Tales Of The Shire
+01:31:03: Outro
+
+## Links
+
+[Silksongs Delay Article](https://www.msn.com/en-us/news/technology/even-more-games-are-moving-out-of-silksong-s-way-i-feel-like-a-little-krill-trying-not-to-get-eaten-by-a-blue-whale/ar-AA1L3ggC)
+[Little Witch in the Woods Delay](https://store.steampowered.com/news/app/1594940/view/502834059926307452)
+[Star Birds Delay](https://store.steampowered.com/news/app/2719750/view/538863491448046148)
+[Ages of Cataria Delay](https://www.kickstarter.com/projects/1357767389/colonies-of-cataria-online-colony-sim-game/posts/4468725)
+[Doloc Town "Pastorial Waves" Update](https://store.steampowered.com/news/app/2285550/view/541114656762102015)
+[Stardew Valley Festival of Seasons Album](https://linktr.ee/festivalofseasons)
+
+## Contact
+
+Al on Mastodon: https://mastodon.scot/@TheScotBot
+Email Us: https://harvestseason.club/contact/
+
+## Transcript
+
+(0:00:31) Codey: - Hello, farmers, and welcome back to another episode
+(0:00:33) Codey: of The Harvest Season.
+(0:00:35) Codey: My name is Cody.
+(0:00:37) Spencer: And my name is Spencer.
+(0:00:39) Codey: And we are here today to talk about cottagecore games.
+(0:00:43) Codey: Oh, woo!
+(0:00:47) Codey: Spencer, this is our first, like, main episode.
+(0:00:52) Codey: This is pretty cool.
+(0:00:53) Spencer: Yeah, this is the first time I've been on episode with you
+(0:00:56) Codey: You're kind of a cryptid.
+(0:00:57) Codey: like you're, you're here for like the cool dinosaur.
+(0:01:01) Codey: stuff, you know.
+(0:01:02) Spencer: I mean, I am in the, like, NorCal Pacific Northwest, so, like, very Bigfoot-y, like,
+(0:01:09) Spencer: you see me walk by the tree, and, like, what's that Spencer, and then, like, maybe?
+(0:01:10) Codey: Mm-hmm. Yeah. Oh, okay. Okay, cool. I'm also I'm from I'm from Oregon. I don't know if you knew this. Um, I'm in Pennsylvania right now, but I'm from Oregon. But I, I don't think I could be mistaken for Bigfoot. So it's fine. But mostly, I'm actually interested, not less in Bigfoot and more in the Pacific tree octopus. You know about
+(0:01:16) Spencer: I'm also just as hairy, too.
+(0:01:18) Spencer: Not quite as tall.
+(0:01:19) Spencer: Yeah.
+(0:01:20) Spencer: Oh, okay.
+(0:01:22) Spencer: Oh, okay.
+(0:01:39) Spencer: Mm-hmm. I do not enlighten me. I love cryptids. So this is
+(0:01:40) Codey: that. So that's, yeah, that's my favorite cryptid. It's just talks about how it, you know, because it rains so often in the Pacific Northwest. There's so much moisture that there's an octopus that lives in the tops of trees in a lot of the temper forests in Oregon. So it just lives up in like the conifers. And that's, that's our that's our crypt. That's my cryptid that I think of.
+(0:02:00) Spencer: Hm-hm.
+(0:02:04) Spencer: Oh, okay.
+(0:02:10) Codey: I've learned like, because I moved to Pennsylvania, and then people were like, Oh, yeah, Bigfoot's here. And I was like, What? You trying to take my cryptid? No. Skunk Cape, they got Mothman, they got New Jersey Devil, they got all this stuff, like, keep your own stuff. Sasquatch is ours. Thank you.
+(0:02:20) Spencer: Uh-uh, no, I'm sorry.
+(0:02:22) Spencer: Like you from Oregon, me from Norco, we can't let them have that skunk cape.
+(0:02:27) Spencer: Sure.
+(0:02:28) Spencer: You guys can have skunk cape.
+(0:02:29) Spencer: I don't care.
+(0:02:29) Spencer: Whatever, you know, whatever.
+(0:02:40) Codey: But we are here to talk about something else. And that. Yeah. We're finally here to talk about Tales of the Shy. But not big. Just like it's a short, they're pretty short. Proportionally big feet, correct. But a lot, a smaller crypt, cryptid. I don't know.
+(0:02:46) Spencer: with also big hairy feet.
+(0:02:58) Spencer: Oh, yeah, I guess that's true.
+(0:03:00) Spencer: Well, proportionally big feet.
+(0:03:10) Codey: I was gonna try and make a joke about Silksong that we were here today to talk about Silksong because in the last episode, I didn't listen to the full episode, but I specifically looked to see if Silksong was mentioned. And it was barely mentioned at the end. And then they specifically were talking about how would we have a Silksong episode before Tales of the Shy episode because this episode kept getting delayed.
+(0:03:34) Codey: But that's like, you know, stuff happens and we had to switch people around and it's whatever.
+(0:03:40) Codey: But we are here now. We are going to be talking about it. It's going to happen. Before that, we're going to talk about game news. We're also, this is our recap of I Know What You Released last month. So we're going to talk about all the things that were released last month specifically. But before that, Spencer, what have you been up to?
+(0:03:59) Spencer: Well, I've been focusing mainly on one game, DK Bonanza. I got the Switch too. I played
+(0:04:06) Spencer: through the main story and I don't know if I'm going to go back to do 100% to be 100%
+(0:04:12) Codey: - Okay.
+(0:04:13) Spencer: honest. I am a huge DK fan. So I had very mixed feelings about this game. I know a lot
+(0:04:21) Spencer: of people were excited. I don't want to like spoil anything for people that haven't played
+(0:04:25) Spencer: it yet. A lot of people were kind of like excited about the gameplay.
+(0:04:29) Spencer: And the kind of the end, so to speak, like the end act ending act, I wasn't so much so.
+(0:04:35) Codey: Mm-hmm
+(0:04:41) Spencer: I don't know if if you know me personally, feel free to ask, ask my thoughts on it. Again, spoilers,
+(0:04:48) Codey: Mm-hmm.
+(0:04:50) Spencer: because it is major spoilers for the game. But yeah, I was kind of like, you know, this, this feels
+(0:04:55) Spencer: weird you know and then the game itself it very much plays like
+(0:04:59) Spencer: which makes sense I think the Odyssey team made it if I remember correctly but
+(0:05:04) Spencer: it just kind of to me plays like something that a Mario team put together
+(0:05:09) Spencer: and then decided to slap Donkey Kong on so it was kind of like that was that's
+(0:05:15) Spencer: my rating of the game yeah out of five you know I had fun playing it don't get
+(0:05:17) Codey: Okay.
+(0:05:22) Spencer: me wrong I definitely had fun playing it there were definitely so many things
+(0:05:28) Spencer: things that I did really.
+(0:05:29) Spencer: enjoy. I absolutely loved the characterization between Donkey Kong and young Pauline. That
+(0:05:37) Spencer: was so adorable. They did her so well. I cannot go back to old Pauline now, adult Pauline.
+(0:05:44) Spencer: Her as a teenager, her being goofy and just making fun of Donkey Kong. That was perfect,
+(0:05:53) Spencer: in my opinion. I do think there's something to be said about games that have characters
+(0:06:00) Spencer: on other characters' backs. I don't know why that's the trope. Banjo-Kazooie or Kazooie is in the
+(0:06:00) Codey: Mm-hmm.
+(0:06:04) Codey: Yeah.
+(0:06:06) Spencer: backpack and Yooka-Laylee. Is it Laylee? That's the bat. I don't remember. That weird trope of
+(0:06:12) Codey: Oh, I don't remember.
+(0:06:17) Spencer: characters and the secondary character is riding on the back is appealing to me. That was kind of
+(0:06:21) Codey: Mm hmm. This all this, this also gives like giant smashy guy with a tiny girl,
+(0:06:24) Spencer: cute. But yeah.
+(0:06:33) Codey: like very record Ralph as well.
+(0:06:36) Spencer: Yeah, very Racket Ralph vibe, yeah, I mean the whole game is about smashing, which is, again, odd to me because yeah, I know Donkey Kong's strong, but also Donkey Kong swings through the trees, not digs in the ground, so whatever.
+(0:06:52) Spencer: It was fun. I enjoyed my time with it, but I don't know if I'm going to come back to it for at least a little while. So, what have you.
+(0:06:59) Codey: Um, another thing, well, so before we get to me, I don't, I don't think you've been on the pod for a hot minute. Um, so I would love to get your thoughts about Z.A.
+(0:07:02) Spencer: - Uh-huh.
+(0:07:05) Spencer: - No.
+(0:07:07) Spencer: - ZA, oh, we just got new information on ZA recently too,
+(0:07:12) Spencer: huh?
+(0:07:12) Codey: I don't.
+(0:07:12) Spencer: Mega Halucha, I believe.
+(0:07:14) Spencer: I don't know, am I not supposed to date this episode
+(0:07:18) Spencer: with this?
+(0:07:18) Codey: No, no, you're fine. Yeah.
+(0:07:20) Spencer: Okay, I'm fine, okay, okay.
+(0:07:21) Spencer: I think a day or two ago, Mega Halucha from recording this
+(0:07:25) Spencer: was just released, yeah.
+(0:07:26) Codey: Oh, yeah, it was two days ago.
+(0:07:28) Spencer: I love the design.
+(0:07:29) Spencer: I know I went on a rant with some of the people we know
+(0:07:30) Codey: Heh heh heh heh heh.
+(0:07:32) Spencer: about about Mega Halucha being like from basically
+(0:07:36) Spencer: like Pokemon's France universe versus like like France versus like having a Latin America like
+(0:07:45) Spencer: you know like Pokemon Mexico and having it be there you know but the Pokemon itself absolutely
+(0:07:52) Spencer: love super cool I was like a so-so fan of Halucha and then like just the more I see Halucha in
+(0:07:53) Codey: Mm-hmm.
+(0:07:57) Codey: Mm-hmm.
+(0:07:59) Spencer: general I'm like more a fan of it so seeing the mega was like super cool the game
+(0:08:02) Codey: Mm-hmm.
+(0:08:06) Spencer: itself I don't know I don't know like what I'll be honest like I just I haven't been too like
+(0:08:12) Spencer: excited for a Pokemon thing in a while right like I mean I still like Pokemon I still enjoy playing
+(0:08:14) Codey: Mm-hmm.
+(0:08:18) Spencer: the games but yeah it's just you know it's a game it's coming out soon I'm sure I'll probably buy
+(0:08:20) Codey: Yeah.
+(0:08:25) Spencer: it I'm sure I'll enjoy it when I play it for a little bit I did enjoy Legends like the original
+(0:08:31) Spencer: Legends, so if it plays at least even remotely like that, I'm sure I'll enjoy it.
+(0:08:36) Spencer: A lot more than Scarlet and Violet.
+(0:08:38) Codey: Yeah, I'm not that excited.
+(0:08:44) Codey: I've also kind of been like getting out of like some of the Pokemon.
+(0:08:48) Codey: I like to play the newer games to see what bug Pokemon they have or like how they might
+(0:08:53) Codey: have changed some of the things, some of the smaller mechanics or whatever, but it might
+(0:08:56) Spencer: Yeah, I don't know. It's weird.
+(0:08:59) Codey: just be something I stream from now on.
+(0:09:03) Codey: so okay I just because I know that you're
+(0:09:08) Codey: you know we we know you from the from the Pokemon crew so wanted to get your opinion
+(0:09:12) Spencer: - Mm-hmm.
+(0:09:13) Codey: okay so I what I have been up to this last so I haven't been on for a few months or a
+(0:09:15) Spencer: - Yeah.
+(0:09:22) Codey: few weeks and just a lot has been going on so I had just gotten back from Arizona and then I
+(0:09:31) Codey: also went my mom visited and then I went to Kentucky to identify some bees with a colleague
+(0:09:38) Codey: right before I went to Kentucky I got married so we literally thank you we literally just got like
+(0:09:43) Spencer: Oh wow, congratulations.
+(0:09:46) Codey: the rings and then went and did the paperwork and that was it we don't we didn't really want
+(0:09:50) Codey: to do like a wedding or anything so um so that is like it's funny because it's one of those things
+(0:09:58) Codey: I was putting like what have we been up to and then I was like oh I like I maybe five five or
+(0:10:03) Codey: ten minutes after I wrote down what I'd been up to I was like oh I should probably mention
+(0:10:08) Codey: it's kind of supposed to be like a big life event but we're both like we've both felt like
+(0:10:13) Codey: you know we knew that ever since we we did have some issues a while ago but like ever since we
+(0:10:18) Codey: reconnected after those and really like we figured out what our issue was and and we just know that
+(0:10:25) Codey: we are each other's people um yeah I we've been like yep this is it so it's it's not doesn't
+(0:10:34) Codey: change much, except for like, legally and financially.
+(0:10:38) Codey: Um, but I also just like this last week, been really doubling down on my research.
+(0:10:45) Codey: So I don't have time to play anything that has like a story or anything right now.
+(0:10:50) Codey: So I've mostly been playing like Fortnite, uh, a new season dropped and my roommate and I play
+(0:10:55) Codey: that where, um, he'll play around while I'm like doing work on my computer and then I'll play
+(0:11:01) Codey: around and we'll do that for like maybe a half an hour, 45 minutes every night. Um, I've also
+(0:11:06) Codey: I've also gotten back into Minecraft with my best friend Devin.
+(0:11:08) Codey: We are building a castle right now. That is what they wanted to do.
+(0:11:14) Codey: So we're building a castle. Clearly I play Tales of the Shire.
+(0:11:16) Codey: And I, I mean, you also played, you didn't mention that you played Tales of the Shire, but you did.
+(0:11:19) Spencer: Oh, yeah, well, I'm-- yeah.
+(0:11:22) Codey: Okay, good.
+(0:11:24) Codey: And then also I've been watching Jeff play Hollow Knight. Have you ever played Hollow Knight?
+(0:11:28) Spencer: I have not played Hollow Knight, I feel like I've heard enough to have played Hollow Knight
+(0:11:28) Codey: Okay.
+(0:11:32) Spencer: from people in our community, but I have not myself played Hollow Knight.
+(0:11:34) Codey: Okay.
+(0:11:38) Codey: Um, yeah, so just I felt like on a whim.
+(0:11:40) Codey: I just wanted Jeff to play no reason in particular.
+(0:11:46) Codey: Um, but so, and I mean, like, cause I kind of want to play it again, but I don't have
+(0:11:50) Codey: the time.
+(0:11:50) Codey: I have stuff to do.
+(0:11:52) Codey: So I was just like, can you play it?
+(0:11:54) Codey: And I can watch you play it.
+(0:11:54) Codey: And then it can be like, I play it.
+(0:11:58) Codey: Uh, and that'll probably be how we do it, uh, going forward for, uh, the next thing,
+(0:12:04) Codey: which means we're jumping into the game news.
+(0:12:08) Codey: out. Al did not put this in here. I mean, he could, he could debate that silk song,
+(0:12:16) Codey: which we can now name because it has a date you guys.
+(0:12:21) Spencer: That's right around the corner too.
+(0:12:22) Codey: Literally. Oh my gosh, would it be the it's like a couple days after this comes out,
+(0:12:26) Codey: actually, this is wild. But now that it has a date, like they just shadow dropped the date.
+(0:12:33) Codey: They were like, here's a cool trailer. Also, it's coming out in like two weeks.
+(0:12:36) Codey: And we were like, "Ah!"
+(0:12:38) Codey: Um, and I guess it's not a cottagecore game, I know, I know, but it fits in, it belongs here, this is a safe space for Silksong.
+(0:12:49) Codey: Um, this is also...
+(0:12:50) Spencer: I don't know what people on the internet are going to do once this game drops because it's been
+(0:12:55) Spencer: how many years of it being like oh it's it's coming
+(0:12:57) Codey: like eight or something.
+(0:13:01) Codey: I wanna say 2015, but I don't know if that is right.
+(0:13:06) Codey: Might've been later, might've been like 2017, 2018,
+(0:13:08) Codey: but it's been a hot minute that we finished,
+(0:13:13) Codey: Hollow Knight came out at the end of the Hollow Knight,
+(0:13:15) Codey: like extras and updates and whatever came out.
+(0:13:18) Codey: And then we were just kind of sitting here
+(0:13:19) Codey: and then they were like, oh, another one.
+(0:13:22) Codey: And so Silksong follows Hornet,
+(0:13:24) Codey: who is one of the characters from the game Hollow Knight.
+(0:13:27) Codey: And she is pushed into this other world called Far Loom, I think it is.
+(0:13:35) Codey: And it's supposed to be a world that's enshrouded in Silken Song, I guess,
+(0:13:41) Codey: which is why it's called Silksong.
+(0:13:44) Codey: So it finally got announced, which they could have mentioned that the last episode.
+(0:13:48) Codey: They kind of hinted that it was out, it was coming out, but they didn't say.
+(0:13:52) Codey: So September 4th.
+(0:13:54) Codey: Um, also gamestop leaked that.
+(0:13:57) Codey: It's probably only going to be $20.
+(0:14:00) Codey: I don't think team cherry understands what capitalism is.
+(0:14:05) Spencer: $20 doesn't seem like much for a game that's
+(0:14:07) Spencer: been in development for seven years.
+(0:14:09) Codey: That like people are clamoring for that other games foreshadowing are delaying
+(0:14:18) Codey: their releases because of, um, like I, I mean, I get it.
+(0:14:25) Codey: Like they, you know, this is how much they probably.
+(0:14:27) Codey: Always wanted to charge and stuff like that.
+(0:14:30) Codey: But I feel like they could have made this game 80 bucks and people
+(0:14:32) Codey: still without complaining.
+(0:14:36) Codey: They would have been like, yeah, fair.
+(0:14:38) Codey: Probably would have done it.
+(0:14:40) Codey: Oh, but I'm loving the, like the vibe, the hype around it.
+(0:14:46) Codey: A lot of the like reels I've been seeing that are silk song.
+(0:14:50) Codey: That kind of thing.
+(0:14:51) Codey: And I just loved this article that I saw on MSN that just said even more
+(0:14:57) Codey: out of silk songs way.
+(0:14:59) Codey: And one of the quotes they gave of one of the games was, I feel like a little
+(0:15:03) Codey: krill trying not to get eaten by a blue whale.
+(0:15:08) Spencer: I saw you link this article and as like, man, that especially like the shadow drop date is like, that just sucks. If you're a game that's like, man, big release September 4th coming up and then silks guns like site.
+(0:15:22) Codey: Like, oh, we're so excited to release.
+(0:15:28) Codey: Completely, totally unrelated.
+(0:15:29) Codey: Nothing to do with what we just said, cough, cough.
+(0:15:32) Codey: Little Witch in the Woods is delayed.
+(0:15:35) Spencer: Whoa, look at that.
+(0:15:37) Codey: No, and it is straight up because of Silksong.
+(0:15:39) Codey: They say it in their release date change notice.
+(0:15:42) Codey: Their release date was September 4th.
+(0:15:44) Codey: That is now September 15th.
+(0:15:46) Codey: In the thing, they talk about how development
+(0:15:48) Codey: has taken longer than expected,
+(0:15:49) Codey: but they have so much gratitude.
+(0:15:52) Codey: And for their community, and they're so excited,
+(0:15:56) Codey: and that they've been investing a lot of time.
+(0:15:58) Codey: There's been a lot of support through Early Access.
+(0:16:00) Codey: But quote, "Recently, we finally announced with excitement
+(0:16:03) Codey: the release date of the full version.
+(0:16:05) Codey: However, shortly after our announcement,
+(0:16:07) Codey: we learned that Hollow Knight Silksong,
+(0:16:09) Codey: a highly anticipated new title of a masterpiece
+(0:16:13) Codey: in the gaming industry, can confirm,
+(0:16:17) Codey: is launching on the same day.
+(0:16:19) Codey: Silksong is a game we look up to
+(0:16:22) Codey: and eagerly anticipate as players.
+(0:16:24) Codey: Given its immense influence,
+(0:16:25) Codey: we fear that launching Little Witch in the Woods
+(0:16:27) Codey: on the same day would not only dishearten our dedicated team,
+(0:16:31) Codey: but also disappoint our devoted artists."
+(0:16:35) Codey: Which, you know what, fair.
+(0:16:36) Spencer: Yeah, that's fair.
+(0:16:37) Spencer: I mean, like, for both games, right?
+(0:16:39) Spencer: You want to give the game that's been in development limbo
+(0:16:45) Spencer: forever like it's time.
+(0:16:47) Spencer: But then also, like, you know, I've
+(0:16:49) Spencer: had plenty of instances where two games that I really
+(0:16:52) Spencer: wanted to play came out right around the same time.
+(0:16:54) Spencer: And you just end up choosing.
+(0:16:55) Spencer: Sometimes life gets in the way and you're like, well,
+(0:16:57) Spencer: I never got around to that other game, you know?
+(0:17:00) Spencer: So giving some breathing room seems like, you know,
+(0:17:04) Spencer: Sorry, little Fitch, which is--
+(0:17:06) Codey: A little witch in the woods, yeah.
+(0:17:07) Spencer: I wish in the woods, fans, but, you know,
+(0:17:09) Spencer: just got to wait a little bit longer.
+(0:17:11) Spencer: But I'm sure that'll give you time to play both games.
+(0:17:11) Codey: Yeah.
+(0:17:15) Codey: But I can also understand it from their perspective,
+(0:17:17) Codey: how they say that it would disappoint them
+(0:17:20) Codey: as a dev team, too.
+(0:17:21) Codey: I mean, you've been doing all this stuff,
+(0:17:23) Codey: and you just happened to accidentally release
+(0:17:25) Codey: on the same day as this absolute behemoth.
+(0:17:28) Codey: And so any release date, the amount of--
+(0:17:36) Codey: the amount of sales they would get on the release
+(0:17:37) Codey: does nothing to do with people's excitement
+(0:17:40) Codey: for Little Witch in the Woods.
+(0:17:41) Codey: It's literally just because there's
+(0:17:43) Codey: this giant thing that is just going to take over
+(0:17:48) Codey: a lot of people's lives.
+(0:17:49) Codey: So I super get it.
+(0:17:51) Codey: Good for you, Little Witch in the Woods.
+(0:17:53) Codey: Take that extra time.
+(0:17:54) Codey: They said that they're going to continue
+(0:17:56) Codey: to use that time to work on the game
+(0:17:59) Codey: and deliver Little Witch in the Woods in highly polished form.
+(0:18:02) Codey: But I also have to shout out this picture
+(0:18:06) Codey: that I drew that is--
+(0:18:09) Codey: it's the Little Witch fallen.
+(0:18:12) Codey: Her broom is broken.
+(0:18:14) Codey: There are broken flasks around her,
+(0:18:19) Codey: and there's a little screaming mandrake-looking tree that's
+(0:18:24) Codey: scooting away from the shadow that is Hornet.
+(0:18:29) Codey: Hornet is just looming over these two.
+(0:18:33) Spencer: It is very good. Even the hats, like all sad too.
+(0:18:34) Codey: I love it.
+(0:18:36) Codey: Yeah, the hats also said.
+(0:18:39) Codey: Oh, so cute.
+(0:18:44) Codey: Well, let's just keep on that theme, Starbirds.
+(0:18:47) Codey: Starbirds is birds going to space and colonizing things,
+(0:18:54) Codey: sim-type game.
+(0:18:57) Codey: And they posted this thing that says evasive maneuver.
+(0:19:02) Codey: EA release moved-- so early access release
+(0:19:06) Codey: Starbirds delayed to September 10th to avoid silksong collision.
+(0:19:12) Codey: And then they also drew a cute little thing.
+(0:19:16) Codey: And it's like Captain Look, and it's
+(0:19:19) Codey: pointing at this asteroid, what looks like an asteroid.
+(0:19:21) Codey: And the asteroid is in the shape of Hornet's head.
+(0:19:26) Codey: And it says that's new asteroid evasive maneuvers.
+(0:19:28) Codey: And then they skirt out of the way.
+(0:19:32) Codey: I love this.
+(0:19:33) Codey: I love this so much.
+(0:19:36) Codey: And they said last week at GamesCon,
+(0:19:38) Codey: we had an intense but wonderful time with their--
+(0:19:42) Codey: but there was a huge surprise announcement.
+(0:19:44) Codey: Team Cherry announced the release date
+(0:19:46) Codey: for the long-awaited silksong.
+(0:19:47) Codey: And we don't want to collide beak-on,
+(0:19:49) Codey: like head-on, but beak-on, with such a massive hyper-supernova.
+(0:19:53) Codey: Both games deserve their moment to shine.
+(0:19:56) Codey: And we wish Team Cherry an amazing success.
+(0:19:58) Codey: And honestly, we're super excited to play silksong ourselves.
+(0:20:04) Codey: Yep.
+(0:20:06) Codey: So that's just being delayed until September 10th, so, um, but that's another little cute little game that just wants to avoid being missed by the giant.
+(0:20:17) Spencer: Yeah, I mean all these all these smaller games - you want to make sure that they get their their time to shine, you know
+(0:20:24) Spencer: right, so
+(0:20:26) Spencer: Probably for the best
+(0:20:26) Codey: But I feel like Silksong's going to dominate
+(0:20:29) Codey: for a long, long time.
+(0:20:29) Spencer: For a while
+(0:20:33) Codey: But maybe people will need a palate cleanser
+(0:20:36) Codey: in the middle of it after they've literally
+(0:20:38) Codey: played the game for five days straight.
+(0:20:40) Codey: And their family is like, where are you?
+(0:20:42) Codey: And why haven't you fed the children?
+(0:20:44) Codey: And you've been fired because you haven't gone to work.
+(0:20:49) Codey: Ages of Kataria-- so this game, their early access was delayed.
+(0:20:54) Codey: They don't mention...
+(0:20:57) Codey: But their date was previously September 16th.
+(0:21:02) Codey: It is now November 5th, and they said that they wanted to delay
+(0:21:06) Codey: because of "to incorporate the feedback we received and make adjustments,
+(0:21:10) Codey: polish more features, add features, and add more cosmetics,
+(0:21:14) Codey: and open the game up for more testing over the next few weeks."
+(0:21:17) Codey: So they had had a beta, and they were getting a lot of really good feedback
+(0:21:22) Codey: in that beta before they opened up their early access.
+(0:21:26) Codey: With all the feedback they got, they were like...
+(0:21:29) Codey: "Duly noted, we need to take some time to fix some of these things."
+(0:21:32) Codey: But also, they're going to have a demo on the Steam Next Fest,
+(0:21:36) Codey: which is October 13th to the 20th.
+(0:21:38) Codey: So that's also great for them because Steam Next Fest is like
+(0:21:42) Codey: a really good way to get your game out.
+(0:21:47) Codey: But I believe it's only for games that are coming out, not for...
+(0:21:51) Codey: I guess they would have probably still done it anyway because they were just early access.
+(0:21:54) Codey: access, but.
+(0:21:57) Codey: Have you heard of this either any of these games?
+(0:21:58) Spencer: I have not heard of any of these, to be 100% honest.
+(0:21:59) Codey: Really?
+(0:21:59) Codey: Little Witch in the Wood, Starbirds, Ages of Kataria.
+(0:22:01) Codey: Any of them catch your eye?
+(0:22:08) Spencer: Just the sheer concept of a little witch in the wood
+(0:22:12) Spencer: sounds the most intriguing to me.
+(0:22:14) Spencer: I will say the artwork for Starbirds is very cute,
+(0:22:18) Codey: Yeah
+(0:22:20) Spencer: very goofy looking.
+(0:22:22) Codey: It also kind of it kind of gives factorial to me and I had a lot of fun playing factorial
+(0:22:22) Spencer: So that one-- uh-huh.
+(0:22:29) Spencer: It reminds-- I hate this comparison.
+(0:22:31) Codey: Okay
+(0:22:31) Spencer: This is when you know you've been a parent for too long now.
+(0:22:34) Spencer: It reminds me of Octonauts.
+(0:22:36) Spencer: If any parent out there has seen Octonauts, like, yeah.
+(0:22:37) Codey: Yeah, yeah
+(0:22:42) Spencer: But I do not know anything about these games,
+(0:22:44) Spencer: other than they've been delayed because of Silksong.
+(0:22:46) Codey: Yep, um
+(0:22:47) Spencer: Eh.
+(0:22:48) Codey: cool
+(0:22:50) Spencer: No.
+(0:22:51) Codey: Next up is Dolok town
+(0:22:54) Codey: They have a new update out now. It is called the pastoral waves update
+(0:23:00) Codey: So this update includes adding new mechanics adding some gameplay additions
+(0:23:07) Codey: I'm trying to see if there's anything about like controller sports. I know that that's really important to a lot of people a
+(0:23:13) Codey: visual overhaul world and economy adjustments
+(0:23:17) Codey: and then quality of life and bug fixes I
+(0:23:20) Codey: Don't see anything. I they might already have controller support. I was just seeing if there was it was in there
+(0:23:26) Codey: Sorry, I just I just like chugged a carbonated soda and my body doesn't know if it wants to yawn or burp right now
+(0:23:33) Codey: So I'm just like
+(0:23:34) Codey: It's I'm having a time over here
+(0:23:38) Codey: Dolok town added fish farming in this which I
+(0:23:43) Codey: I thought I was like oh it's fish and far fishing and far
+(0:23:46) Codey: farming, but it also just says raise a variety of new land
+(0:23:49) Codey: animals and fish. And that I was like oh it's like fish
+(0:23:54) Codey: hatcheries like not not to me that's different than you know
+(0:24:00) Codey: in some farming games you can have a pond and then in that
+(0:24:02) Codey: pond you can put fish and then the fish like auto generate you
+(0:24:05) Codey: get more fish. I'm wondering if this is like more detailed than
+(0:24:09) Codey: that because fish hatchery a fish hatchery is actually not
+(0:24:13) Codey: something that people have really, like, done much of.
+(0:24:16) Codey: of, but it's a legit thing that we can do for either, um, to raise fish
+(0:24:22) Codey: that we can then consume so that we're not devastating wild populations or
+(0:24:26) Codey: to try and rebuild wild populations and introduce, um, genetics.
+(0:24:31) Codey: If there's like a disease that's ravaging a wild population and we can
+(0:24:34) Codey: have, we can, uh, you know, make a variant of the fish that is not
+(0:24:40) Codey: susceptible to that or whatever, like there's a lot of different things we could do.
+(0:24:43) Codey: So.
+(0:24:44) Spencer: Fun fact, I've actually been to a fish hatchery before,
+(0:24:47) Codey: Pacific Northwest, y'all.
+(0:24:50) Spencer: years and years ago before I was vegan,
+(0:24:52) Codey: Yeah.
+(0:24:53) Spencer: add that to your Spencer lore.
+(0:24:55) Codey: Lore dropped.
+(0:24:56) Spencer: Yeah, we took a cruise to Alaska when I was a little kid.
+(0:25:02) Spencer: That was the last time I ever chose vacation too.
+(0:25:04) Spencer: My mom was not happy with that Alaska vacation.
+(0:25:07) Spencer: I was like, it's so fun.
+(0:25:08) Spencer: She's like, it's just wildlife.
+(0:25:10) Spencer: And I was like, yeah, what's the problem with that?
+(0:25:11) Codey: Yeah, exactly. Exactly. That's really cool. Yeah. Yeah. So that I love the idea of that. And I
+(0:25:14) Spencer: But yeah, we stopped by a fish hatchery as one of the stops.
+(0:25:16) Spencer: It was pretty cool.
+(0:25:23) Codey: actually kind of want to see if game that is just a fish hatchery, because there's so much to it,
+(0:25:30) Codey: because like, you have to make sure that the pH of your water is just right. But also usually
+(0:25:35) Codey: hatcheries are like open to the elements. So you have to make sure that like,
+(0:25:41) Codey: invasive things don't get in and mess up your fish, you have to make sure that there's no,
+(0:25:50) Codey: there's like so many different pieces to it that I haven't thought about for a really long time,
+(0:25:56) Codey: so I'm not gonna enumerate on them. But like, that seems like it would be really,
+(0:26:00) Codey: really interesting, possibly. Also, just like, maybe trying to breed a fish inside as well,
+(0:26:07) Codey: because that is also incredibly difficult. Is there a fish breeding game? There have
+(0:26:10) Spencer: Does "C-Man" count?
+(0:26:11) Codey: to be. This is, does it? I see fish tycoon. I don't know if I would if I would count
+(0:26:14) Spencer: I don't know.
+(0:26:20) Codey: this though. I mean, I guess it's a little virtual fit. I don't know. This isn't what
+(0:26:24) Codey: I was envisioning though. Someone needs to get on that. So that's all I'll say. Our last
+(0:26:34) Codey: two bits of news both have to do with Concerned Abe. Because we-
+(0:26:41) Codey: We always have news. The first is Stardew Valley have is related to Stardew Valley. Concerned
+(0:26:49) Codey: Abe has released the Festival of Seasons album and it is now out. It's on a link tree to
+(0:26:56) Codey: a bunch of different sites, but also like I looked it up. It's on Spotify. And it's a
+(0:27:01) Codey: lot of the music of Stardew Valley done by a chamber orchestra. So I thought that was
+(0:27:06) Codey: really cool. Probably not gonna listen to it. Not gonna lie.
+(0:27:11) Codey: Both Harvest Moon and Stardew Valley, I turn the music off if I can. It distracts me. Have
+(0:27:15) Spencer: That's fair, I guess.
+(0:27:19) Spencer: I have not.
+(0:27:19) Codey: you played Stardew? I don't know about this about you. Okay. No, it's really, it's good.
+(0:27:25) Spencer: I do keep seeing it suggested by people.
+(0:27:29) Spencer: And by people, I mean, "Owl."
+(0:27:31) Spencer: Sorry, "Owl."
+(0:27:34) Codey: I think that if you're, if you haven't gotten into it yet, there's almost like a worry because
+(0:27:41) Codey: there's so much hype around it. Like, what if you don't like it? You know? And like,
+(0:27:46) Codey: it's so hyped. So I don't know. I think I would be really stressed if I were to try
+(0:27:51) Codey: and play it now after never, having never played it. Also, if you know that that's not
+(0:27:55) Codey: your type of game, then you know. Well, then don't listen to the snakes. No. The next thing
+(0:28:04) Codey: is about Concerned Abe's next game, which is Haunted Chocolate here. And a new screenshot
+(0:28:08) Codey: has been released, and Al wanted us to hyper...
+(0:28:11) Codey: ...and analyze it.
+(0:28:42) Codey: And they're like, "Oh, it's... there's no purple in this screenshot, so clearly he hates purple now."
+(0:28:49) Codey: No.
+(0:28:51) Codey: Um, though I did see a couple things that jumped out to me.
+(0:28:54) Codey: On the main tree, that is...
+(0:28:56) Spencer: Okay, go ahead. I want to see if you're seeing what I'm seeing.
+(0:29:01) Codey: There is a little ga- uh, what's called- what I call a beetle gallery, so it's...
+(0:29:06) Codey: Um, that is when like a beetle larva or sometimes in the.
+(0:29:11) Codey: Adult as well has burrowed under the bark and there's this kind of like trail, um, under the bark.
+(0:29:17) Spencer: >> Yes. It's right next to that first little tree sticking out, right?
+(0:29:22) Codey: Yep.
+(0:29:24) Spencer: >> Mm-hmm.
+(0:29:24) Codey: Yep.
+(0:29:25) Codey: Also wild that this tree has two trees growing out to different species of trees growing out of it.
+(0:29:32) Spencer: Yeah, that is a little concerning, but totally.
+(0:29:32) Codey: Wait a minute.
+(0:29:34) Codey: I'm thinking, I'm thinking the main tree, the main tree is probably dead because beetle galleries are not
+(0:29:41) Codey: they are underneath the bark.
+(0:29:43) Codey: Um, so the outer layer of the bark was probably removed.
+(0:29:47) Codey: And this is me getting really silly about the hyperanalyzing.
+(0:29:51) Spencer: Well to go off that right like let's say let's say this is a live tree
+(0:29:54) Codey: Yeah.
+(0:29:56) Spencer: But the outer bark was removed and they have two different tree species
+(0:29:57) Codey: Yeah.
+(0:30:01) Spencer: Maybe someone's grafting trees onto this big tree. There you go
+(0:30:04) Codey: Very possible.
+(0:30:06) Spencer: Yeah
+(0:30:07) Codey: That would actually be cool.
+(0:30:08) Codey: Cause there's also these like windows.
+(0:30:10) Codey: What if...
+(0:30:11) Codey: there are like windows there, but they let a tree grow through the window. And so there's just like
+(0:30:17) Codey: a pot on the inside where the root structures are. And what if you could make those roots into like
+(0:30:23) Codey: furniture? Another silly way to hyperanalyze this is the character is standing next to water,
+(0:30:32) Codey: so maybe there's fishing. There's always gotta be fishing. Also, I just am curious about who lives
+(0:30:34) Spencer: There's always got to be fishing.
+(0:30:40) Codey: lives in this tree.
+(0:30:41) Codey: I said maybe it's a spooky witch, but now I'm thinking
+(0:30:43) Codey: it's like a plant breeder. There's also a ton of different
+(0:30:47) Codey: plants around this tree. There's also fungus growing on like
+(0:30:50) Codey: three different species of fungus at least growing on this
+(0:30:52) Codey: tree. I wonder if this person never leaves this tree. I wonder
+(0:30:57) Codey: if higher up in the tree, there's like fruit trees growing
+(0:31:00) Codey: out of it. And they just never have to leave because they just
+(0:31:03) Codey: like jump, they poke their hat out a window and reach and like
+(0:31:07) Codey: grab some forage off of their own tree. They never have to
+(0:31:11) Codey: leave. That'd be so cool.
+(0:31:13) Spencer: As someone who lives around or near giant redwoods who very much likes the idea of like the forest moon of Endor,
+(0:31:26) Spencer: I have always loved the idea of people just living in tree houses and trees and massive tree structures.
+(0:31:26) Codey: OK.
+(0:31:35) Spencer: They're like, "Yeah, we just don't ever touch the ground. We're just in trees all the time."
+(0:31:38) Spencer: And this is definitely giving me that vibe.
+(0:31:38) Codey: Yeah, it is because you don't see the top of it, like there's no indication that you're anywhere near the top of this tree that you can see and it is taking up like the whole screen, which is really cool.
+(0:31:43) Spencer: Uh-oh.
+(0:31:52) Codey: The other thing that I wanted to bring up that you just mentioned is that you live in the redwoods fun fact I saw a redwood fall when I was like 13.
+(0:32:00) Spencer: Oh wow, like are we talking like how big big big
+(0:32:05) Codey: like a jot, like it was like a bait, one of the big.
+(0:32:08) Codey: Big ones fell, um, we were near.
+(0:32:11) Codey: I think we were staying in either why Rica or Eureka.
+(0:32:15) Codey: I don't remember which, but we were like in that area, like the red with area.
+(0:32:19) Codey: And we were camping, um, in this one spot, but we had been like out,
+(0:32:24) Codey: out and about during the day.
+(0:32:26) Codey: And we were out letting the dogs run around, um, and just taking
+(0:32:30) Codey: a little bit of a stroll and the dogs just like froze and then started
+(0:32:35) Codey: freaking out. And we were like, what's going on?
+(0:32:39) Codey: did they see something? Are they running after something was going on? And then we heard this giant crack and we just look and there's all these trees, you know, standing straight up and there's just one that's just like falling. It was pretty far away from us, but we still felt the earth shake. And when I went and when we went and looked, like, because it fell across the road.
+(0:33:03) Codey: And when we went and looked, like I didn't even really see it. It for.
+(0:33:08) Codey: It was just huge. Like, I thought that I was just looking at like the road continuing on, but the road just like stopped at a certain point. It's just this giant tree and then a couple of motorcycles like when zip and pass and we were like waving them down. We're like, no, like, because I mean, it's you're not expecting that you're not expecting the road to suddenly just become a huge freaking tree.
+(0:33:34) Codey: Um, we had to drive like three hours to get back to--
+(0:33:38) Codey: we were only like 20 minutes from our campsite and then we had to drive three hours to like
+(0:33:42) Codey: get around this thing, but I thought of it more as like cool in the moment.
+(0:33:43) Spencer: Geez, that must have been terrifying.
+(0:33:48) Codey: We were far enough away.
+(0:33:50) Codey: If we had been close, I, yeah, that'd be a devastating experience.
+(0:33:53) Codey: I don't know if I would work in forests if we'd been close to that, but here I am, a forest
+(0:34:00) Codey: entomologist.
+(0:34:01) Codey: Um, yeah, it was nuts.
+(0:34:04) Spencer: Yeah, I have never seen the closest I've come and not even a tree is in the land of earthquakes over here. I
+(0:34:04) Codey: Have you seen, have you ever seen one fall?
+(0:34:12) Spencer: in high school was in
+(0:34:14) Spencer: marching band practice who were out on the stadium field and an earthquake happened. So all the stadium lights were like swaying like crazy and
+(0:34:22) Codey: Ugh, wild.
+(0:34:23) Spencer: Just like standing there watching these tall like structures sway was like very unnerving
+(0:34:28) Codey: Yeah, huh.
+(0:34:30) Codey: Yeah, I'm going to have to Google that.
+(0:34:32) Codey: Like, if people see that, watched a redwood fall.
+(0:34:36) Codey: I'm not going to watch it right now,
+(0:34:38) Codey: but I'm just going to Google it so I don't forget.
+(0:34:39) Codey: Because I would think that more people--
+(0:34:42) Codey: that would be more common.
+(0:34:43) Codey: Anyway, whatever.
+(0:34:45) Codey: The last thing about the haunted chocolatier thing
+(0:34:47) Codey: is that also, as a part of this Concerned Abe,
+(0:34:50) Codey: you know how we just analyzed the crap out
+(0:34:52) Codey: picture.
+(0:34:53) Spencer: Mm-hmm
+(0:34:53) Codey: Concerned Abe doesn't want people to do that.
+(0:34:58) Codey: So every time he just posts out something like this,
+(0:35:00) Codey: something tiny like this, there's whole entire articles
+(0:35:03) Codey: about it.
+(0:35:05) Codey: And he said, sometimes a picture is not
+(0:35:10) Codey: him trying to sneak something.
+(0:35:12) Codey: It's literally just him trying to share a picture
+(0:35:15) Codey: of what he's working on.
+(0:35:16) Spencer: Yeah, some things are just things, you know, take care for what it is, people.
+(0:35:18) Codey: Yeah.
+(0:35:20) Codey: Yep.
+(0:35:22) Codey: But I am, I want to know more about this tree and does.
+(0:35:25) Codey: Yeah, it's a cool tree, it's a cool tree.
+(0:35:27) Codey: Okay, so now we are on our main topic.
+(0:35:31) Codey: We have finished the news.
+(0:35:35) Codey: So we are going to be talking about Tales of the Shire.
+(0:35:38) Codey: Before we jump into the game, Spencer just gave us some of your history with the content,
+(0:35:45) Codey: like with Lord of the Rings and the Hobbits and stuff like that.
+(0:35:48) Spencer: So I am a casual fan, I guess. I very much enjoy Lord of the Rings. To be honest, this game for me, I downloaded mainly for my wife, who is a much bigger Lord of the Rings fan.
+(0:36:06) Spencer: I think I've bought her like five different versions of Lord of the Rings now at this point for like birthdays and various other, you know, we've got, uh, gosh.
+(0:36:18) Spencer: Like the, the Tom Bombadil book that came out not too long ago, I think, like we, she bought herself one and I bought her. So we have like two copies of that, you know, like she's like, I didn't know you were going to buy it for me.
+(0:36:31) Spencer: Um, anyway, so she saw this game. She's not a gamer at all. Like, but she saw it and she's like, I need to play this. It's like, okay, well, now let it only come, when it comes out, but since she's also not a gamer, she's like, well, you play it first.
+(0:36:46) Spencer: Like, I want to know, like, I want you to know.
+(0:36:48) Spencer: Like what to do so that way you can, like, help me through it.
+(0:36:51) Codey: Yeah.
+(0:36:51) Spencer: Like, OK, so I'll play it first stuff.
+(0:36:54) Spencer: So that's kind of how I ended up playing this game.
+(0:36:57) Codey: OK, well, what are your first impressions, then?
+(0:37:02) Codey: We're being honest here.
+(0:37:04) Spencer: Yeah, OK.
+(0:37:06) Spencer: I don't know.
+(0:37:06) Spencer: As you know, I did enjoy it.
+(0:37:08) Spencer: So, like, I always like to start off
+(0:37:10) Spencer: before I go into a bunch of complaints about things.
+(0:37:13) Spencer: I did enjoy--
+(0:37:14) Spencer: I did enjoy this, right?
+(0:37:17) Spencer: I...
+(0:37:18) Spencer: We kind of focus mainly on the main quest, so to speak.
+(0:37:26) Spencer: It's, are there quests in this game?
+(0:37:27) Codey: Yeah.
+(0:37:28) Spencer: I don't know what you'd call them, but I guess quests.
+(0:37:32) Spencer: Mainly because, as I hinted about earlier, my time has been, like, very limited with...
+(0:37:38) Spencer: We just recently had another daughter, so now we have two children.
+(0:37:42) Codey: Yay! Congratulations!
+(0:37:42) Spencer: Yeah. Thank you.
+(0:37:46) Spencer: So, yeah, free time is super limited.
+(0:37:48) Spencer: I just kind of focused on the main quest, you know, I could, you can tell that it's like, I guess, not to put a price tag on like quality but like a $30 game versus like an $80 game, in my opinion, the graphics kind of just right off the bat struck me as like wizarding 101 for those of you that remember that PC game back in the day, very like that kind of
+(0:38:04) Codey: Mm-hmm. Mm-hmm.
+(0:38:15) Codey: Mm-hmm
+(0:38:18) Spencer: like, huh, it's, it's an aesthetic, for sure. Is it one that I feels to me? I don't know, maybe. What else? Main impressions, you know, I enjoyed it. I think, I don't know if we can save some of this for more of the meat of this but yeah, I think the thing that really like, you know, got to me was just how, how like time sensitive everything was, but I
+(0:38:37) Codey: Yeah, for sure.
+(0:38:48) Spencer: like to explain this but like, it's almost like you always had to have something going, or else you're going to be like have a day where you just didn't do anything. Right. And we can get back into more about this in the mechanics but like, it just I always felt like well like shoot, I didn't plant vegetables.
+(0:38:52) Codey: Mm-hmm, yeah.
+(0:39:06) Spencer: So now I got to just wait a day to do something.
+(0:39:09) Codey: Yeah, I think that that's pretty classic because we talked a little bit before about how you
+(0:39:10) Spencer: Yeah, so anyways.
+(0:39:17) Codey: don't play a ton of cozy games and that, but I think that's pretty classic.
+(0:39:23) Codey: Like the first time I played Stardew, I didn't know what the heck I was doing.
+(0:39:26) Codey: So I didn't do a lot of the stuff that I do now.
+(0:39:31) Codey: Like if I do try and replay, I've only tried to replay it a couple of times, but like I
+(0:39:36) Codey: I am more informed about what
+(0:39:39) Codey: like the timeline of the game is and what you have to have completed at what
+(0:39:42) Spencer: Mm-hmm.
+(0:39:45) Codey: times so now I do things differently so that's I think that's pretty standard I
+(0:39:52) Codey: didn't really like the character models as much but I was pleasantly surprised
+(0:39:58) Codey: with the world and I think I'm generally positive but also like this game didn't
+(0:40:05) Codey: knock my socks off
+(0:40:06) Spencer: Yeah, were you on Lord of the Rings fandom out of curiosity? Were you pretty high? Okay.
+(0:40:10) Codey: um pretty high we just did um Johnny and I in prep for this episode so they were
+(0:40:18) Codey: a while ago now we did one episode on Lord of the Rings and one episode on the
+(0:40:23) Codey: Hobbit and we could have honestly gone on for a long time like I'm pretty high
+(0:40:30) Codey: on it I I mean I didn't I don't know there's a Tom Bombadil book that was
+(0:40:33) Codey: pretty interesting to me but I also I'm very busy so and I also
+(0:40:38) Spencer: - I might be misspeaking on that, by the way.
+(0:40:40) Codey: no it's you probably not um I'll Google it but yeah I I'm I'm a fan but like I'm
+(0:40:41) Spencer: I might totally be confusing it with some other thing.
+(0:40:52) Codey: a cat like I don't know if I would say casual even because I am pretty deep in
+(0:40:57) Codey: the lore but I guess I'm I will just say I'm an ADHD fan of everything I think
+(0:41:02) Spencer: Okay.
+(0:41:04) Codey: bugs is like one of the only things that I'm a constant fan of otherwise it's I'm
+(0:41:09) Codey: big fan of things until I look away from them and then the the love is still
+(0:41:14) Codey: there but the hype yeah the hype is not there so I guess I could hype about the
+(0:41:17) Spencer: the hype, maybe not as much, yeah.
+(0:41:23) Codey: game specifically yeah I could hype all day like I could watch those movies
+(0:41:26) Codey: anytime any day but the lore of it I is a little lesser so but I was pretty
+(0:41:27) Spencer: Mm-hmm.
+(0:41:35) Codey: excited to see kind of a little bit more of this world.
+(0:41:39) Codey: And see how they interpret it because I believe that they had some permissions from the Tolkien estate.
+(0:41:49) Codey: So they were going to be able to do things in a way with like some of the IPs that other people might not have been.
+(0:42:00) Spencer: Now I was going to ask about that because there
+(0:42:02) Spencer: were some odd instances, like the--
+(0:42:06) Spencer: I guess, since we're reviewing this, we can do spoilers.
+(0:42:08) Spencer: But the game opens up with Gandalf, I'm assuming.
+(0:42:12) Codey: - Yep.
+(0:42:13) Spencer: But he doesn't explicitly say that he's Gandalf, correct?
+(0:42:17) Codey: Mm-hmm.
+(0:42:18) Spencer: So it's like, OK, I guess this is Gandalf, maybe.
+(0:42:22) Spencer: But then I think there's a couple of times
+(0:42:24) Spencer: where they directly reference hobbits from the books.
+(0:42:30) Spencer: They're namedropping these characters.
+(0:42:32) Spencer: Why aren't they namedropping these other characters?
+(0:42:34) Codey: Yeah, so I think that's that's one of the things that was kind of appealing at least to me because they do start name-dropping people
+(0:42:41) Codey: and so I'm like, okay, where are we at in this timeline of just the Hobbit like lore and
+(0:42:50) Codey: Where are we like?
+(0:42:53) Codey: Where are the characters who is like which characters would be in the Shire?
+(0:42:58) Codey: Which characters might have already left the Shire and gone on certain adventures, you know, that kind of thing
+(0:43:05) Codey: So
+(0:43:07) Codey: Which I think I think Bilbo would have this is me spoiling but also
+(0:43:12) Codey: Like thinking about it because I read that Sam Gamsam as Gamgee has mentioned and he is only 38 when they go
+(0:43:21) Codey: On in the Lord of the Rings, he's only 38 years old and
+(0:43:26) Codey: The Bilbo's 111th birthday is 50/50 six. Sorry 55 years after
+(0:43:34) Codey: because he was in his late 50s
+(0:43:37) Codey: So he would have already gone on his ring voyage at this point
+(0:43:40) Codey: The ring is in the ring is in the Shire during this game
+(0:43:48) Codey: But so they that's I think that's one thing that's like
+(0:43:51) Codey: Interesting is that they're name-dropping and so you can kind of try and like determine that the timing based on
+(0:43:57) Codey: That but the one thing that someone did mention is they name drop, but you never actually get to meet these characters
+(0:44:04) Spencer: This is true.
+(0:44:05) Codey: So
+(0:44:07) Codey: Yeah, I mean this is a little bit different. So this isn't the Shire as much this is more
+(0:44:13) Codey: by water which is a little further away from the Shire and you come in as like a
+(0:44:19) Codey: You say you're a hobbit from Brie and from like the prancing pony
+(0:44:24) Codey: which
+(0:44:24) Spencer: But that also confused me, isn't like--
+(0:44:27) Spencer: and this is my Lord of the Rings Ignorance showing here--
+(0:44:29) Codey: Yeah
+(0:44:30) Spencer: isn't the Prancing Pony specifically an inn?
+(0:44:33) Spencer: Did your hobbit work at the inn for their lifetime?
+(0:44:34) Codey: You
+(0:44:36) Codey: There
+(0:44:38) Codey: There are
+(0:44:40) Codey: There's some hobbits that live or used to live near there
+(0:44:43) Codey: I guess because when they go to the prancing pony and Lord of the Rings the
+(0:44:48) Codey: Innkeeper is like not he's surprised about hobbits
+(0:44:52) Codey: But then he's but then he's like oh, but we have accommodations for you and like we have like we have hobbit sized room
+(0:44:59) Codey: So they clearly, Hobbits are around and they know of them and they are like prepared to.
+(0:45:04) Codey: Cater to them, but he also seemed a little surprised by them. So I'm just, I'm not entirely
+(0:45:11) Codey: sure about all that. But again, like, I don't know how much of the IP they had and what all
+(0:45:15) Codey: they were allowed to show. So I think the other thing before we get into like jumping into really,
+(0:45:26) Codey: really diving into the game is a lot of the articles that came out right after this game
+(0:45:32) Codey: came out.
+(0:45:33) Codey: We're pretty heckin' negative.
+(0:45:34) Codey: And I'm curious if you think, just think about this, have this percolate in the back of your head as we talk about this, do you think the negativity was warranted?
+(0:45:46) Codey: So just a couple things here that jumped out to me.
+(0:45:52) Codey: Someone mentioned when you're gardening, things can grow out of season.
+(0:45:56) Codey: So in something like Stardew, if you were to plant a carrot, and a carrot takes five days to grow.
+(0:46:04) Codey: But you planted it three days, with three days left in the season, and it doesn't grow in the next season.
+(0:46:10) Codey: When the new season starts, you wake up and there's a dead plant, period.
+(0:46:15) Codey: But in this game, it just makes it so that the timing is different.
+(0:46:19) Codey: They grow slower in their off-season, which honestly makes sense.
+(0:46:27) Codey: For example, I could have grown lettuce this year, and I have lettuce.
+(0:46:31) Codey: Actually, I also have tomato plants out there.
+(0:46:34) Codey: They're green as heck, because it's been way too hot for tomatoes this year.
+(0:46:39) Codey: But I could still grow them.
+(0:46:41) Codey: They're still growing.
+(0:46:43) Codey: And so this person was complaining about it.
+(0:46:46) Codey: They said it still removes the time management aspect crucial to farming game mechanics, the pressure of a season's last days.
+(0:46:53) Codey: Will this crop be fully grown before the weather changes?
+(0:46:56) Codey: Should I stick to seeds, which take three days, or risk one that takes five?
+(0:47:01) Codey: How will this decision affect me next season?
+(0:47:04) Codey: The reason these worries may sound useful, but in truth, they destroyed any incentive I had for planning out my garden.
+(0:47:11) Codey: I just say boo to that.
+(0:47:17) Codey: If the only reason you're planning out your garden is because you're of the time crunch, that's not what it's about.
+(0:47:27) Spencer: Are they trying to min max this game?
+(0:47:29) Spencer: I mean, I guess they could be.
+(0:47:30) Codey: That's what it sounds like.
+(0:47:38) Codey: Yeah, I was a little--
+(0:47:40) Codey: I didn't think that was warranted.
+(0:47:41) Codey: That's a no for me, dog.
+(0:47:46) Codey: Then related to cooking, they said,
+(0:47:49) Codey: even as I unlocked more tools for my kitchen,
+(0:47:51) Codey: I was never free of how trial and error
+(0:47:54) Codey: the whole process felt.
+(0:47:57) Codey: Welcome to cooking.
+(0:47:59) Spencer: OK, I kind of got to agree with this one, to be honest.
+(0:48:01) Codey: Really?
+(0:48:02) Codey: OK, OK.
+(0:48:02) Codey: warranted.
+(0:48:04) Codey: Uh-huh. Mm-hmm.
+(0:48:05) Spencer: Maybe I skipped over the tutorial at the beginning,
+(0:48:08) Spencer: but it took me a couple tries to realize, OK,
+(0:48:12) Spencer: there's the weird little meter, and when
+(0:48:14) Spencer: you do something to the food, it pushes the meter in one way,
+(0:48:18) Spencer: and you try to aim for the target.
+(0:48:20) Spencer: But it also doesn't really give you a good--
+(0:48:25) Spencer: like, let's say chopping, for instance, right?
+(0:48:28) Spencer: like, when I was chopping food.
+(0:48:29) Spencer: I would be like, OK, I'm going to chop it
+(0:48:32) Spencer: to what the target looks like.
+(0:48:36) Spencer: Like, it's over far--
+(0:48:38) Codey: Yeah Mm hmm
+(0:48:38) Spencer: I try to stop it right around where
+(0:48:39) Spencer: the target, in my opinion, was.
+(0:48:42) Spencer: And it would only bring my actual meal cursor, I guess--
+(0:48:46) Codey: Yeah
+(0:48:46) Spencer: I don't know what you call it-- icon over a little bit.
+(0:48:49) Spencer: And I was like, should I chopped it more?
+(0:48:50) Codey: Mm hmm
+(0:48:51) Spencer: That would have been over chopping at that point.
+(0:48:52) Codey: Yeah
+(0:48:55) Spencer: So it was so kind of random guesswork in my opinion.
+(0:48:59) Spencer: I think this is good, and then it wasn't good enough
+(0:49:02) Spencer: or too far in that direction.
+(0:49:04) Spencer: I was like, oh, well, maybe not.
+(0:49:06) Codey: Yeah, I think they could get around this
+(0:49:08) Codey: by just adding in an update to the game that just makes it
+(0:49:13) Codey: so that every time--
+(0:49:15) Codey: not like every time you start chopping,
+(0:49:18) Codey: like you start the chopping animation,
+(0:49:20) Codey: but every time you hit the button to chop,
+(0:49:23) Codey: it just moves it for you at that moment.
+(0:49:26) Codey: Versus when you are done--
+(0:49:29) Codey: so you just start chopping, and you're like button, button,
+(0:49:32) Codey: button, and the thing doesn't move.
+(0:49:33) Codey: The thing moves when you're like, okay, that's enough.
+(0:49:36) Codey: I want to chop more if it updated in real time.
+(0:49:41) Spencer: Yes, real-time updating would definitely be solved that problem.
+(0:49:42) Codey: I think that would probably solve a lot of.
+(0:49:49) Codey: Which that is also relevant to cooking.
+(0:49:52) Codey: I mean, you, you look at things as you go.
+(0:49:54) Codey: Um, I hate cooking.
+(0:49:57) Codey: Okay.
+(0:49:58) Spencer: Oh, I love cooking.
+(0:50:01) Codey: I just, I'm always perpetually afraid that I'm going to burn something or forget
+(0:50:04) Codey: something or...
+(0:50:06) Codey: Whatever, I also hate spice.
+(0:50:07) Codey: So, okay, the other thing is they talked about...
+(0:50:14) Codey: So the first one I was like, not warranted.
+(0:50:16) Codey: This one to me, I was like, I was initially not warranted,
+(0:50:20) Codey: but you've convinced me, possibly warranted.
+(0:50:24) Codey: This one, I kind of agree.
+(0:50:25) Codey: So there's a shared meal mechanic and this person said dialogue?
+(0:50:29) Codey: No.
+(0:50:30) Codey: Fun interactions?
+(0:50:30) Codey: No.
+(0:50:31) Codey: The same cutscene over and over again with the only differentiation
+(0:50:34) Codey: being the venue.
+(0:50:36) Codey: And whether the Hobbit likes the meal or not.
+(0:50:38) Codey: Skippable, thankfully, yes.
+(0:50:42) Codey: I kind of agreed with that.
+(0:50:44) Codey: Like, after I did the shared meal a couple times,
+(0:50:46) Codey: I was like, "Oh, nothing really..."
+(0:50:50) Codey: Like, even the individual characters don't really have their own response.
+(0:50:56) Spencer: The only thing I disagree about with this would be the worrying whether the hobbits like their own
+(0:51:00) Spencer: meals because honestly there were a few times where I'm like I just simply don't have the
+(0:51:04) Spencer: ingredients to make a sour dish so they're getting a spicy dish and they still seem to like it and I
+(0:51:07) Codey: Yeah.
+(0:51:10) Spencer: was like cool I still got a gift from them I still got them to be happy like there was it didn't seem
+(0:51:15) Spencer: like there was any downside to me making a meal that they didn't necessarily want and I was like
+(0:51:20) Codey: Mm hmm. I think, I think they'll still give you the, well, I think they hint that if you don't
+(0:51:26) Codey: give a meal that they at least like, like, I think if they say they want a sour meal and
+(0:51:30) Codey: you give them a sweet meal, they'd probably be like, this is you, you did bad. Um, but like,
+(0:51:30) Spencer: Uh-huh, uh-huh.
+(0:51:40) Codey: I think like, if you're still, if you're doing it in other ways, um, it's still good enough to them.
+(0:51:46) Codey: I don't know. I'm going to have to go and make a really bad meal for someone and see what they
+(0:51:50) Spencer: Yeah, that's
+(0:51:51) Codey: I'm curious now if they just like storm off. Heck you.
+(0:51:54) Spencer: But I
+(0:51:56) Spencer: Think I would agree with you and this comment on this one
+(0:51:59) Spencer: It's like it feels like a glorified gift system almost like you're just gifting someone. Why do I have to go through this whole?
+(0:52:06) Spencer: like, you know dog and pony show of like chopping food and
+(0:52:11) Spencer: Making a meal and having all the ingredients which by the way the ingredients are like kind of
+(0:52:18) Spencer: obnoxious to come across in my opinion
+(0:52:20) Spencer: But then again, this is me coming from a not as experienced cozy game player
+(0:52:26) Codey: Yeah.
+(0:52:27) Spencer: Right, like, you know if I'm sharing a meal and it's like well
+(0:52:31) Spencer: They want this bitter meal and it needs lettuce. Whoops. I haven't grown lettuce. So I guess they gotta just
+(0:52:35) Codey: Yeah. I think you can, I think you can go buy it. I think so. I
+(0:52:37) Spencer: Make do without lettuce or something or find another meal. I can cook with the ingredients. I have I
+(0:52:44) Spencer: Can you just them maybe
+(0:52:46) Codey: think you go down to the people in the village and you can buy
+(0:52:49) Codey: what but but it's not cheap. So then you're gonna have to go do
+(0:52:53) Codey: stuff to get stuff to sell to then buy what the ingredient you
+(0:52:58) Codey: need. But that's also life. Sometimes you need that specific
+(0:53:01) Spencer: Mm-hmm. Yeah, that's true.
+(0:53:02) Codey: ingredient.
+(0:53:05) Codey: I really liked this next article. I really liked their thing. They said, "Tales of the Shire"
+(0:53:12) Codey: wasn't the game I wanted to play, but the game I needed to play. And they said, "The mindset you
+(0:53:16) Codey: have coming into a game makes all the difference, but I'm glad I let Tales of the Shire win me over."
+(0:53:22) Codey: This is how I felt. I was ready, especially because there was a lot of negative reviews,
+(0:53:27) Codey: I was ready to come in and be like, "I am so disappointed in this game."
+(0:53:31) Codey: I was not disappointed in, like, I think that.
+(0:53:35) Codey: I was whelmed.
+(0:53:37) Codey: Like, I wasn't overwhelmed or underwhelmed.
+(0:53:39) Codey: I was just like, this is a game.
+(0:53:41) Codey: Yeah, this is-- yeah.
+(0:53:44) Codey: I don't think it was as bad as a lot of other people said.
+(0:53:46) Codey: But I really like that it has to do with the mindset you
+(0:53:49) Codey: have coming into the game.
+(0:53:51) Codey: And if you're expecting--
+(0:53:52) Codey: it seems like some people were expecting certain things.
+(0:53:57) Codey: And if you don't get those--
+(0:53:58) Codey: like, if you have that expectation,
+(0:53:59) Codey: you're like, well, clearly I'm going to see Bilbo and Frodo.
+(0:54:02) Spencer: >> Yeah, I definitely could see, I can see two mindsets being disappointed by this game.
+(0:54:06) Codey: I don't know.
+(0:54:15) Spencer: What you touched on just now, like big Lord of the Rings fan expecting cameos and, you
+(0:54:20) Spencer: know, basically like, you know, really deep in Lord of the Rings lore, so to speak.
+(0:54:27) Spencer: And then also from like maybe not as much Lord of the Rings fan perspective.
+(0:54:32) Spencer: But like, I would say if this game came out, you know, during like, Animal Crossing, you
+(0:54:39) Spencer: know, lockdown era, this would have been perfect.
+(0:54:40) Codey: - Yeah.
+(0:54:43) Spencer: Just sitting near the little pond as a hobbit doing nothing, like slacking around for an
+(0:54:50) Spencer: hour, amazing.
+(0:54:53) Spencer: You know, but like, here I am, like, playing this game on my lunch break because that's
+(0:54:57) Spencer: my free time now, was not the same mindset that I would have had.
+(0:55:02) Spencer: Back then, and definitely not as like fostering, so to speak, for the game.
+(0:55:08) Codey: Yeah. Yeah. Like it really is just what you are wanting out of it. I, from the trailers,
+(0:55:15) Codey: I knew that I wasn't going to be getting the like deep lore dive that I might have wanted in another
+(0:55:21) Codey: life. Um, but I also get it. Um, so, uh, the last article, this article, I just want to mention,
+(0:55:30) Codey: because it's hilarious to me. So, um, I was initially like ready to throw down on this
+(0:55:39) Codey: it's from polygon and it says, cozy, please. Tales of the Shire is a tragedy. And then they say bye,
+(0:55:45) Codey: bye, bye water. Um, and then they start talking about the game a little bit and how it's friendly,
+(0:55:52) Codey: friendly locales, da, da, da, da, da, and they're going into the, the lore. So in the Lord of the
+(0:55:59) Codey: Rings books, there's a whole end part where Saruman comes to the Shire to like have revenge
+(0:56:09) Codey: like he doesn't die in the Lord of the Rings time, like, or in like, like he does in the movies,
+(0:56:15) Codey: at least in the extended edition of the movies. Like he, he goes back and like teams up with
+(0:56:20) Codey: another Hobbit and like does, uh, this what's called the scourging of the Shire. And there's
+(0:56:25) Codey: a whole battle in by water. And so this, this article is about how you're like, he, you move
+(0:56:36) Codey: Here you're building up a house, but like he
+(0:56:38) Codey: from the from the player's perspective knows that in like 20 years, this entire place is going to get absolutely wrecked.
+(0:56:46) Codey: And so I get it.
+(0:56:52) Spencer: Pat, you know what?
+(0:56:53) Spencer: I mean, now that you tell me that, it's weird.
+(0:56:56) Codey: Mm hmm.
+(0:56:57) Spencer: This almost makes me appreciate the game more.
+(0:57:00) Spencer: I hate to say it.
+(0:57:01) Spencer: Because I'm trying to think of what other media maybe
+(0:57:08) Spencer: Red Dead Redemption 2 might be qualified as this, right?
+(0:57:12) Spencer: Because it's technically a prequel to 1.
+(0:57:14) Spencer: So if you've played 1, you know what's going to happen.
+(0:57:18) Spencer: But it's like that mindset of like, oh, like--
+(0:57:22) Spencer: I'm making such a beautiful life here
+(0:57:24) Codey: Too bad it's going to get ruined.
+(0:57:24) Spencer: that I know is ultimately doomed to fail.
+(0:57:28) Codey: Yeah, so I saw this article title,
+(0:57:30) Codey: and I was like, oh, this person's way out of base.
+(0:57:33) Codey: And then I read this article.
+(0:57:35) Codey: So I'm going to share this article in the--
+(0:57:36) Codey: or go to the show notes and read this article if you want.
+(0:57:39) Codey: If you're a big person, a big fan of the series,
+(0:57:43) Codey: this is hilarious, actually.
+(0:57:45) Codey: Like, here's just one quote.
+(0:57:47) Codey: "Every time Old Nokes gifts me a fishing rod,
+(0:57:50) Codey: I want to request a rifle instead.
+(0:57:55) Codey: So definitely I recommend reading this article, just another funny thing.
+(0:58:01) Codey: They seem fairly positive about the game, but then they get pretty meta.
+(0:58:08) Codey: Okay, let's just jump in a little bit more.
+(0:58:14) Codey: So I wanted to have a spot where we could talk about the visuals, the soundtrack, and the story.
+(0:58:19) Codey: I thought the visuals, except for the character models, I hate the character models.
+(0:58:20) Spencer: Okay.
+(0:58:24) Spencer: Oh, they're kind of weird.
+(0:58:24) Codey: But other than that, I thought the visuals of the game itself and I think how things move is very pretty.
+(0:58:34) Codey: It did remind me of another game, and I literally never figured out what game, and I just realized that I never figured that out.
+(0:58:43) Codey: So I've seen this before. It's not completely foreign.
+(0:58:48) Codey: Yeah, go for it.
+(0:58:49) Spencer: I definitely-- so I definitely-- yeah, you're just spot on.
+(0:58:54) Spencer: Character models kind of whack, to be 100% honest.
+(0:58:57) Codey: - Yeah.
+(0:58:58) Spencer: They reminded me, like I said earlier,
+(0:59:00) Spencer: of Wizarding 101 or some kind of 2000s free to play
+(0:59:05) Spencer: online MMO for kids game.
+(0:59:10) Spencer: The landscape model, it was--
+(0:59:15) Spencer: I don't know if I'd say hit or miss for me.
+(0:59:17) Spencer: there's one effect that I kind of appreciate.
+(0:59:20) Spencer: The more I played it, which was like, some of the smaller plants, I don't know how to describe this, like, and I don't know if maybe I'm just crazy and I was seeing things that weren't there, but it was like, if you had a small plant, the plant, like visually from far away was not there, like the draw distance was like, it just, it just didn't, it wasn't appeared, didn't appear, and then as you got closer, like, it sprouted out of the ground, it wasn't just like, it like appeared, it like actually looked like it was growing out of the ground.
+(0:59:44) Codey: Yeah
+(0:59:49) Codey: Yeah, yeah, I saw that too no, you know, it's a yeah
+(0:59:50) Spencer: To full size, am I am I crazy? Yeah, okay, good. I was like, yeah, and I thought that was very, it was almost like opening up a pop up book, I guess, which I thought was
+(0:59:58) Codey: Yeah
+(0:59:59) Codey: It was also nice because then those are often like some of those plants are the plants that you can interact with and you can forage
+(1:00:06) Codey: And that like if you're running through the landscape you want to know that and I think until you've encountered a decent number of the plants
+(1:00:14) Codey: You don't know where they are or what they look like
+(1:00:16) Codey: But eventually they show up on your map like you can Google it or not Google it
+(1:00:19) Codey: Oh my god, you can look it up on the map and it's like, oh, that's where elderaries are or whatever
+(1:00:24) Codey: But you know the first couple times you find them or even just until you know what they look like
+(1:00:29) Codey: Or what to expect you're kind of just running blind and you're like, okay, what part of the world is
+(1:00:36) Codey: Interactable
+(1:00:37) Codey: versus just beautiful aesthetic
+(1:00:40) Spencer: Oh, thank god you brought up the map though, because as far as visuals go, that was the one
+(1:00:44) Spencer: thing I could not stand. So they have this system when you're looking for your quests or going to
+(1:00:51) Spencer: quest to quest. You follow these birds, right? And the birds, they chose blue. I do not know why
+(1:00:52) Codey: Yeah, yeah.
+(1:00:58) Spencer: they chose blue, but they decided on blue. And blue is so visually hard to see against the rest
+(1:01:05) Spencer: of these colors in this game. If it was a red bird or something, great. That would have been
+(1:01:10) Spencer: easy to spot. Just make the bird red. But no, they chose blue. And I spent half of my time like,
+(1:01:16) Spencer: where did the birds go? Are the birds over here? Where do I go? Oh, I guess the birds are behind
+(1:01:23) Spencer: me now. Oh, my goodness.
+(1:01:24) Codey: Yeah. Well, and they say that they put the birds on the, on the signposts and wherever
+(1:01:31) Codey: the signpost is. So if there's a signpost, um, that has like four different directions
+(1:01:36) Codey: and there's little, there's arrows and four, the bird is standing on the one that is the
+(1:01:40) Codey: direction you're supposed to go in. Um, and they say that like, they're like, Oh, just
+(1:01:45) Codey: follow the birds. But then at sometimes the birds aren't on the signposts. They're like
+(1:01:49) Codey: above a bridge or they're on another part of the world or something. And I'm like, Oh,
+(1:01:52) Spencer: Yeah. Or like a broken wagon wheel or something.
+(1:01:55) Codey: is that like, yeah. I'm like, Oh, is, is that one of the birds or is that just a bird?
+(1:02:02) Spencer: Yeah, the birthday, I mean, you know what, I appreciate their commitment to keep you
+(1:02:08) Spencer: immersed in the game, but just give me like an arrow, you know, like, that's all I want.
+(1:02:08) Codey: Yeah, yeah, I didn't even think about the menus again until you
+(1:02:16) Codey: mentioned it, but like, the menus did not spark joy either.
+(1:02:20) Spencer: Oh, yeah, they were very-- there was so many,
+(1:02:22) Spencer: like, I just got so confused clicking the correct--
+(1:02:25) Spencer: or the incorrect L and R's.
+(1:02:25) Codey: Yeah, yeah, switch, which I don't play very often
+(1:02:26) Spencer: And out of curiosity, what did you play this on?
+(1:02:30) Spencer: Switch-- OK, yeah, I played it on Switch as well.
+(1:02:35) Codey: to start with because we kind of use the Xbox for everything.
+(1:02:39) Codey: But I'm sure I will play--
+(1:02:43) Codey: I will get deeper into this game at some point,
+(1:02:45) Codey: and it'll become second nature for me to use those.
+(1:02:48) Codey: But I didn't play long enough to have the system be intuitive
+(1:02:55) Codey: to do that.
+(1:02:57) Codey: So the soundtrack--
+(1:03:00) Codey: are you an audio person?
+(1:03:02) Codey: Do you like soundtracks or think about soundtracks?
+(1:03:06) Spencer: Um, sometimes this was very, uh, it was, it was what it was.
+(1:03:14) Codey: Yeah, I put sound, and then I was like, wait, I don't remember.
+(1:03:15) Spencer: It was the soundtrack.
+(1:03:22) Codey: But I mean, I don't remember being like, well, that's weird.
+(1:03:24) Codey: Like, I think it just had like cozy, like, oh, yep, I'm running around
+(1:03:28) Codey: in a pretty landscape music.
+(1:03:34) Codey: And then the story, basically, you're a hobbit from Brie,
+(1:03:40) Codey: and you're coming to inherit, I think it's your uncle's home.
+(1:03:44) Codey: No, no, no, no, it's a woman. It's an old woman who died.
+(1:03:48) Spencer: Rosie, right? Is that what they say? Yeah
+(1:03:48) Codey: Yeah.
+(1:03:50) Codey: And people think of her very fondly.
+(1:03:56) Codey: And so you are here and you're trying to uncover the secrets of her house
+(1:04:04) Codey: as you clean it up and unlock additional rooms and stuff.
+(1:04:10) Codey: And then by also trying to
+(1:04:14) Codey: try and like help them figure out how to make the village
+(1:04:18) Codey: like a legit village.
+(1:04:20) Spencer: Yeah, so that's, I had to look this up, that is the main quest line, so to speak, is getting
+(1:04:25) Codey: Yeah.
+(1:04:26) Spencer: the village to become a recognized certified, which seems so weird to me, right? Like, that
+(1:04:28) Codey: Certified as a village.
+(1:04:32) Spencer: seems like something like, well, don't they have rules and laws in place for this in Middle
+(1:04:38) Spencer: Earth? Like, it seems like a no duh kind of like, well, we're either village or we're
+(1:04:43) Spencer: not a village, right? But they made the whole game about a bit, I guess. And there's a whole
+(1:04:50) Spencer: thing, I don't know. It's just, it seemed kind of like goofy to me.
+(1:04:50) Codey: I don't-- so I think that's part of the appeal, though,
+(1:04:56) Codey: is hobbits' lives are so easy that this is drama to them.
+(1:05:04) Codey: Because half of the hobbits are like, we're a village.
+(1:05:07) Codey: And the other half is like, we don't count as a village.
+(1:05:10) Codey: And then they're like, OK, but there's
+(1:05:13) Codey: no rule about what counts as a village.
+(1:05:15) Codey: And then they're like, yes, there is.
+(1:05:18) Codey: And then they bring in the appraiser, I think,
+(1:05:20) Codey: they call him.
+(1:05:22) Codey: And that hobbit says that we have not yet
+(1:05:26) Codey: fulfilled the qualifications to be considered a village.
+(1:05:31) Codey: And so that's the main quest is you're
+(1:05:33) Codey: trying to meet those qualifications.
+(1:05:36) Codey: Part of it is by building more camaraderie and more community.
+(1:05:40) Codey: So you start up these clubs.
+(1:05:44) Codey: You also just try and increase your friendships.
+(1:05:50) Spencer: Yeah, and that's that's the other thing that struck me as odd about the story was like, why do some of these characters even care whether like, most people are pretty like, let's make a village, but then some characters are like, no, we don't want to be like, what's, what's the downside of like, being a village?
+(1:06:03) Codey: Yeah. Yeah, I don't know. But it's like, it's totally the type of like small town politics, busy bodies versus like, the people that I don't know, it's I get it. I get it. But it is also a little silly. But it's that's the thing, like, this is supposed to this is a cozy game within the store.
+(1:06:06) Spencer: Like, do you want to stay unincorporated? Is this like a weird tax thing or something? Like, what's going on here?
+(1:06:33) Codey: The world of Lord of the Rings in a cozy part of Lord of the Rings before the devastation that is the Battle of Bywater. I do agree with the person above the characters are a little bland other than like, oh, this guy's grumpy or, you know, like, that kind of thing. There's not much to it.
+(1:06:54) Spencer: I'm-- the sky is grumpy.
+(1:06:56) Spencer: The whole town is grumpy.
+(1:06:57) Spencer: I felt like I was in a village full of 60-year-olds.
+(1:06:57) Codey: Yeah, you're right.
+(1:07:00) Spencer: My goodness.
+(1:07:01) Spencer: Like, even the happiest hobbit was still grumpy for no reason.
+(1:07:01) Codey: I mean, probably.
+(1:07:03) Codey: Yeah, they have nothing else to spice up their lives, they have to be grumpy about something.
+(1:07:07) Spencer: I was like, what is going on here?
+(1:07:11) Spencer: No.
+(1:07:13) Spencer: I will say, I don't even know where we would talk about this.
+(1:07:16) Spencer: But one thing that I did find as a very interesting detail--
+(1:07:23) Spencer: and I didn't realize I didn't
+(1:07:24) Spencer: really do like very many side like meal quests so maybe she dives into this more. Did you notice
+(1:07:30) Codey: OK. Delphinia or whatever.
+(1:07:31) Spencer: uh I'm not gonna pronounce her name right she's the foraging like club
+(1:07:37) Spencer: yeah Delphi I think is what they call her for sure or something did you notice she has a peg leg
+(1:07:39) Codey: Yeah. Oh, no.
+(1:07:44) Spencer: yes she's missing one leg
+(1:07:46) Codey: Oh, my gosh, I'm googling it.
+(1:07:51) Codey: What is this game called?
+(1:07:54) Codey: I was so focused on her name. Delphinium Brandi book.
+(1:07:59) Codey: Oh my god.
+(1:08:00) Codey: gosh okay this is yeah yeah there's no there's nothing else about her it just says what okay oh
+(1:08:09) Codey: wow that's amazing I want the deets does she mention why or anything
+(1:08:15) Spencer: I'd I never found any other information. I just was walking behind her one day and I was like wait a minute. What is this?
+(1:08:23) Codey: Yeah.
+(1:08:25) Codey: Well, that's cool.
+(1:08:28) Codey: Well, now I'm Kari.
+(1:08:31) Codey: Cool.
+(1:08:34) Codey: We love to see it.
+(1:08:35) Spencer: >> Yeah. Sure. Just run around and grab things.
+(1:08:37) Codey: OK, so the different mechanics in the game--
+(1:08:38) Codey: well, let's just start with foraging,
+(1:08:40) Codey: because it's very, very simple.
+(1:08:44) Codey: You sure do be grabbing things.
+(1:08:47) Codey: There's flowers, there's berries, there's wood.
+(1:08:54) Codey: Yep.
+(1:08:54) Spencer: There's spices, they do add a little bit of an element to help you search butterflies
+(1:08:57) Codey: Yeah, spices.
+(1:08:59) Codey: These are just things that are growing wild.
+(1:09:00) Codey: You don't have to do anything.
+(1:09:08) Spencer: that fly over to things, which I guess are kind of nice.
+(1:09:13) Spencer: Every time I saw a butterfly group, I would be like, "Oh, okay, well, lead me.
+(1:09:18) Spencer: lead me to my space.
+(1:09:18) Codey: where I go. Yeah, the butterflies were really cute. They, you basically follow, like if
+(1:09:24) Codey: you see a bunch of white butterflies or something, you're like, Oh, they're going to lead me
+(1:09:28) Codey: to something like, you know that there's a something around you that is blooming or something.
+(1:09:35) Codey: And then you follow them and then they show you, Oh, there's also mushrooms. Um, yeah,
+(1:09:38) Codey: you follow them and they show you whatever it is. Um, yeah, they're pretty cute. Um,
+(1:09:38) Spencer: Mm-hmm.
+(1:09:43) Spencer: Yeah.
+(1:09:45) Codey: And that's foraging for yourself as a mentor.
+(1:09:49) Codey: I mean, you, I guess you use the stuff for cooking and then the wood you can use to either trade or it's like part of a quest, um, that kind of thing.
+(1:09:57) Codey: Um, another thing that you can do before cooking is gardening.
+(1:10:00) Codey: Um, so you start with a couple plots, but then you can also build plots, um, buy plots.
+(1:10:07) Codey: Uh, and they're really just these little beds basically of, um, that have soil in them.
+(1:10:14) Codey: Um, there's a bunch of different carrot, like models of them.
+(1:10:19) Codey: Um, and you can put either just one thing in there or you can actually put
+(1:10:26) Codey: multiple things in there.
+(1:10:26) Spencer: And so this is--
+(1:10:27) Codey: You're laughing.
+(1:10:28) Spencer: I am laughing because it's so goofy to me thinking
+(1:10:31) Spencer: of real-world gardening versus--
+(1:10:33) Spencer: I know this is a video game, so don't jump on me about this.
+(1:10:39) Spencer: Because at one point, you get a quest.
+(1:10:41) Spencer: Grow a two-star vegetable.
+(1:10:43) Spencer: Cool.
+(1:10:43) Spencer: You find out if you grow vegetables near each other,
+(1:10:48) Spencer: if they're compatible, they'll basically boost each other.
+(1:10:49) Codey: Yeah.
+(1:10:51) Spencer: I'm like, OK, great.
+(1:10:53) Spencer: And this is also where I found out at least, oh,
+(1:10:56) Spencer: you start out with little raised bed garden plots.
+(1:10:58) Codey: Yeah.
+(1:10:59) Spencer: And I assumed that you had to use one vegetable in one raised
+(1:11:03) Spencer: bed.
+(1:11:03) Spencer: But no, you can scoot the cursor as close as you
+(1:11:08) Spencer: can to the corner and shove four vegetables in here.
+(1:11:10) Codey: - Yep.
+(1:11:13) Spencer: And that's so silly to me because it gives you
+(1:11:13) Codey: Yep.
+(1:11:17) Spencer: the little area that the vegetable needs to grow.
+(1:11:20) Spencer: And if it overlaps with another vegetable,
+(1:11:22) Spencer: you can't grow it that close.
+(1:11:24) Spencer: But then it has no regard for it.
+(1:11:26) Spencer: For the fact that you're right up
+(1:11:28) Codey: - Yeah.
+(1:11:28) Spencer: against a wall of a garden bed.
+(1:11:30) Spencer: You can be smack dab in the corner.
+(1:11:33) Spencer: And real life vegetable would be bawling its roots
+(1:11:36) Spencer: like crazy against it.
+(1:11:38) Spencer: But nope, it's totally fine.
+(1:11:40) Spencer: You can shove as much stuff as you want right up
+(1:11:43) Spencer: against the wall.
+(1:11:44) Codey: It's just the plants can't touch each other
+(1:11:47) Spencer: Yeah, I was laughing the whole time I was doing that.
+(1:11:51) Codey: Yeah, I only got I think I got put two in there, but I never put in more than two
+(1:11:57) Spencer: Oh, I managed to get four in there.
+(1:12:00) Codey: Slammed them in sounds like you were min maxing a little
+(1:12:01) Spencer: Yeah, maybe a little bit.
+(1:12:06) Codey: Yeah, like as you do it you learn
+(1:12:09) Codey: What the different companion plants are you just kind of have to do it and see what happens?
+(1:12:15) Codey: And I do kind of like that about the game like that. You kind of just you know heck around and find out
+(1:12:23) Codey: And
+(1:12:25) Codey: I I thought it was nice. It was a little weird like I was a little unsure
+(1:12:30) Codey: Okay, like how many days does this take how many days does this take and you just learn as you go?
+(1:12:35) Codey: Or like I think some people will tell you around the town and maybe you can get
+(1:12:40) Codey: information that way but it is kind of just a mess around and find out.
+(1:12:44) Codey: Which is fine. Sometimes that's how it be. They don't have Google, but I mean I didn't have anything fail. Did you?
+(1:12:44) Spencer: Yeah, this whole game is very vague on a lot of details,
+(1:12:47) Spencer: to be 100% honest.
+(1:12:58) Codey: Also, how far in did you get?
+(1:12:59) Spencer: I did not.
+(1:13:02) Spencer: So I did a couple of the side quests.
+(1:13:06) Spencer: I tried, like I said, mainly focusing on the town quest.
+(1:13:09) Codey: Um, are you still in the same season?
+(1:13:11) Spencer: And I think I just switched to the next season.
+(1:13:14) Codey: Okay, I'm not there yet.
+(1:13:14) Spencer: And I got to right after--
+(1:13:23) Spencer: so they say that your town isn't a town,
+(1:13:26) Codey: Mm hmm. Yes, I got that. And I was like, what? What do you do? You just have to go kill
+(1:13:26) Spencer: and they give you a list of things to require.
+(1:13:28) Spencer: One of them is having a wolf head, or like--
+(1:13:33) Spencer: yeah.
+(1:13:35) Spencer: Yeah, so I finished that, and then I started--
+(1:13:38) Spencer: yeah, I started--
+(1:13:40) Codey: a wolf or
+(1:13:41) Spencer: oh, oh, no.
+(1:13:42) Spencer: So what happens is--
+(1:13:45) Spencer: who is the one that sews clothes and stuff?
+(1:13:51) Spencer: Furniture or whatever?
+(1:13:52) Codey: - Mm-hmm, I know who you're talking about.
+(1:13:54) Spencer: Yeah, they make a fake wolf head.
+(1:13:54) Codey: Yep.
+(1:13:56) Codey: Okay, okay.
+(1:13:56) Spencer: And you have to collect material to make a fake wolf head.
+(1:14:00) Spencer: And they just hang it up.
+(1:14:02) Spencer: And it's-- I don't know if I want to spoil this.
+(1:14:05) Spencer: There's kind of a funny thing with hanging it up.
+(1:14:08) Spencer: And they're just like, eh, whatever.
+(1:14:11) Spencer: It is what it is.
+(1:14:12) Spencer: and they all walk away, and then the quest is complete.
+(1:14:15) Spencer: So that is where I finished.
+(1:14:18) Spencer: I think the last quest is something
+(1:14:21) Spencer: about fighting a goblin.
+(1:14:22) Spencer: I didn't quite get there yet.
+(1:14:23) Codey: Okay, interesting, um, yeah, the wolf head thing was a little silly to me.
+(1:14:31) Codey: I was like, wait a minute, what the heck?
+(1:14:33) Codey: It's like, how am I even gonna find, there's no fighting mechanic in this game.
+(1:14:36) Spencer: No, so what happens with the wolf head is you go around to like different older villagers and ask, they're like, no one's ever seen a wolf except for maybe, maybe old notes or whatever, you know.
+(1:14:41) Codey: Uh-huh.
+(1:14:46) Codey: Yeah.
+(1:14:46) Spencer: So you ask them like, well, what does a wolf look like? And they'll give you like a vague description, but not quite a complete description.
+(1:14:53) Codey: Yeah.
+(1:14:54) Spencer: So then you get like this amalgamation of like what five different people said a wolf look like, like combined into this one wolf head.
+(1:14:58) Codey: Okay, that's pretty cute.
+(1:15:01) Codey: That's pretty cute.
+(1:15:03) Codey: Um, cool.
+(1:15:05) Codey: And then, uh, the next things, uh, after you get your,
+(1:15:09) Codey: so you have your gardening, you've gardened some stuff, you've forged some stuff.
+(1:15:13) Codey: I guess another thing to get stuff before cooking is fishing.
+(1:15:17) Codey: Um, I did really like that mechanic.
+(1:15:20) Codey: They have the like
+(1:15:23) Codey: you throw your your so there's like little circles that tell you where the fish are and then there's little you throw your hook your thing out and as the more you hold it the farther out it goes and then as you reel it in you're supposed to like pull the opposite direction and you could break the lines and I thought it was more involved but like less difficult or it was yeah it was not as difficult as like started
+(1:15:52) Spencer: Mm-hmm.
+(1:15:53) Codey: so I really liked it.
+(1:15:54) Spencer: It definitely-- from at least the fishing mechanics
+(1:15:58) Spencer: that I've played in various games,
+(1:16:00) Spencer: it definitely felt the most intuitive--
+(1:16:02) Spencer: maybe not the most.
+(1:16:02) Codey: Yeah.
+(1:16:03) Spencer: Maybe I'm giving it too much credit.
+(1:16:05) Spencer: Most intuitive might be a lot, but it definitely
+(1:16:07) Spencer: felt intuitive, where you're like, OK, yeah, pull away
+(1:16:08) Codey: Yeah.
+(1:16:11) Spencer: from the direction the fish is going,
+(1:16:13) Codey: Wow.
+(1:16:13) Spencer: and then release the pressure if it gets too much.
+(1:16:16) Spencer: It made sense.
+(1:16:17) Spencer: And it was a new mechanic to me, but it was also
+(1:16:21) Spencer: one that I like picked up right.
+(1:16:23) Spencer: Some games, I feel like you're like,
+(1:16:24) Spencer: oh, man, new fishing mechanic.
+(1:16:27) Spencer: And you have to spin around 10 times before you
+(1:16:30) Spencer: do this and that.
+(1:16:31) Spencer: And so--
+(1:16:32) Codey: yeah I definitely agree I think it was pretty intuitive and like I mean this is
+(1:16:40) Codey: how you fish this is what this is what fishing is though and then you can get
+(1:16:47) Codey: different fish I don't know if like if you fish in different areas you get
+(1:16:50) Codey: different things okay because I didn't I haven't fished in too many areas though
+(1:16:51) Spencer: I believe you do
+(1:16:58) Spencer: Yeah, I fished in a couple areas, not too many, but yeah, I definitely got different fish per area though.
+(1:17:02) Codey: okay cool
+(1:17:06) Codey: mm-hmm okay and then so now you got your fish you got your stuff that you
+(1:17:15) Codey: gardened you got the stuff that you foraged like the spices and stuff and
+(1:17:18) Codey: now you get to cook the cooking is I see what they're trying to do
+(1:17:24) Spencer: Yeah, I mean, we kind of touched about this earlier.
+(1:17:28) Spencer: You get this-- it's not even like a meter, right?
+(1:17:32) Spencer: It's almost like one of those--
+(1:17:36) Spencer: you have one axis, which is like--
+(1:17:38) Codey: Yeah, it's like a graph
+(1:17:40) Spencer: yeah, it's too much math for cooking, in my opinion,
+(1:17:43) Spencer: first off.
+(1:17:44) Codey: Yeah
+(1:17:44) Spencer: There should not be graphs involved when you're cooking.
+(1:17:49) Spencer: And so one axis, I think it's like the y-axis
+(1:17:52) Spencer: is like tenderness or something.
+(1:17:53) Codey: Mm hmm. Yeah, like how either it's texture. So it's like how choppy versus how smooth something is. Yeah.
+(1:17:54) Spencer: And then smooth.
+(1:18:02) Spencer: Yeah, and then the other accesses,
+(1:18:04) Spencer: like how cooked versus how uncooked it is.
+(1:18:09) Spencer: And they put a target on this graph.
+(1:18:14) Spencer: And you want to get your meal there.
+(1:18:15) Spencer: And your meal is randomly somewhere else on the target.
+(1:18:19) Spencer: So then you have to prepare your food to scoot your meal icon
+(1:18:23) Spencer: over to the target.
+(1:18:25) Spencer: to make it a better but then some things are like like some of the meals have you put milk in and you can't do anything to the milk. So there's a whole ingredient where you're just like, cool, like can't do anything to that. So I just got to hope that my my one rhubarb that I got to chop and cook brings it over.
+(1:18:40) Codey: Yeah, but I mean, even if you just do it debate, I think that that part only increases the star quality, and then I guess it also like depending on how spicy it is or whatever like how that's how bitter or sour or sweet or spicy it is.
+(1:18:56) Codey: But that also is with the ingredients you put in. So if you use like bitter berries versus sweet berries, that will impact a lot of that stuff.
+(1:19:08) Spencer: That's yeah, that's something I also didn't realize they I don't think they explained very well, honestly, and like, they look like, you know, I started noticing like, well, wait, this fish has a sweet taste. And this fish has like, a bitter taste. And I can use the fish in the same meal. So like, that changes the meal from bitter to sweet, like, and then, you know, like, once you realize that, that opens up a lot of cooking possibilities.
+(1:19:10) Codey: They don't. Yeah.
+(1:19:33) Spencer: 'cause when I initially started cooking,
+(1:19:35) Spencer: I was looking specifically for ingredients.
+(1:19:38) Spencer: I was like, "Oh man, I don't have lettuce or I don't have whatever."
+(1:19:42) Spencer: But then I realized, like, "Oh, there's some recipes that change
+(1:19:45) Spencer: based off of what kind of ingredients you add."
+(1:19:48) Spencer: Yeah.
+(1:19:51) Spencer: It's--it is not.
+(1:19:52) Codey: Yeah, I mean, it's just not that--
+(1:19:56) Spencer: Mm-hmm.
+(1:19:56) Codey: this is not intuitive.
+(1:19:59) Spencer: Well, once you're done with cooking, you gotta...
+(1:19:59) Codey: I feel like they could make it a little bit better.
+(1:20:04) Codey: And then-- yeah, exactly.
+(1:20:08) Spencer: ...share the meals with people.
+(1:20:10) Codey: If you have friends, I don't know what that's like.
+(1:20:13) Codey: But if you-- no, I'm kidding.
+(1:20:14) Codey: If you have friends, you can share the meal.
+(1:20:17) Codey: So this is how you increase your friendship
+(1:20:19) Codey: with other, um,
+(1:20:23) Codey: and, um, you kind of learn more about them as they do it.
+(1:20:28) Codey: And in the letters there's,
+(1:20:29) Codey: I think they talk about kind of more about themselves in the letters a little
+(1:20:33) Codey: bit, if I remember, if I'm remembering correctly. And so it's basically this,
+(1:20:37) Codey: this shared meal mechanic where you write them a letter inviting them,
+(1:20:42) Codey: but you don't do much to the letter. You just say, Hey,
+(1:20:45) Codey: I want to invite the, and it always has to be two people,
+(1:20:48) Codey: which I kind of hate. What if I wanted to share the hot goss with just,
+(1:20:52) Spencer: Mm-hmm. Yeah, it kind of pushed the pressure on too because now you have to have like two
+(1:20:56) Spencer: So this is this is my biggest issue with this game. All right, this is my hot take
+(1:21:00) Codey: Mm-hmm. Okay.
+(1:21:02) Spencer: Like the friendship meal sharing is a big part and to do that
+(1:21:07) Spencer: You have to have meals and to have meals you have to cook and to cook you have to have ingredients
+(1:21:13) Spencer: So if you like you have to start stockpiling all of this stuff
+(1:21:18) Spencer: So much to like have meals on rotation
+(1:21:22) Spencer: because like there was so many times where I was like running around like oh man I just
+(1:21:26) Spencer: got to catch like a fish so I can make a meal hopefully so I can have a shared meal with people
+(1:21:34) Spencer: and it was like man I like just need to constantly have things in the garden growing so I have like
+(1:21:40) Spencer: just tons of potatoes and lettuce in case I need to do a meal or something.
+(1:21:42) Codey: Yeah.
+(1:21:46) Codey: Yeah, I mean, it I mean, yeah.
+(1:21:50) Spencer: I guess it felt to me very much like if--
+(1:21:52) Spencer: if there was like any remotely weak link in this chain of like, what you needed to do to have the shared meal, like the whole system fell apart.
+(1:21:56) Codey: Yeah
+(1:22:02) Codey: Yeah, I think I just like I
+(1:22:07) Codey: wasn't trying to make sure that everything happened at the same time and I would also I
+(1:22:12) Codey: would
+(1:22:13) Codey: Make like like you said you would make something that wasn't someone's favorite
+(1:22:19) Codey: Like I wasn't trying that hard to make sure that I have made someone that I knew someone would like
+(1:22:22) Spencer: Mm-hmm.
+(1:22:24) Codey: Just as long as it was not the opposite of what
+(1:22:26) Codey: they asked for.
+(1:22:27) Spencer: Yeah, I mean, at one point, I just gave up trying to please them,
+(1:22:30) Spencer: and I was like, "You're getting a meal."
+(1:22:33) Codey: You're getting a free mail out of this.
+(1:22:34) Codey: Why are you complaining?
+(1:22:37) Codey: Valid.
+(1:22:39) Codey: So, yeah, I, I think that I like person.
+(1:22:42) Codey: I wasn't really thinking that much about like, oh, making sure I have everything
+(1:22:46) Codey: like one of everything growing and stuff like that.
+(1:22:48) Codey: I was just kind of taking it really loosey goosey.
+(1:22:52) Codey: But I could see the stress of that where it's like, oh, I need it.
+(1:22:56) Codey: Invite someone.
+(1:22:57) Codey: It doesn't really tell you what people like until you ask them to come.
+(1:23:02) Codey: And then in the, so you send a letter, a letter to them and you're like, Hey, I
+(1:23:06) Codey: want, I would like it if you came to my house and then you get a letter back
+(1:23:10) Codey: and they're like, that sounds great.
+(1:23:12) Codey: I'm really looking forward to a spicy meal.
+(1:23:15) Codey: Um, and then.
+(1:23:16) Spencer: But mind you, this letter that you get back telling you what they want is the day of.
+(1:23:20) Codey: The day of.
+(1:23:21) Spencer: The day of, right? Like, hey, by the way, get me something spicy. Oh, cool. Like,
+(1:23:25) Codey: I want the spicy, please.
+(1:23:26) Codey: Mm-hmm.
+(1:23:27) Spencer: I hope I have something spicy in the pantry already.
+(1:23:27) Codey: Yeah.
+(1:23:30) Codey: Yeah.
+(1:23:32) Codey: So-- well, or that you have all of the stuff
+(1:23:37) Codey: ready for that specific meal that if they want--
+(1:23:43) Codey: I don't know where my brain is going right now.
+(1:23:45) Codey: I'm a little potato.
+(1:23:47) Codey: All the potatoes are in my head.
+(1:23:50) Codey: I mean, I kind of liked it because as you increase
+(1:23:52) Codey: the friendship, they give you things.
+(1:23:55) Codey: They either give you--
+(1:23:56) Codey: clothing items, but there's also items
+(1:24:00) Codey: to decorate your hobbit hole.
+(1:24:00) Spencer: Oh yeah, the furniture.
+(1:24:04) Codey: Yeah, the furniture or things that just accentuate your home.
+(1:24:10) Codey: And this, contrary to every other game I've ever played--
+(1:24:16) Codey: this was my favorite part of the game--
+(1:24:19) Spencer: The decorating is interesting.
+(1:24:19) Codey: was the decorating, which is ridiculous
+(1:24:22) Codey: because I never like decorating mechanics.
+(1:24:24) Codey: I never give two hoots about decorating.
+(1:24:27) Codey: But how detailed you can get on decorating this thing,
+(1:24:33) Codey: I'm so here for it.
+(1:24:35) Codey: I was having a blast.
+(1:24:39) Spencer: Interesting.
+(1:24:40) Codey: Did you do much decorating?
+(1:24:43) Spencer: I did a tiny bit, I'll be honest, I am the kind of person that you walk into my Animal Crossing house, and there's like a chair, and a bunch of stuff just pushed up against the wall.
+(1:24:45) Codey: OK.
+(1:24:54) Spencer: There's a bunch of fish that I'm going to sell in a day or two. And that's about it.
+(1:24:59) Codey: Mm-hmm.
+(1:25:00) Spencer: So when I went into this decorating like mechanic, right, and I saw that you can like very finely tune a single pot on top of
+(1:25:09) Spencer: a table. I was like, oh, this is already too overwhelming for me. Yeah, I'm good. I don't need to put like pieces shelf at the right angle.
+(1:25:10) Codey: Mm-hmm.
+(1:25:13) Codey: I'm out.
+(1:25:16) Codey: OK.
+(1:25:19) Codey: Yeah.
+(1:25:21) Spencer: I think I cleaned off the IV from the outside of the house and made it green.
+(1:25:21) Codey: Yeah.
+(1:25:25) Codey: Mm-hmm.
+(1:25:29) Codey: Yeah, I cleaned a lot of stuff there.
+(1:25:31) Codey: Because you can also just edit, even without having
+(1:25:33) Codey: to have materials, you can just edit the vibe.
+(1:25:39) Codey: if it's more metal.
+(1:25:40) Codey: Like more stone or more wood or more ornate or whatever.
+(1:25:44) Codey: Like you can just do that, which I really liked.
+(1:25:48) Codey: I like cleaned the crap out of my house because the house,
+(1:25:53) Codey: when you get it, it's like full.
+(1:25:55) Codey: I mean, it has like a nice scholarly feel.
+(1:25:57) Codey: It's full of scrolls and books and stuff,
+(1:26:00) Codey: but there is no method to that madness.
+(1:26:03) Spencer: Oh, there's clothes strewn everywhere.
+(1:26:05) Spencer: There's random balls on the ground.
+(1:26:05) Codey: Yeah, I cleaned that up.
+(1:26:09) Spencer: It makes me wonder if realtors exist in Middle Earth,
+(1:26:13) Spencer: because it doesn't seem like it.
+(1:26:14) Codey: No, I think it's just family members and no, no.
+(1:26:15) Spencer: There was no staging done to this house whatsoever
+(1:26:19) Spencer: before they sold it.
+(1:26:24) Codey: And so, yeah, it was pretty whatever.
+(1:26:26) Codey: So I cleaned that, and then I started getting other--
+(1:26:28) Codey: some of the stuff you clean up, I then used to redecorate.
+(1:26:32) Codey: But then other things I was actually
+(1:26:33) Codey: looking-- because you can see in people's player profiles,
+(1:26:36) Codey: you can kind of see what they're going to give you.
+(1:26:40) Codey: And so I was like, oh, I should invite this person
+(1:26:45) Codey: the next thing they give you is this couch I want.
+(1:26:49) Codey: Like, I was genuinely--
+(1:26:50) Codey: I was shocked that that was the part that drove me in this game.
+(1:26:54) Codey: But I really enjoyed it.
+(1:26:56) Codey: I liked the variation.
+(1:26:58) Codey: I liked the different modifications you can do.
+(1:27:05) Codey: I don't know.
+(1:27:06) Codey: It did actually spark joy.
+(1:27:08) Spencer: Interesting.
+(1:27:10) Spencer: Like I said, I was pretty neutral on it.
+(1:27:12) Spencer: I could see how someone would get super deep into it,
+(1:27:18) Spencer: and I can definitely appreciate that for them.
+(1:27:21) Spencer: For me, I don't know if it's necessarily my thing.
+(1:27:25) Spencer: I'm someone who gets overwhelmed easily.
+(1:27:27) Spencer: I see five sliders on Character Customization screen,
+(1:27:31) Spencer: and I'm like, all right, just give me a default then.
+(1:27:37) Spencer: But it definitely, I was.
+(1:27:38) Spencer: Surprised at how, even just with like moving things around, how detailed you could get.
+(1:27:44) Spencer: Because like, you know, I'm so used to like a grid system where it's like, okay,
+(1:27:48) Spencer: just put this here or rotate it 90 degrees. But no, you could like really,
+(1:27:53) Spencer: really fine tune where you want everything and what you wanted.
+(1:27:56) Codey: Mm hmm. I appreciated that. I really like when they because I
+(1:28:04) Codey: know Sims did that after a long time, like near the end of like
+(1:28:09) Codey: near the more recent stuff, like they got off of the grid
+(1:28:13) Codey: system. And they made it so the and you can do that here as
+(1:28:16) Codey: well. And I just it kind of opens up a whole new way for you
+(1:28:22) Codey: to to put stuff because sometimes I'm like, I don't this
+(1:28:25) Codey: grid the way the.
+(1:28:26) Codey: Grid wants me to do this is just not the way that I would
+(1:28:29) Codey: decorate this, so I'm not going to do it, but I having that
+(1:28:33) Codey: freedom really made me go for it.
+(1:28:37) Codey: So and I think that's for me like it as I continue playing
+(1:28:45) Codey: that's going to be my main driver is okay.
+(1:28:47) Codey: How do I get more stuff?
+(1:28:50) Codey: Also unlocking more of the rooms.
+(1:28:52) Codey: I have not unlocked any new rooms in this house and I want
+(1:28:56) Codey: for rooms.
+(1:28:58) Codey: So that's another another push, but I might have to wait until
+(1:29:02) Spencer: Yeah, just, yeah, you move into this house and like there's like tons of like rooms
+(1:29:04) Codey: I have time to like really dedicate to this game.
+(1:29:11) Spencer: blocked off and like areas blocked off so, yeah, but, mmhmm.
+(1:29:14) Codey: Yeah, which is lame, let me into my rooms, this is my house, I can do what I want.
+(1:29:22) Codey: So, cool, well, do you have any final thoughts, who would you recommend this to?
+(1:29:26) Codey: Are you going to recommend your wife play it?
+(1:29:28) Spencer: We were talking about this, so it's to prepare her because I mentioned before she's not really
+(1:29:34) Spencer: a gamer.
+(1:29:35) Spencer: I was like, play like Animal Crossing or something first, maybe, like, you know, just play a
+(1:29:40) Spencer: game.
+(1:29:40) Codey: Mm-hmm.
+(1:29:41) Spencer: Maybe.
+(1:29:42) Spencer: Right.
+(1:29:43) Spencer: So she's been playing a lot of pocket camp and she's like, she's enjoying it.
+(1:29:44) Codey: Okay, yeah.
+(1:29:48) Spencer: I was surprised she's stuck with it for a while, actually.
+(1:29:52) Spencer: And I told her, I was like, you know, like, maybe game wise, you might enjoy Animal Crossing
+(1:29:56) Spencer: anymore, but I know you love Lord of the Rings.
+(1:29:59) Spencer: I don't know if you're going to get enjoyment out of this game as much as a Lord of the Rings fan.
+(1:30:06) Spencer: And you have to be maybe the right kind of Lord of the Rings fan, too, because if you're looking for that deep, deep lore and those character cameos like we were talking about, you might also be disappointed.
+(1:30:13) Codey: Yeah, you're probably not going to get that, unfortunately.
+(1:30:19) Spencer: Yeah. Yeah. So I mean, yeah, the kind of that middle...
+(1:30:24) Codey: So, yeah, that's good.
+(1:30:28) Spencer: I would say I would. Yeah.
+(1:30:33) Codey: I would say the same.
+(1:30:36) Codey: I think that it's enjoyable.
+(1:30:37) Codey: I think if you're wanting a lot of depth,
+(1:30:41) Codey: maybe even a lot of direction.
+(1:30:44) Codey: Probably not the best.
+(1:30:46) Spencer: Yeah, I would actually recommend if you are someone that has time to just goof around
+(1:30:46) Codey: They don't it doesn't give you a ton of direction for how to do
+(1:30:51) Codey: certain things so.
+(1:30:57) Spencer: in a game, this might be the game for you.
+(1:30:57) Codey: Yeah, and just and just find out like just do things and see
+(1:31:01) Codey: what happens. For sure.
+(1:31:05) Codey: Cool. Well, that is our Tales of the Shire. It's pretty, would
+(1:31:10) Codey: you agree you're whelmed?
+(1:31:12) Spencer: Yeah, it's pretty much exactly what I expected. I don't think I was going in with
+(1:31:18) Spencer: crazy expectations, and I wasn't leaving crazy disappointed either, so
+(1:31:23) Codey: Yeah, well where can people find you on the interwebs?
+(1:31:29) Spencer: Oh, that's a good question.
+(1:31:31) Codey: Or can they not?
+(1:31:33) Spencer: I mean, they used to be able to find me on Instagram
+(1:31:37) Spencer: @spenser.cooks, but fair warning people,
+(1:31:40) Spencer: I have not posted anything in so long.
+(1:31:43) Spencer: It might as well be defunct by this point.
+(1:31:43) Codey: Um, well, I am also on Instagram, uh, Hiking Beagle, BEEgle, um, I'm on blue sky at Cody
+(1:31:47) Spencer: Yeah.
+(1:31:48) Spencer: Yeah, I haven't used social media in a good hot second.
+(1:31:53) Spencer: So yeah.
+(1:32:03) Codey: Mathis, which is just my name because I like to talk to myself.
+(1:32:07) Codey: And, um, more importantly, you can find the podcast on multiple things.
+(1:32:11) Codey: Um, it's on tumblr and blue skies.
+(1:32:13) Codey: I am.
+(1:32:43) Codey: With the topic of the next greenhouses, but I'm super stoked about the green
+(1:32:47) Codey: house that's coming out of this episode.
+(1:32:50) Codey: Uh, and there will be photos, uh, related to that greenhouse.
+(1:32:53) Codey: Uh, also, if you are not subscribed, you don't get access to the greenhouse.
+(1:32:57) Codey: Um, so another reason to subscribe.
+(1:32:59) Codey: Um, because I think it's a super, it was really fun.
+(1:33:04) Spencer: It was I
+(1:33:04) Codey: I'm excited.
+(1:33:05) Codey: I'm excited to see what people say about it.
+(1:33:07) Spencer: Am super stoked to see I had a very fun time doing the greenhouse with you
+(1:33:12) Spencer: Not that I didn't have one time doing this episode - it was a good time doing both
+(1:33:12) Codey: - Mm-hmm.
+(1:33:14) Codey: Yeah, yeah, for sure.
+(1:33:16) Codey: We gotta do more.
+(1:33:19) Codey: Well, thank you, Spencer, for joining.
+(1:33:21) Spencer: Thank You Cody for hosting
+(1:33:23) Codey: Mm-hmm, and until next time, listeners,
+(1:33:26) Codey: have a good little garbage.
+(1:33:27) Spencer: Have a good harvest
+(1:33:28) Theme Tune: The harvest season is created by Al McKinlay, with support from our patrons, including our
+(1:33:38) Theme Tune: pro farmers, Kevin, Stuart and Alisa.
+(1:33:42) Theme Tune: Our art is done by Micah the Brave, and our music is done by Nick Burgess.
+(1:33:47) Theme Tune: Feel free to visit our website harvestseason.club for show notes and links to things we discussed
+(1:33:53) Theme Tune: in this episode.
+(1:34:02) Codey: Okay, what do you want to try again? Have a good-
+(1:34:05) Spencer: Sure. Have a good, hard, fist.
+(1:34:14) Codey: Al gets to have fun trying to put this- or you could just leave it the way it is.
+(1:34:20) Codey: I don't know. Okay, well, uh, that- yeah, that's it. That's the tweet.
