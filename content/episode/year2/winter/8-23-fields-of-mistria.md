@@ -42,7 +42,7 @@ author: "Al McKinlay"
 Al on Mastodon: https://mastodon.scot/@TheScotBot
 Email Us: https://harvestseason.club/contact/
 
-## Transcript
+# Transcript
 
 (0:00:30) Al: Hello farmers, and welcome to another episode of the harvest season. My name is Al,
 (0:00:36) Kelly: And my name is Kelly.

@@ -41,7 +41,7 @@ Al on Twitter: https://twitter.com/TheScotBot
 Al on Mastodon: https://mastodon.scot/@TheScotBot
 Email Us: https://harvestseason.club/contact/
 
-## Transcript
+# Transcript
 
 (0:00:31) Al: Hello farmers, and welcome to another episode of The Harvest Season. My name is Al,
 (0:00:36) Kev: My name is Kevin, one of us is in the US, the other is not.

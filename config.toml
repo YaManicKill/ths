@@ -12,7 +12,7 @@ theme = "hyde"
 [params]
   themeColor = "theme-base-0f"
   layoutReverse = true
-  description = "A podcast about farming simulators"
+  description = "A podcast about farming and cottagecore games, such as Stardew Valley and Story of Seasons."
   author = "Al McKinlay"
   email = "ths@10people.co.uk"
   category = "Leisure"

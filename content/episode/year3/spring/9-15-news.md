@@ -40,7 +40,7 @@ author: "Al McKinlay"
 Al on Mastodon: https://mastodon.scot/@TheScotBot
 Email Us: https://harvestseason.club/contact/
 
-## Transcript
+# Transcript
 
 (0:00:30) Kev: Hello farmers and welcome to another episode of the harvest season. My name is Kevin and with me today is Kevin
 (0:00:38) Kev: But in Spanish

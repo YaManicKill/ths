@@ -15,6 +15,7 @@
       "podcast_duration: \"$5\"",
       "date: $CURRENT_YEAR-$CURRENT_MONTH-$6T19:00:00$CURRENT_TIMEZONE_OFFSET",
       "author: \"Al McKinlay\"",
+      "transcript_files: true",
       "---",
       "",
       "## Timings",
@@ -29,8 +30,6 @@
       "",
       "Al on Mastodon: https://mastodon.scot/@TheScotBot",
       "Email Us: https://harvestseason.club/contact/",
-      "",
-      "## Transcript",
       ""
     ]
   }

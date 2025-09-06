@@ -41,7 +41,7 @@ Disclosure: We received a free review code for Grimoire Groves. #gifted
 Al on Mastodon: https://mastodon.scot/@TheScotBot
 Email Us: https://harvestseason.club/contact/
 
-## Transcript
+# Transcript
 
 (0:00:30) Al: Hello, farmers, and welcome to another episode of the Harvest Season.
 (0:00:34) Al: My name is Al, and we are here today to talk about cottagecore games.
