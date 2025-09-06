@@ -36,7 +36,7 @@ author: "Al McKinlay"
 Al on Mastodon: https://mastodon.scot/@TheScotBot
 Email Us: https://harvestseason.club/contact/
 
-## Transcript
+# Transcript
 
 (0:00:30) Kev: Well howdy partners and welcome to the harvest season.
 (0:00:35) Kev: Around these parts they call me Kevin.

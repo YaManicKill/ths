@@ -39,7 +39,7 @@ author: "Al McKinlay"
 Al on Mastodon: https://mastodon.scot/@TheScotBot
 Email Us: https://harvestseason.club/contact/
 
-## Transcript
+# Transcript
 
 (0:00:30) Kevin: Hello farmers, and welcome to another episode of the harvest season. My name is Kevin
 (0:00:34) Aislinn: And my name is Aislinn.

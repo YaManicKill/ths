@@ -46,7 +46,7 @@ author: "Al McKinlay"
 Al on Mastodon: https://mastodon.scot/@TheScotBot
 Email Us: https://harvestseason.club/contact/
 
-## Transcript
+# Transcript
 
 (0:00:30) Kev: Hello farmers and welcome to another
 (0:00:33) Kev: Contractually obligated episode of the harvest season that's not true at all. There's no contracts whatsoever

@@ -36,7 +36,7 @@ author: "Al McKinlay"
 Al on Mastodon: https://mastodon.scot/@TheScotBot
 Email Us: https://harvestseason.club/contact/
 
-## Transcript
+# Transcript
 
 (0:00:31) Codey: - Hello, farmers, and welcome back to another episode
 (0:00:33) Codey: of The Harvest Season.

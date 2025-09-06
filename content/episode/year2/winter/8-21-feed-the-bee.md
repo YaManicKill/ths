@@ -41,7 +41,7 @@ Al on Twitter: https://twitter.com/TheScotBot
 Al on Mastodon: https://mastodon.scot/@TheScotBot
 Email Us: https://harvestseason.club/contact/
 
-## Transcript
+# Transcript
 
 (0:00:30) Al: Hello farmers, and welcome to another episode of the harvest season.
 (0:00:34) Al: My name is Al, and we're here today to talk about Cottagecore games.

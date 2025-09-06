@@ -26,7 +26,7 @@ author: "Al McKinlay"
 Al on Mastodon: https://mastodon.scot/@TheScotBot
 Email Us: https://harvestseason.club/contact/
 
-## Transcript
+# Transcript
 
 (0:00:30) Al: Hello farmers and welcome to the first episode of the harvest season of 2025. My name is Al.
 (0:00:38) Kev: Wow, I'm Kevin and hmm. Did you smell that new 2025 smell that New Year's? No

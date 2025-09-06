@@ -46,7 +46,7 @@ author: "Al McKinlay"
 Al on Mastodon: https://mastodon.scot/@TheScotBot
 Email Us: https://harvestseason.club/contact/
 
-## Transcript
+# Transcript
 
 (0:00:30) Al: Hello farmers and welcome to another episode of the harvest season my name is al.
 (0:00:36) Kev: My name is Kevin and Al, you drop the ball, you miss the chance.
