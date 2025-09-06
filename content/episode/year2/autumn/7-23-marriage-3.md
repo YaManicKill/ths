@@ -7,7 +7,7 @@ year: "2"
 Description: "Al and Kevin talk about the people they wish were marriage candidates"
 guid: "ths-7-23"
 podcast: "ths/year2/autumn/ths-7-23.mp3"
-podcast_bytes: "115,705,707"
+podcast_bytes: "115705707"
 podcast_duration: "01:20:09"
 date: 2024-06-05T19:00:00+01:00
 author: "Al McKinlay"

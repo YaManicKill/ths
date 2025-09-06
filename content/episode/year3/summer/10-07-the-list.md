@@ -7,7 +7,7 @@ year: "3"
 Description: "Al and Kev go through a list of 22 farming games"
 guid: "ths-10-07"
 podcast: "ths/year3/summer/ths-10-07.mp3"
-podcast_bytes: "139,266,625"
+podcast_bytes: "139266625"
 podcast_duration: "01:36:31"
 date: 2025-08-27T19:00:00+01:00
 author: "Al McKinlay"
