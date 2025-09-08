@@ -7,7 +7,7 @@ year: "2"
 Description: "Al and Kev talk about Piczle Cross: Story of Seasons"
 guid: "ths-2-3-10"
 podcast: "ths/year2/autumn/ths-2-3-10.mp3"
-podcast_bytes: "68,641,878"
+podcast_bytes: "68641878"
 podcast_duration: "47:28"
 date: 2024-03-06T19:00:00+01:00
 author: "Al McKinlay"

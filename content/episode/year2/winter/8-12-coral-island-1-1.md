@@ -7,7 +7,7 @@ year: "2"
 Description: "Al and Codey talk about Coral Island 1.1"
 guid: "ths-8-12"
 podcast: "ths/year2/winter/ths-8-12.mp3"
-podcast_bytes: "132,262,366"
+podcast_bytes: "132262366"
 podcast_duration: "01:31:39"
 date: 2024-09-18T19:00:00+01:00
 author: "Al McKinlay"

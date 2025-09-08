@@ -7,7 +7,7 @@ year: "1"
 Description: "Al and Kev talk about Ankora: Lost Days"
 guid: "ths-1-4-20"
 podcast: "ths/year1/winter/ths-1-4-20.mp3"
-podcast_bytes: 99975390"
+podcast_bytes: "99975390"
 podcast_duration: "01:09:11"
 date: 2022-10-05T19:00:00+01:00
 
@@ -18,7 +18,7 @@ author: "Al McKinlay"
 
 [00:00:00] Theme Tune
 [00:00:30] Intro
-[00:01:22] What Have We Been Playing 
+[00:01:22] What Have We Been Playing
 [00:10:53] News
 [00:32:25] Ankora: Lost Days
 [01:06:17] Outro
@@ -38,7 +38,6 @@ author: "Al McKinlay"
 
 [Ankora: Lost Days on Steam](https://store.steampowered.com/app/1647770/Ankora_Lost_Days/)
 [Ankora: Lost Days on Switch](https://www.nintendo.co.uk/Games/Nintendo-Switch-download-software/Ankora-Lost-Days-2263203.html)
-
 
 [Kev on Twitter](https://twitter.com/koopaprez)
 
