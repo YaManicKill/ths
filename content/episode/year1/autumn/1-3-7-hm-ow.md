@@ -7,7 +7,7 @@ year: "1"
 Description: "Al and Micah talk about Harvest Moon: One World"
 guid: "ths-1-3-07"
 podcast: "ths/year1/autumn/ths-1-3-07.mp3"
-podcast_bytes: ""
+podcast_bytes: "193782048"
 podcast_duration: "02:14:25"
 date: 2021-03-31T18:00:00+00:00
 
