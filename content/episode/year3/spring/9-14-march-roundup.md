@@ -417,7 +417,7 @@ Email Us: https://harvestseason.club/contact/
 (0:23:02) Al: Yes, yes, town building mechanics, like in Littlewood. I haven't seen anything as to
 (0:23:08) Al: whether they have terraforming or not, because Littlewood did, but that feels a more complicated
 (0:23:15) Al: thing to do in a game where you're like exploring and catching monsters and stuff like that.
-(0:23:18) Kev: <v ->Yeah.</v>
+(0:23:18) Kev: Yeah.
 (0:23:22) Al: So maybe it won't have terraforming, but there is at least some level of town customisation.
 (0:23:27) Kev: yeah the four team battles that's a fun little thing that's different and then
 (0:23:34) Al: Yeah, yeah, yeah, I'm looking forward to this and trying very hard not to buy the physical

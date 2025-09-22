@@ -34,8 +34,15 @@ theme = "hyde"
     weight = -1
 
   [[menu.main]]
-    identifier = "twitter"
-    name = "Twitter"
-    title = "twitter"
-    url = "https://www.twitter.com/thspod"
-    weight = -1
+    identifier = "bluesky"
+    name = "Bluesky"
+    title = "bluesky"
+    url = "https://bsky.app/profile/thspod.bsky.social"
+    weight = 1
+
+  [[menu.main]]
+    identifier = "tumblr"
+    name = "Tumblr"
+    title = "tumblr"
+    url = "https://www.tumblr.com/thspod"
+    weight = 1
