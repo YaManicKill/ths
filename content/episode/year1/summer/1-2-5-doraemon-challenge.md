@@ -12,9 +12,10 @@ podcast_duration: "01:09:29"
 date: 2020-03-04T19:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["story of seasons"]
 ---
 
-Also, we have some littlewood updates, some new games hinted at by the creator of Stardew, and FarmCon 2020 is announced. 
+Also, we have some littlewood updates, some new games hinted at by the creator of Stardew, and FarmCon 2020 is announced.
 
 ## Timings
 
@@ -32,7 +33,6 @@ Also, we have some littlewood updates, some new games hinted at by the creator o
 [Littlewood 0.91 update](https://old.reddit.com/r/LittlewoodGame/comments/f9ql0q/littlewood_v091/)
 
 [Our Patreon](https://www.patreon.com/thspod)
-
 
 ## Contact
 

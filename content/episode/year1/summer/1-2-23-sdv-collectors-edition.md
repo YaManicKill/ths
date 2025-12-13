@@ -12,6 +12,7 @@ podcast_duration: "00:24:46"
 date: 2020-11-11T19:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["stardew valley"]
 ---
 
 Also we have the Japanese release date for Fune Factory 5, Forager is now on iOS, and Farmer Supreme hit it's funding goal.

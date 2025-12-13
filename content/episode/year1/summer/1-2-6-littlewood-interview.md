@@ -12,6 +12,7 @@ podcast_duration: "00:59:43"
 date: 2020-03-18T19:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["interview"]
 ---
 
 Also, some littlewood updates, the future of Forager, upcoming updates/releases, and a lengthy discussion about 1 single question in Rune Factory 4s.

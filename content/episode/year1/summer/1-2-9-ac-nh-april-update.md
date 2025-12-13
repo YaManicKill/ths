@@ -12,6 +12,7 @@ podcast_duration: "00:51:25"
 date: 2020-04-29T18:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["animal crossing new horizons"]
 ---
 
 Also, there's a littlewood update, Atomicrops is coming out of Early Access, and oh there's some Animal Crossing update, did we mention that?

@@ -12,6 +12,7 @@ podcast_duration: "00:43:32"
 date: 2021-02-17T19:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["interview"]
 ---
 
 Also, news about Harvest Moon: One World, some Kickstarter updates, a couple of game updates, and a couple of new games.

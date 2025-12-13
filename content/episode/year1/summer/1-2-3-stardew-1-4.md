@@ -12,6 +12,7 @@ podcast_duration: "01:35:53"
 date: 2020-02-05T19:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["stardew valley"]
 ---
 
 Also, Rune Factory 4 finally has a release date, more and more updates for Littlewood, and Farming Simulator is free on EGS.
@@ -41,7 +42,6 @@ Also, Rune Factory 4 finally has a release date, more and more updates for Littl
 [Stardew 1.4 Changelog](https://www.stardewvalley.net/stardew-valley-1-4-update-full-changelog/)
 
 [Our Patreon](https://www.patreon.com/thspod)
-
 
 ## Contact
 

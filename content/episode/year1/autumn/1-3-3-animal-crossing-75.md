@@ -12,6 +12,7 @@ podcast_duration: "01:23:13"
 date: 2021-02-03T19:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["animal crossing new horizons"]
 ---
 
 Also, news about Story of Seasons: Pioneers of Olive Town, some new kickstarters, and a couple of new game announcements.
@@ -42,7 +43,7 @@ Also, news about Story of Seasons: Pioneers of Olive Town, some new kickstarters
 [Lonefarm on Steam](https://store.steampowered.com/app/1316440/Lonefarm/)
 [Lonefarm on Twitter](https://twitter.com/LonefarmGame)
 
-[Animal Crossing Updates List](https://animalcrossing.fandom.com/wiki/Version_history_(New_Horizons))
+[Animal Crossing Updates List](<https://animalcrossing.fandom.com/wiki/Version_history_(New_Horizons)>)
 
 [Kevin on Twitter](https://twitter.com/koopaprez)
 [Kevin's Art Twitter](https://twitter.com/spritersquared)

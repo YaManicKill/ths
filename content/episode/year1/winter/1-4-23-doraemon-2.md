@@ -12,6 +12,7 @@ podcast_duration: "01:51:35"
 date: 2022-11-16T19:00:00+00:00
 
 author: "Al McKinlay"
+tags: ["story of seasons"]
 ---
 
 ## Timings
@@ -52,7 +53,6 @@ author: "Al McKinlay"
 [Fields of Mistra](https://store.steampowered.com/app/2142790/Fields_of_Mistria/?utm_campaign=FoM)
 [Wanderful](https://store.steampowered.com/app/2060500/Wanderful/)
 [Everdream Valley](https://store.steampowered.com/app/1403650/Everdream_Valley/)
-
 
 [Micah on Twitter](https://twitter.com/micahthebrave)
 

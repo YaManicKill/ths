@@ -11,6 +11,7 @@ podcast_bytes: "149046185"
 podcast_duration: "01:43:19"
 date: 2023-09-06T19:00:00+01:00
 author: "Al McKinlay"
+tags: ["harvest moon"]
 ---
 
 ## Timings

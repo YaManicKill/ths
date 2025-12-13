@@ -11,6 +11,7 @@ podcast_bytes: "133424041"
 podcast_duration: "01:32:28"
 date: 2025-01-22T19:00:00+00:00
 author: "Al McKinlay"
+tags: ["interview"]
 ---
 
 ## Timings

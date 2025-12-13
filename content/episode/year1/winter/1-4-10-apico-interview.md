@@ -12,6 +12,7 @@ podcast_duration: "01:46:54"
 date: 2022-05-18T19:00:00+01:00
 
 author: "Al McKinlay"
+tags: ["interview"]
 ---
 
 ## Timings
