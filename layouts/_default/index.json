@@ -1,0 +1,15 @@
+{{- /* Generate a site-wide JSON index for client-side search */ -}}
+[
+{{- $pages := where .Site.RegularPages "Type" "in" (slice "episode" "page" ) -}}
+{{- range $i, $p := $pages -}}
+  {{- if gt $i 0 }},{{ end -}}
+  {
+    "title": {{ $p.Title | jsonify }},
+    "url": {{ $p.Permalink | jsonify }},
+    "date": {{ $p.Date.Format "2006-01-02" | jsonify }},
+    "description": {{ (or $p.Params.Description $p.Summary) | jsonify }},
+    "tags": {{ $p.Params.tags | default (slice) | jsonify }},
+    "content": {{ $p.Plain | truncate 500 | jsonify }}
+  }
+{{- end -}}
+]
