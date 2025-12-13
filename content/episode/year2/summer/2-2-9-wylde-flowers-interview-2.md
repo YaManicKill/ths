@@ -11,6 +11,7 @@ podcast_bytes: "151858006"
 podcast_duration: "01:45:16"
 date: 2023-08-30T15:00:00+01:00
 author: "Al McKinlay"
+tags: ["interview"]
 ---
 
 Also, Al and Kev go through the news of the week.

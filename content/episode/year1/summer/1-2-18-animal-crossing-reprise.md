@@ -12,9 +12,10 @@ podcast_duration: "01:42:38"
 date: 2020-09-02T18:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["animal crossing new horizons"]
 ---
 
-Also, we talk about Garden Story, Harvest Moon Mad Dash, Bear and Breakfast, and Dragon Acres. 
+Also, we talk about Garden Story, Harvest Moon Mad Dash, Bear and Breakfast, and Dragon Acres.
 
 ## Timings
 

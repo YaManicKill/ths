@@ -12,6 +12,7 @@ podcast_duration: "1:18:29"
 date: 2019-09-04T20:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["harvest moon"]
 ---
 
 Also, there have been a number of release date announcements, farming simulator is on Google Stadia, another game is coming to Epic Games Store, and Al has some exciting news for Raschelle.
@@ -19,7 +20,7 @@ Also, there have been a number of release date announcements, farming simulator 
 ## Timings
 
 [00:29] Intro
-[01:40] Feedback    
+[01:40] Feedback  
 [09:10] What are we playing?
 [20:01] News
 [27:12] A Wonderful Life
@@ -43,9 +44,9 @@ Also, there have been a number of release date announcements, farming simulator 
 [Harvest Moon: A Wonderful Life SE on PS4](https://store.playstation.com/en-gb/product/EP1014-CUSA06609_00-SLUS211710000001)
 [Your House](https://gamefaqs.akamaized.net/screens/5/d/4/gfs_22975_1_5_mid.jpg)
 [Characters](https://harvestmoon.fandom.com/wiki/Category:Harvest_Moon:_A_Wonderful_Life_Characters)
-[Lumina](https://harvestmoon.fandom.com/wiki/Lumina_(AWL))
-[Daachan](https://harvestmoon.fandom.com/wiki/Daachan_(AWL))
-[Tartan, the creepy plant](https://harvestmoon.fandom.com/wiki/Tartan_(AWL)?file=Tartan.png)
+[Lumina](<https://harvestmoon.fandom.com/wiki/Lumina_(AWL)>)
+[Daachan](<https://harvestmoon.fandom.com/wiki/Daachan_(AWL)>)
+[Tartan, the creepy plant](<https://harvestmoon.fandom.com/wiki/Tartan_(AWL)?file=Tartan.png>)
 
 [Transcript](https://docs.google.com/document/d/13boDvX1NumSLKX8nDl_rqD4lW5eNjsUeESkdu1hI4Fs/edit?usp=sharingx)
 

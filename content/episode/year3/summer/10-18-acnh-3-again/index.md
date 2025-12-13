@@ -11,6 +11,7 @@ podcast_bytes: "162145008"
 podcast_duration: "01:52:24"
 date: 2025-11-12T19:00:00+00:00
 author: "Al McKinlay"
+tags: ["animal crossing new horizons"]
 transcript_files: true
 ---
 

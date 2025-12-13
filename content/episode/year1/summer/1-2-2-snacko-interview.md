@@ -12,6 +12,7 @@ podcast_duration: "01:41:32"
 date: 2020-01-22T21:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["interview"]
 ---
 
 Also, a few game updates, and Al is going to PodUK.
@@ -33,7 +34,6 @@ Also, a few game updates, and Al is going to PodUK.
 
 [Snacko Website](https://snacko.land/)
 [Snacko Patreon](https://www.patreon.com/snackodev)
-
 
 ## Contact
 

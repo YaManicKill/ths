@@ -12,6 +12,7 @@ podcast_duration: "47:28"
 date: 2024-03-06T19:00:00+01:00
 author: "Al McKinlay"
 aliases: [2-3-10-piczle-cross-sos]
+tags: ["story of seasons"]
 ---
 
 ## Timings

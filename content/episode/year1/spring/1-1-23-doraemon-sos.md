@@ -12,6 +12,7 @@ podcast_duration: "02:03:27"
 date: 2019-11-13T21:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["story of seasons"]
 ---
 
 Also, some newly announced physical releases, some updates to games, and some sales.

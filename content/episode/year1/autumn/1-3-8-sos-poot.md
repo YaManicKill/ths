@@ -12,6 +12,7 @@ podcast_duration: "02:29:19"
 date: 2021-04-14T18:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["story of seasons"]
 ---
 
 Also, news about Turnip Boy Commits Tax Evasion, Cloudscape, and the Forager Multiplayer Update.

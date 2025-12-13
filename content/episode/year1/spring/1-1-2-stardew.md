@@ -12,6 +12,7 @@ podcast_duration: "01:09:52"
 date: 2019-01-23T21:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["stardew valley"]
 ---
 
 ## Timings

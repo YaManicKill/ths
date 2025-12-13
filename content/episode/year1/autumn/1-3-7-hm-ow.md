@@ -12,6 +12,7 @@ podcast_duration: "02:14:25"
 date: 2021-03-31T18:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["harvest moon"]
 ---
 
 Also, news about Littlewood, Animal Crossing, Ooblets, and Deiland.

@@ -12,6 +12,7 @@ podcast_duration: "00:23:50"
 date: 2020-11-25T19:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["story of seasons"]
 ---
 
 Also info about Stardew 1.5 and Everafter Falls.

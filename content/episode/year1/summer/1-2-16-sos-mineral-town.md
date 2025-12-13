@@ -12,6 +12,7 @@ podcast_duration: "02:21:18"
 date: 2020-08-05T18:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["story of seasons"]
 ---
 
 Also, we talk about the animal crossing update, my time at portia update, how many games we have bought recently, and the silly number of times we have bought Stardew Valley

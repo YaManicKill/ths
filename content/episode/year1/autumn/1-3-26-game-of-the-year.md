@@ -12,6 +12,7 @@ podcast_duration: "01:21:45"
 date: 2021-12-29T19:00:00+01:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["game of the year"]
 ---
 
 ## Timings
@@ -19,7 +20,7 @@ author: "Al McKinlay and Raschelle Dellaney"
 [00:00:00] Theme Tune
 [00:00:31] Intro
 [00:04:26] What We Have Been Playing
-[00:09:59] News 
+[00:09:59] News
 [00:24:59] Farming Game Of The Year
 [01:15:47] Outro
 
@@ -32,7 +33,6 @@ author: "Al McKinlay and Raschelle Dellaney"
 [Sun Haven Update](https://twitter.com/SunHavenRPG/status/1471993373921742850)
 [Atomicrops Update](https://twitter.com/RawFury/status/1470771899739291650)
 [Ooblets Wintertime Event](https://twitter.com/ooblets/status/1466773214663626755?s=20)
-
 
 [Bev on Twitter](https://twitter.com/BEVGranger711)
 [Codey on Twitter](https://twitter.com/CodeyMathis)

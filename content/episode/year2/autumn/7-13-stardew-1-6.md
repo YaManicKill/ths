@@ -11,6 +11,7 @@ podcast_bytes: "156262799"
 podcast_duration: "01:48:19"
 date: 2024-03-27T18:00:00+01:00
 author: "Al McKinlay"
+tags: ["stardew valley"]
 aliases: [2-3-13-stardew-1-6]
 ---
 

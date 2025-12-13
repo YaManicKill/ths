@@ -12,6 +12,7 @@ podcast_duration: "01:17:40"
 date: 2020-04-01T18:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["animal crossing new horizons"]
 ---
 
 Also, some news on the release date of Story of Seasons: Friends of Mineral town.

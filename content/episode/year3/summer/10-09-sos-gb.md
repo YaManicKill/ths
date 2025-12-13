@@ -12,6 +12,7 @@ podcast_duration: "02:45:30"
 date: 2025-09-10T19:00:00+01:00
 author: "Al McKinlay"
 transcript_files: true
+tags: ["story of seasons"]
 ---
 
 ## Timings

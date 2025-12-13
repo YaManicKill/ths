@@ -11,6 +11,7 @@ podcast_bytes: "96847169"
 podcast_duration: "01:07:04"
 date: 2024-09-25T19:00:00+01:00
 author: "Al McKinlay"
+tags: ["stardew valley"]
 ---
 
 ## Timings
