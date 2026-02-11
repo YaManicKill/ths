@@ -1,0 +1,2967 @@
+WEBVTT
+
+STYLE
+::cue(v[voice="1C19D2D3-4147-44F5-864B-CD55F064DD75"])
+{
+    color: #0091FF;
+}
+::cue(v[voice="CD3D00B6-8AA1-47B4-812D-551E1FC9155B"])
+{
+    color: #00D2E0;
+}
+::cue(v[voice="F76CEB25-5405-425E-9BAD-13FD41F3687D"])
+{
+    color: #FF4245;
+}
+
+1
+00:00:00.000 --> 00:00:29.000
+<v CD3D00B6-8AA1-47B4-812D-551E1FC9155B>Theme Tune: [Music]
+
+2
+00:00:30.500 --> 00:00:34.899
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Hello farmers and welcome to another episode of the harvest season. My name is Al
+
+3
+00:00:35.500 --> 00:00:36.619
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: My name is Kevin.
+
+4
+00:00:36.659 --> 00:00:39.299
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: and we're here today to talk about cotch score games.
+
+5
+00:00:40.179 --> 00:00:41.880
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Woo.
+
+6
+00:00:44.179 --> 00:00:46.179
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Hello Kevin
+
+7
+00:00:46.179 --> 00:00:47.259
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Hi, ah.
+
+8
+00:00:48.500 --> 00:00:50.399
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: In Utah, we're pumped people.
+
+9
+00:00:50.500 --> 00:00:55.219
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: um yeah it has it has been a week
+
+10
+00:00:51.840 --> 00:00:56.820
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: It's been a long week for you, me, the world.
+
+11
+00:00:58.820 --> 00:00:59.820
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah.
+
+12
+00:01:00.500 --> 00:01:04.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Well, well, we have the same Prime Minister in a week. Who knows?
+
+13
+00:01:05.000 --> 00:01:07.260
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: [laughing]
+
+14
+00:01:06.500 --> 00:01:10.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: All right. We're going to do a news episode this episode.
+
+15
+00:01:11.500 --> 00:01:22.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So we've got a couple new games. We've got a bunch of updates. We've also got, I forgot in the last episode to get the, I know what you released last month. So we're going to go over that as well.
+
+16
+00:01:22.500 --> 00:01:25.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But first of all, Kevin, what have you been up to?
+
+17
+00:01:26.000 --> 00:01:41.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: What have, well, I'll tell you what my what I've been up to started immediately after recording last week, because we talked about fossil quest that cute little fossil museum simulator game, whatever you want to call it.
+
+18
+00:01:42.000 --> 00:01:46.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: And they had a demo or prototype, whatever you want to call it.
+
+19
+00:01:47.000 --> 00:01:56.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I have a thing out on the stud IO and I downloaded it and oh man, I crushed it. I think I had about five hours and I finished all the content there was.
+
+20
+00:01:56.000 --> 00:02:21.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: So I it is yeah it's labeled as a demo, but I would call it more of a prototype because it's like you can see what they want it with their thinking of what they want to do, but there is a lot that's not there let's just say that is very under construction right so like the main loop of digging for fossils is and displaying them.
+
+21
+00:02:22.000 --> 00:02:26.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: It works to my opinion. You go out to it, you know.
+
+22
+00:02:26.000 --> 00:02:36.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: To the field, you dig up fossils and the digging parts, it's good enough. You have a little sensor, you look around trying to find where the fossil is located and find them.
+
+23
+00:02:36.000 --> 00:02:44.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: You, like, each individual fossil, you have to, like, delicately uncover and remove all the dirt and rock from it.
+
+24
+00:02:44.000 --> 00:02:55.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: So that works fine. After that, you go to your museum, you set up all your fossils and you displace, and all your decorations and everything.
+
+25
+00:02:56.000 --> 00:03:13.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: The museum, people come to it with little sequence, and they get an amount of money. Now, with your money, you can go out by more stands for fossil displays or upgrades or decorations or whatever, and then you go back out into the field and rinse and repeat.
+
+26
+00:03:13.000 --> 00:03:26.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, it's, it's, I like it. It's a, it's a solid loop, big art styles, very cute. Like, there's very little outside that loop. There's like a shopkeeper into one and.
+
+27
+00:03:26.000 --> 00:03:34.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: You see, they clearly want to do more with them, but.
+
+28
+00:03:27.000 --> 00:03:33.240
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah, so it's missing the larger game moves, but the core loop you think is pretty.
+
+29
+00:03:34.000 --> 00:03:44.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, yeah, I think it's pretty, they already got a solid grasp absolutely. Well, anyway, so yeah, so yeah, because I spent about five hours and got pretty much everything.
+
+30
+00:03:44.000 --> 00:03:56.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: And maybe some upgrades, but didn't really matter because I had all the fossil at that point. So, but, but yeah, so I'm looking forward to it whenever they've released that game fully. All, all definitely booted up again.
+
+31
+00:03:56.000 --> 00:04:19.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: So yeah, fossil quest, thumbs up outside of fossil quest. I think I have put down for now. I haven't gotten the DLC. I'll pull it up when I can't, but like, I mean, did a little post game was running around for filling the decks, teaching stuff, which is actually fairly enjoyable. I'm just running around catching stuff.
+
+32
+00:04:19.000 --> 00:04:26.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: And, and the Z a loop of like just, you know, every night is closhed to get a bunch of money and to get the, the Challenger ticket.
+
+33
+00:04:27.000 --> 00:04:47.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Whatever. Well, I think it's a pretty decent groove, but yeah, but I was hitting the kind of wall. And so I decided to mix it up and I am back to premier riders this time my own file. So I'm unlocking everything on my own file. And yeah, I'm enjoying it with us as Caribbean. Right. Well, what's up with you?
+
+34
+00:04:46.500 --> 00:04:57.860
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Fair enough. What about me? I have been playing more Pokémon ZA. I am convinced. I'm determined,
+
+35
+00:04:57.860 --> 00:05:03.459
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: that's the word not convinced. I'm determined to finish up those legendaries and I did that today.
+
+36
+00:05:04.500 --> 00:05:06.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Are you ready to finish it?
+
+37
+00:05:06.500 --> 00:05:15.860
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I got the final one today. Goodness me. It is possibly the most frustrating
+
+38
+00:05:07.500 --> 00:05:09.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, free.
+
+39
+00:05:09.500 --> 00:05:11.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Free out last.
+
+40
+00:05:16.500 --> 00:05:23.939
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: like Endgame to a Pokémon game because it's just like constant. I got really good at getting
+
+41
+00:05:24.819 --> 00:05:34.100
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: so in the DLC they've got their equivalent to the, like so you know how in the night when you're
+
+42
+00:05:34.100 --> 00:05:39.060
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: battling you get the points and then you have used the points to go up the ladder or when you
+
+43
+00:05:38.000 --> 00:05:40.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah
+
+44
+00:05:39.060 --> 00:05:45.459
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: finish the ladder you use it to just do you get items from the battles instead. They have an
+
+45
+00:05:43.439 --> 00:05:45.439
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, yeah
+
+46
+00:05:45.459 --> 00:05:48.459
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: equivalent, which is where
+
+47
+00:05:47.500 --> 00:05:56.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: the DLC areas, you get points and then after a while you get the special scans that are you to find special areas.
+
+48
+00:05:56.500 --> 00:06:05.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And so I was maybe getting one of the legendaries every like five to eight special scans.
+
+49
+00:06:05.500 --> 00:06:12.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So like it was a long slog because there's like what 12 legendaries or something like that that you have to get through that.
+
+50
+00:06:12.500 --> 00:06:16.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: that. So it was like, I done everything else and I am just grinding.
+
+51
+00:06:16.500 --> 00:06:30.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Getting out these points, doing as many of the things as I can to then do a special scan and then the special scan is not a legendary. It's something I've already done and then you keep going and it's just a bit exhausting, but I got there in the end.
+
+52
+00:06:28.500 --> 00:06:37.980
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh okay, yeah, so it's that loop sounds like a good idea, but just the random element like you just that sort of
+
+53
+00:06:36.500 --> 00:06:42.759
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It's too, it's too random. This is the thing. Like the game knows that those are the only things you've not done, right?
+
+54
+00:06:39.180 --> 00:06:41.180
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah
+
+55
+00:06:42.759 --> 00:06:48.920
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Like why does it not push you towards the ones that that you've not done yet?
+
+56
+00:06:43.180 --> 00:06:45.180
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah
+
+57
+00:06:48.920 --> 00:06:53.879
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It just at some point you're like, oh, these are the only Pokemon you don't have in your decks.
+
+58
+00:06:53.879 --> 00:07:04.480
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Maybe let's give you them as the next five specials cans, you know, like it just it's such a weird a weird annoyance, but I got there. I'm done.
+
+59
+00:07:04.480 --> 00:07:06.480
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I'm done, so...
+
+60
+00:07:04.500 --> 00:07:06.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: [laughs]
+
+61
+00:07:07.000 --> 00:07:14.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So I picked up Shield today, Pokemon Shield, to finish up that decks and get that into home.
+
+62
+00:07:11.000 --> 00:07:12.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Ooh!
+
+63
+00:07:13.600 --> 00:07:14.600
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah.
+
+64
+00:07:15.500 --> 00:07:24.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I'm determined to get that done before Pokemon Day, and then I'll have all of the games, decks, and homes and all of that stuff, so...
+
+65
+00:07:18.300 --> 00:07:19.300
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Welcome on day.
+
+66
+00:07:23.500 --> 00:07:25.300
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Uh, yeah.
+
+67
+00:07:25.500 --> 00:07:32.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Ready to not play Pokemon for six months until the new game comes out, or like, end months, probably.
+
+68
+00:07:25.899 --> 00:07:27.199
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Done and done.
+
+69
+00:07:30.600 --> 00:07:34.519
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Unless they have black white gray releasing it
+
+70
+00:07:34.500 --> 00:07:50.980
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: You don't know you don't know that you don't know it's the Elka version though it's the elka really
+
+71
+00:07:36.500 --> 00:07:38.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I mean, no.
+
+72
+00:07:38.500 --> 00:07:44.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Even if that comes out this year, it won't come out until October. Like, come on, let's not, let's be real here.
+
+73
+00:07:46.500 --> 00:07:49.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But don't I, don't I, though?
+
+74
+00:07:50.980 --> 00:07:57.980
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I'm pretty sure they're shooting into our greenhouse episode.
+
+75
+00:07:56.500 --> 00:08:04.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I also picked up the Starsand Island demo, so this is the game that comes out this week.
+
+76
+00:08:04.500 --> 00:08:06.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: comes out of the day this episode comes
+
+77
+00:08:06.500 --> 00:08:14.100
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: out I think 11th yeah and they've actually taken the demo down off steam after I downloaded
+
+78
+00:08:14.100 --> 00:08:20.420
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: it because they don't they say because the aliases coming out I'm like I don't demos have
+
+79
+00:08:19.500 --> 00:08:20.100
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: What?
+
+80
+00:08:20.420 --> 00:08:27.300
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: their use even when games have released like I don't understand why no I don't either and I think
+
+81
+00:08:21.699 --> 00:08:22.379
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: What?
+
+82
+00:08:24.300 --> 00:08:25.579
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I don't like that.
+
+83
+00:08:27.300 --> 00:08:35.919
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: it's purely because they they don't want to keep up to date so the demo save file doesn't
+
+84
+00:08:33.000 --> 00:08:35.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: [Laughter]
+
+85
+00:08:36.500 --> 00:08:41.139
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: go to the actual game and I think it's an old build like based on what they've said
+
+86
+00:08:41.139 --> 00:08:46.019
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: the demo has less in it than the actual game which obviously makes sense but like it's
+
+87
+00:08:46.019 --> 00:08:51.360
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: an old old version of things and I think they just didn't want to keep the save compatibility
+
+88
+00:08:51.360 --> 00:08:59.139
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: going and probably thought that if they want I guess this is the problem with early access
+
+89
+00:08:59.139 --> 00:09:04.740
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: right is that if you do have a demo then the demo does become quite out of date quite
+
+90
+00:09:04.740 --> 00:09:06.440
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: quickly, right? Because there's a lot of like...
+
+91
+00:09:06.500 --> 00:09:21.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: quality of life improvements that come in early access, especially quite early on, right? Because that's your first like proper feedback that you get, and then you're like, okay, we'll do a quick quality of life update to start with with all these things that people complained about.
+
+92
+00:09:21.500 --> 00:09:31.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Great, fine. But that means your demo then doesn't have all that unless you update it, which I would argue is what you should do. But I guess they probably just don't want to put in the effort of that.
+
+93
+00:09:31.500 --> 00:09:36.519
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And I guess if you have an out of date demo, then the argument is better.
+
+94
+00:09:36.500 --> 00:09:50.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: To have no demo than an out of date demo, I guess, you know, is, you know, is, but anyway, so I managed to get it before the ticket down. So I've got it.
+
+95
+00:09:48.000 --> 00:09:58.240
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Well, look at now, you can sell your PC for like $500 with the install and then you get that PT money.
+
+96
+00:09:50.500 --> 00:10:04.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I don't think anybody cares about the stars on day one demo, but I think I am definitely enjoying this game.
+
+97
+00:10:04.500 --> 00:10:06.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Okay, ooh, that's good.
+
+98
+00:10:04.500 --> 00:10:06.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It's... It's...
+
+99
+00:10:06.740 --> 00:10:14.740
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So when I... when we looked at it before, we were a bit unsure on how it looks, right? Like, "Ooh, it looks like it might be okay. It might be bad."
+
+100
+00:10:14.740 --> 00:10:20.659
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Like, maybe it's another one of those, you know, heartopia type things where it just ends up being pretty lackluster.
+
+101
+00:10:21.539 --> 00:10:27.220
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But I got hooked into the colute pretty quickly. I like a lot of...
+
+102
+00:10:27.860 --> 00:10:32.659
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I like a lot of how it works. I like the quest system and I like...
+
+103
+00:10:33.460 --> 00:10:36.419
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Okay, one interesting thing about it is the
+
+104
+00:10:36.500 --> 00:10:48.639
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: crops take in-game hours to grow rather than in-game days. So, the first, yeah, yeah, so the first day you have like a bunch of
+
+105
+00:10:43.000 --> 00:10:45.759
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Well, that's, that's weird, but okay.
+
+106
+00:10:48.639 --> 00:10:56.340
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: wheat to grow and if you choose that path, that's the other thing is it does the the oh you can have
+
+107
+00:10:56.340 --> 00:11:01.919
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: different ways of playing the game. Do you want to be a farmer? Do you want to be a rancher? Do you want to be a
+
+108
+00:11:01.919 --> 00:11:05.919
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: crafter, etcetera, etcetera. The way that Luma Island does it as well.
+
+109
+00:11:06.500 --> 00:11:14.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But yeah, so if you choose farming, you can choose any of them or all of them as well. Like you can overload yourself with too many quests if you want.
+
+110
+00:11:14.000 --> 00:11:16.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah
+
+111
+00:11:14.500 --> 00:11:30.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But which of course is what I did. But if you get the wheat and you grow it, you'll have it before you go to bed, which is very interesting.
+
+112
+00:11:17.840 --> 00:11:21.279
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, that is that's the way you do it
+
+113
+00:11:30.500 --> 00:11:36.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I think it creates a very quick positive feedback loop. I think.
+
+114
+00:11:36.500 --> 00:11:40.120
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Not saying that the way other games do it is bad, but having to wait multiple days before
+
+115
+00:11:40.120 --> 00:11:44.740
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: you have a crop and then you can say, I'm not saying that as bad, but I do like what
+
+116
+00:11:44.740 --> 00:11:51.700
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: this is doing in so much as I didn't do the thing that I do in most farming games, which
+
+117
+00:11:51.700 --> 00:11:54.940
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: is where I speedrun the start of the game because there's nothing to do because there was
+
+118
+00:11:54.940 --> 00:11:56.820
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: everything to do still, right?
+
+119
+00:11:56.820 --> 00:12:02.019
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Because once the point I'm going to sleep with my crops, I'm going to be ready and two
+
+120
+00:12:02.019 --> 00:12:03.019
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: more in game errors, right?
+
+121
+00:12:03.019 --> 00:12:06.299
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I mean, as well, wait for them and farm them and they go sell them.
+
+122
+00:12:06.500 --> 00:12:16.019
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So crops seem to be open 24/7 as well, which is interesting.
+
+123
+00:12:11.000 --> 00:12:15.820
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, that's okay. That's really interesting. Just like the eternal farming game. That's weird.
+
+124
+00:12:16.019 --> 00:12:22.340
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And the, well, you do still have to sleep and if you don't go to bed before 2 a.m., then
+
+125
+00:12:22.340 --> 00:12:24.899
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: you do the standard collapsing thing.
+
+126
+00:12:24.899 --> 00:12:28.899
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But yeah, it's like if you're awake, you can go to the shop.
+
+127
+00:12:28.899 --> 00:12:33.980
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Like I went to a shop at midnight and it was still open, so that was interesting.
+
+128
+00:12:33.980 --> 00:12:36.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: The other thing is, farming takes back.
+
+129
+00:12:36.500 --> 00:12:46.299
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It takes stamina, it takes stamina to fill your water in cans, specifically.
+
+130
+00:12:46.299 --> 00:12:54.700
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It does not take stamina to plant seeds to water the seeds to harvest the seeds.
+
+131
+00:12:54.000 --> 00:12:55.539
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Okay, that's cool.
+
+132
+00:12:54.700 --> 00:12:59.899
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So these are just some things that I quite like about it, and I think it's very...
+
+133
+00:12:59.899 --> 00:13:06.379
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I'm going to need more time with the game, which I can't get right now, because I've run out of time in the demo.
+
+134
+00:13:06.500 --> 00:13:11.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And yeah, yeah, blah, blah, blah, I could probably starve and you save.
+
+135
+00:13:09.000 --> 00:13:17.960
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: ha ha ha ha ha yeah no you know that's a good problem right like it's left you
+
+136
+00:13:11.500 --> 00:13:16.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah, yeah, yeah, but I don't want to do that.
+
+137
+00:13:16.500 --> 00:13:17.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah, exactly.
+
+138
+00:13:17.500 --> 00:13:25.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So I need more time before I decide exactly how I feel about the game, but I'm definitely interested to play more.
+
+139
+00:13:17.960 --> 00:13:20.519
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: wanting more
+
+140
+00:13:25.500 --> 00:13:29.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It's not one of those ones when I pick up and it takes me forever to get into it.
+
+141
+00:13:29.500 --> 00:13:35.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I was hooked pretty quick, which is hard for me to get hooked into a 3D farming game as well.
+
+142
+00:13:36.500 --> 00:13:40.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I don't like how those work, but this has been quite...
+
+143
+00:13:40.500 --> 00:13:48.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Here's another... one of the things that really annoys me about 3D farming games is trying to figure out the grid system, right?
+
+144
+00:13:48.500 --> 00:13:54.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Because you're not looking, you know, top down, it's much harder to see where squares are and stuff like that.
+
+145
+00:13:54.500 --> 00:14:01.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So when you have a tool, it's very good at showing you the square that you're looking at, which is obviously an important thing.
+
+146
+00:14:01.500 --> 00:14:06.480
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But also the watering, you can just hold the box.
+
+147
+00:14:06.500 --> 00:14:32.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It looks like you are, but it doesn't just, it just doesn't use up your thing, so, you know.
+
+148
+00:14:10.000 --> 00:14:12.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, oh
+
+149
+00:14:14.299 --> 00:14:16.799
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: That's great. That's a good one
+
+150
+00:14:32.500 --> 00:14:36.379
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So, you know, that's a quality of life.
+
+151
+00:14:36.500 --> 00:14:56.820
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: You'll see the plot of land. It doesn't just have like the two states of water done unwatered.
+
+152
+00:14:56.820 --> 00:15:02.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: You will see it slowly go unwatered if you're watching it and it'll go from like a you know how they
+
+153
+00:15:02.500 --> 00:15:06.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: they always have like their kind of gray colored
+
+154
+00:15:06.500 --> 00:15:21.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: in their knot and then there are darker color when they're watered. It will transition slowly from one to the other, but not in a gradient, it's like the amount of ground that is watered, that is the watered color gets smaller.
+
+155
+00:15:09.500 --> 00:15:10.340
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah.
+
+156
+00:15:21.500 --> 00:15:35.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So you'll see this like circle of watered stuff in the middle, that's getting smaller and smaller and it will continue to be watered and be growing until it runs out of water completely and then it's completely dry again.
+
+157
+00:15:36.500 --> 00:15:45.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Then you can water at any point and refill it and it's just it's growing for however long it has water or until it's fully grown.
+
+158
+00:15:45.500 --> 00:15:54.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So it's just I don't know if I explained that one well or not, but it's like visually really, visually really easy to see how much water is left.
+
+159
+00:15:49.500 --> 00:15:51.639
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I think I get it, but
+
+160
+00:15:55.159 --> 00:16:00.080
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, yeah, that's the key thing like take away like you can tell just by looking where you're at
+
+161
+00:16:00.080 --> 00:16:06.940
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: That's instead of waiting for a random time or what feels like a random time because you're not thinking about it. Yeah. Yeah, that's cool
+
+162
+00:16:01.000 --> 00:16:09.799
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah. Exactly. Exactly. And it does the nice, it does the nice, like you see sparkles on the
+
+163
+00:16:09.799 --> 00:16:16.440
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: plant when it is fully grown. So it has some, it has night. Well, so it gets better, it gets better
+
+164
+00:16:11.820 --> 00:16:15.259
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, oh, that's okay. That's such a good one. Oh
+
+165
+00:16:16.440 --> 00:16:21.399
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Kevin. So those two things are really nice for like, Oh, just like looking over at your crops and going
+
+166
+00:16:21.399 --> 00:16:26.519
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: like, Oh, nothing's fully grown yet. And everything still has water. Great. That's fine. But if you
+
+167
+00:16:26.519 --> 00:16:30.840
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: You want more details if you go up and you put your focus on one of the...
+
+168
+00:16:31.000 --> 00:16:36.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: plants, it will tell you exactly how much water it's got left and exactly how long it's got left to grow.
+
+169
+00:16:36.000 --> 00:16:44.320
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: That's wild. That's that's wild, but like good wild. Oh man. Look at these innovations coming in
+
+170
+00:16:44.000 --> 00:16:49.399
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: You know, right? Like, this is the thing they're actually doing some interesting things that I've not seen in other games.
+
+171
+00:16:49.919 --> 00:16:57.720
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And lots of them are just really nice quality of life things rather than like, Oh, this time, everyone's blue.
+
+172
+00:16:58.279 --> 00:17:02.720
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: You know, or something like that, right? Like it's, it's, it's actually just trying.
+
+173
+00:16:58.500 --> 00:17:00.759
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: [laughing]
+
+174
+00:17:02.720 --> 00:17:09.279
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It's kind of like what Starjoo did, right? Starjoo did. Here's what farming games are and here's how I want to make it better in a bunch of ways.
+
+175
+00:17:09.680 --> 00:17:14.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Um, it's the same sort of thing. Like what would I do if I was building Harvard?
+
+176
+00:17:14.000 --> 00:17:26.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: this moon now it kind of feels like that. Um, also, you can write a skateboard. And you can even jump
+
+177
+00:17:17.500 --> 00:17:20.140
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: That's, uh, that's cool.
+
+178
+00:17:20.140 --> 00:17:24.480
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Why are you saving the best for the last?
+
+179
+00:17:24.480 --> 00:17:26.440
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, is it?
+
+180
+00:17:26.000 --> 00:17:36.079
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: while on the skateboard. You can jump over fences on the skateboard. They're oh, while Kevin, there are also
+
+181
+00:17:26.440 --> 00:17:28.779
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Okay. Is it?
+
+182
+00:17:28.779 --> 00:17:34.619
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Okay. To a roller skates in X, Y.
+
+183
+00:17:36.079 --> 00:17:42.799
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: roller skates. I haven't unlocked them, but I have seen someone mention that there is a roller skates blue
+
+184
+00:17:36.619 --> 00:17:40.819
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Ah. Oh. Okay.
+
+185
+00:17:43.019 --> 00:17:46.859
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Okay. So, my point being was like,
+
+186
+00:17:47.500 --> 00:17:51.339
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: in X, Y, while I think we're cool and overall I'm glad they're in there.
+
+187
+00:17:51.339 --> 00:17:54.660
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: A lot of times we're fairly ineffective, um,
+
+188
+00:17:54.660 --> 00:17:59.259
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: aside from certain niche, like tracks or spots or whatever.
+
+189
+00:17:59.259 --> 00:18:00.259
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: How does it feel here?
+
+190
+00:18:00.259 --> 00:18:02.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Does the skateboard feel worth it?
+
+191
+00:18:02.500 --> 00:18:13.779
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: it does. I do have a couple of issues. So one, I think this is just me getting used to it
+
+192
+00:18:13.779 --> 00:18:18.339
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: thing. There's been a couple of times where I've misjudged how far it takes to jump something,
+
+193
+00:18:18.339 --> 00:18:26.339
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: and I think that that will just come in time, but you know, we'll see. But you do, it does work
+
+194
+00:18:26.339 --> 00:18:29.940
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: how you would expect a skateboard to work if you're coming up to something and you press the
+
+195
+00:18:29.940 --> 00:18:32.480
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: jump up in the right hand, you will jump over the thing and continue.
+
+196
+00:18:32.500 --> 00:18:44.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Keep going with your your your your speed which is very nice for traveling around the map like I basically once I got the skateboard. I stopped walking around the map. I was using this keyboard the entire time because of you.
+
+197
+00:18:43.500 --> 00:18:46.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: That's what I want to hear. That's good.
+
+198
+00:18:44.500 --> 00:18:56.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But this is not a problem with the skateboard so it has a tool wheel for selecting your tools to complain about this one your items still have to use up space in your bag.
+
+199
+00:18:56.500 --> 00:19:03.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I hate that. Give me a tool wheel which is a separate like tool bag.
+
+200
+00:19:02.500 --> 00:19:14.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So I don't have to have my bag space wasted with my tools when I have a tool wheel. Second, the tool wheel.
+
+201
+00:19:03.500 --> 00:19:04.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh.
+
+202
+00:19:08.500 --> 00:19:14.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: But where are you storing them out? Doesn't make any sense out.
+
+203
+00:19:14.500 --> 00:19:26.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: The tool wheel is not big enough. So let me just let me just double check what the current set. Let me build the game and double check exactly how many it was but.
+
+204
+00:19:16.500 --> 00:19:19.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, that's an actual problem.
+
+205
+00:19:26.500 --> 00:19:32.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Oh no, I can't launch the demo anymore. They've revoked the licenses for the demo disaster.
+
+206
+00:19:30.000 --> 00:19:38.200
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: BOO BOO BOO BOO BOO BOO BOO BOO BOO BOO BOO BOO BOO B Oh!
+
+207
+00:19:33.500 --> 00:19:38.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Oh goodness me.
+
+208
+00:19:38.500 --> 00:19:50.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So I think it was eight slots on the tool wheel and considering we had axe pickaxe hole, watering can.
+
+209
+00:19:48.000 --> 00:19:51.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I mean, if skateboard can go on there, that alone.
+
+210
+00:19:50.500 --> 00:19:58.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Well yeah, but let me let me finish a watering can. What else was their fishing rod bug net.
+
+211
+00:19:58.500 --> 00:20:02.420
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And there was at least one more tool, but I can't remember what it was and then
+
+212
+00:20:02.500 --> 00:20:07.539
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I was left with one slot, which you're like, oh, that's fine. The skateboard goes in that slot.
+
+213
+00:20:08.099 --> 00:20:13.940
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Here's the problem. Your seeds have to go in the slot to in a slot to farm.
+
+214
+00:20:14.900 --> 00:20:21.460
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: You have to select seeds from the tool wheel, and I think this is the big problem with it,
+
+215
+00:20:22.259 --> 00:20:27.140
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: because my tools, including my skateboard, filled up my entire tool wheel.
+
+216
+00:20:27.940 --> 00:20:32.339
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So I had to take one of the tools out to then add seeds into my
+
+217
+00:20:32.000 --> 00:20:34.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh no.
+
+218
+00:20:32.500 --> 00:20:50.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: tool wheel. So I think they need to do something there because I think it's it's the exact right number of slots if you solve that seed problem and you either give a different way to deal with seed somehow or you just do a different way of selecting it.
+
+219
+00:20:50.500 --> 00:21:02.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It does feel weird that seeds are too in the tool wheel right like I get I think I get what they're doing it just it feels like they made that decision from a technical implementation.
+
+220
+00:21:02.500 --> 00:21:27.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But so you do end up fiddling around a little bit right where like okay it's time to put a new bunch of places out to far.
+
+221
+00:21:27.500 --> 00:21:32.460
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: to put a new bunch of places out to see it far.
+
+222
+00:21:32.500 --> 00:21:39.099
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I will need to put the whole into my toolbar bar and then I'll need to move it out and put the seeds in it's not the end of the world
+
+223
+00:21:39.099 --> 00:21:41.099
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But it's fiddly, you know
+
+224
+00:21:41.000 --> 00:21:42.920
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, yeah, I get that.
+
+225
+00:21:42.099 --> 00:21:47.700
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Especially if you have multiple multiple seeds you're putting down right like there was one time I had three sets of seeds
+
+226
+00:21:47.700 --> 00:21:53.380
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I wanted to buy and use all at the same time and that took a lot of fiddling around to actually get it to work
+
+227
+00:21:54.019 --> 00:22:00.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But yeah, it is what it is. I think they need to solve that the seed problem, but other than that pretty good
+
+228
+00:22:00.500 --> 00:22:02.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And yeah, this keyboard is good, and
+
+229
+00:22:02.500 --> 00:22:10.200
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I didn't get to try any of the other vehicles, but there are other things. Like I saw for example, there's a more page you can rent.
+
+230
+00:22:10.500 --> 00:22:13.680
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, that would be my guess right like you have skateboard
+
+231
+00:22:14.480 --> 00:22:16.640
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Roller skates smoke bed feels like the next one
+
+232
+00:22:17.000 --> 00:22:20.519
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: No, but you can rent the mopad before you own one.
+
+233
+00:22:19.460 --> 00:22:21.460
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, okay
+
+234
+00:22:21.480 --> 00:22:25.240
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Like, first day, you can go and rent the mopad if you want, which is really interesting.
+
+235
+00:22:23.700 --> 00:22:26.619
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Ooh, first day ooh, that's nice
+
+236
+00:22:25.240 --> 00:22:29.480
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah, yeah. It's just there. It's just sitting there. You can just pay and rent it on its
+
+237
+00:22:29.480 --> 00:22:31.640
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: pair in game minute that you pay for.
+
+238
+00:22:31.740 --> 00:22:33.740
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh
+
+239
+00:22:33.740 --> 00:22:37.700
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: That's that's innovative and what I don't know if I like that, but it is kind of cool
+
+240
+00:22:37.000 --> 00:22:43.720
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I think I think I do like it because it gives you options early game like nobody's making you use it
+
+241
+00:22:43.720 --> 00:22:49.079
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: but it's that or it's that or you have to wait and if you want to waste your money on
+
+242
+00:22:49.799 --> 00:22:56.359
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: on the moped you can do that right like why should we stop you doing that like I think it's a great I think
+
+243
+00:22:57.500 --> 00:23:02.299
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, well, yeah, being open for the start, that is a fantastic idea, 100%.
+
+244
+00:23:02.500 --> 00:23:08.900
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So, um, there's probably a lot more I could talk about this game, but I probably shouldn't because we're 25 minutes into the end.
+
+245
+00:23:08.000 --> 00:23:13.200
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I feel like you should on a certain place at a certain time. Maybe not here right now, but
+
+246
+00:23:13.700 --> 00:23:21.460
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah, I need any more time, but I am enjoying this game so far. And, uh, yes, I will be buying it on release date. Let's put it that way.
+
+247
+00:23:21.500 --> 00:23:23.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: And you can keep it that time!
+
+248
+00:23:24.819 --> 00:23:27.059
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah. Theoretically.
+
+249
+00:23:27.500 --> 00:23:28.700
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: They're at it.
+
+250
+00:23:30.700 --> 00:23:34.460
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Christopher Nolan was wrong. They are breaking into your house. Let's deal it.
+
+251
+00:23:30.819 --> 00:23:31.660
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: - All right.
+
+252
+00:23:33.339 --> 00:23:36.380
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: [laughing]
+
+253
+00:23:36.380 --> 00:23:38.380
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: All right, that's what we've been up to.
+
+254
+00:23:38.380 --> 00:23:39.220
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Whoo.
+
+255
+00:23:41.299 --> 00:23:42.660
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: We're next.
+
+256
+00:23:42.660 --> 00:23:45.099
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I know what you released last month.
+
+257
+00:23:45.099 --> 00:23:47.940
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: We have five games released in January.
+
+258
+00:23:47.940 --> 00:23:49.460
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: First up, we have Cozy Caravan,
+
+259
+00:23:49.460 --> 00:23:51.380
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: which Kevin didn't realize was out already.
+
+260
+00:23:51.000 --> 00:23:54.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, though we probably talked about it, but I forgot.
+
+261
+00:23:54.539 --> 00:23:56.059
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And this, well, we, yeah, we were to talk
+
+262
+00:23:56.059 --> 00:23:57.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: about what his release day was,
+
+263
+00:23:57.500 --> 00:23:59.059
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: but that's not the same thing as talking about it after.
+
+264
+00:23:59.059 --> 00:24:01.099
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: This is the talking about it having been released.
+
+265
+00:24:01.099 --> 00:24:02.180
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: the point of this section.
+
+266
+00:24:02.500 --> 00:24:06.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So there you go useful even for co hosts of the podcast.
+
+267
+00:24:08.000 --> 00:24:13.380
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Am I gonna play it? I don't know. You could be an axolotte. That's pretty cool. If you look in game, I'll say that
+
+268
+00:24:13.000 --> 00:24:17.920
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Ancient farm also came out that's the the weird not
+
+269
+00:24:20.799 --> 00:24:25.579
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Not rid of patcher game the realistic
+
+270
+00:24:23.500 --> 00:24:30.039
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah. Yeah. Oh, that one, the Roman one. Is that the Roman one? Yeah, it is.
+
+271
+00:24:26.319 --> 00:24:28.319
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Aveman farming in
+
+272
+00:24:28.599 --> 00:24:32.440
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Is it Roman? Oh, yeah, you're right. It is Roman. It's not caveman. That's silly me
+
+273
+00:24:32.380 --> 00:24:35.079
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, yeah. Or Egyptian or something. One of those.
+
+274
+00:24:32.839 --> 00:24:40.200
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yes, it's it's I think it was in the in the breakdown of the Roman Empire or something like that. It was wasn't it? Oh no ancient Egypt
+
+275
+00:24:38.119 --> 00:24:42.420
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, yeah, because you got Egypt. Yeah, no, because you got pyramids. Yeah,
+
+276
+00:24:42.420 --> 00:24:44.019
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: no, Egyptian. That's it is. Yeah, Egypt.
+
+277
+00:24:43.079 --> 00:24:45.079
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: There we go
+
+278
+00:24:45.079 --> 00:24:53.160
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But at least iron age because I'm seeing iron in the tools, so not not like super super ancient just you're not gonna get any
+
+279
+00:24:54.599 --> 00:24:58.279
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Sprinklers here, although maybe you'll get like there's there were other
+
+280
+00:24:58.839 --> 00:25:00.839
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Irrigation techniques around then like
+
+281
+00:25:00.500 --> 00:25:04.339
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, you stand all the slaves to go for two.
+
+282
+00:25:04.339 --> 00:25:06.579
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: [laughing]
+
+283
+00:25:05.240 --> 00:25:07.240
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Oh, bye
+
+284
+00:25:07.240 --> 00:25:09.240
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: All righty
+
+285
+00:25:10.279 --> 00:25:11.640
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: We also have
+
+286
+00:25:10.740 --> 00:25:11.859
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: They were very cute.
+
+287
+00:25:11.859 --> 00:25:14.019
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: If they had the good spot to do it.
+
+288
+00:25:13.960 --> 00:25:16.359
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: We also add heartopia released as well
+
+289
+00:25:17.799 --> 00:25:22.380
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Twice once on once on mobile and then a couple of days later on steam
+
+290
+00:25:21.000 --> 00:25:31.160
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: twice oh yeah that maybe i'll try I don't know if i'll try it both and i'm but it's still
+
+291
+00:25:30.000 --> 00:25:32.099
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It's free, you should definitely try it.
+
+292
+00:25:32.440 --> 00:25:35.640
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: all right fine final try it will probably do a thing on it
+
+293
+00:25:38.000 --> 00:25:44.480
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: also Sky Harvest and finally Emberland's desktop village, the Rusty Lake.
+
+294
+00:25:45.000 --> 00:25:51.920
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: No, it's not only okay, I'm not entirely surprised that genre took off because that's what happens in games
+
+295
+00:25:52.440 --> 00:25:54.640
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: You get a good one and people fall
+
+296
+00:25:55.480 --> 00:26:00.200
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: But the speed at which rusty likes have become a thing is pretty impressive
+
+297
+00:25:55.500 --> 00:25:57.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah
+
+298
+00:26:00.259 --> 00:26:07.819
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah, I think it's because they're quite low stakes. They're quite easy to especially if you have an existing like base of
+
+299
+00:26:08.339 --> 00:26:15.480
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Graphics and you know gameplay loop and stuff like that you can you can modify them for that quite easily and the
+
+300
+00:26:12.500 --> 00:26:14.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Sure
+
+301
+00:26:15.819 --> 00:26:17.819
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Interaction is quite simple, right?
+
+302
+00:26:17.339 --> 00:26:20.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Sure, yeah, yeah, and it's I guess so yeah
+
+303
+00:26:20.579 --> 00:26:22.740
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: All right, let's talk about some news then
+
+304
+00:26:23.539 --> 00:26:25.539
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: First up, very quiet
+
+305
+00:26:25.500 --> 00:26:32.099
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: announced in the switch Nintendo the Nintendo Direct partner showcase
+
+306
+00:26:31.500 --> 00:26:38.420
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Please need to do my valley come and switch to a head yeah, okay
+
+307
+00:26:34.859 --> 00:26:43.220
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Well, so I figured this out Kevin they announced it's not that it was they didn't they hadn't released the switch to addition yet
+
+308
+00:26:43.539 --> 00:26:49.400
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But they'd announced the switch to addition last June. They just then hadn't actually done it till now
+
+309
+00:26:44.000 --> 00:26:52.400
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Ahh. Yeah. Oh, okay. All right.
+
+310
+00:26:51.220 --> 00:26:55.220
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So, yes, the Disney Dreamer Valley Switch 2 update.
+
+311
+00:26:55.500 --> 00:26:58.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: We'll be coming out on the 25th.
+
+312
+00:26:59.000 --> 00:27:02.119
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Cool, that's soonish, whatever.
+
+313
+00:27:02.119 --> 00:27:04.200
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: POCOPI, that's the post POCOPI a little.
+
+314
+00:27:04.200 --> 00:27:06.079
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Nothing matters anymore.
+
+315
+00:27:04.500 --> 00:27:11.539
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: yeah don't like you we're gonna play Disney Dream Valley anyway right like
+
+316
+00:27:06.079 --> 00:27:06.920
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Good.
+
+317
+00:27:09.440 --> 00:27:10.839
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Nah, probably not.
+
+318
+00:27:12.039 --> 00:27:13.680
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I'm trying to think, is there a property
+
+319
+00:27:13.680 --> 00:27:15.200
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: that would get me?
+
+320
+00:27:15.200 --> 00:27:16.039
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Probably not.
+
+321
+00:27:16.039 --> 00:27:16.880
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I don't like to do anything,
+
+322
+00:27:16.880 --> 00:27:18.960
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: but I don't know if I'll put a bit of a kiss so much.
+
+323
+00:27:18.960 --> 00:27:19.799
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I'm fine.
+
+324
+00:27:20.500 --> 00:27:22.940
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: the department, if they start paying Marvel stuff.
+
+325
+00:27:21.119 --> 00:27:21.960
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, you know what?
+
+326
+00:27:21.960 --> 00:27:22.960
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: It's a cherubog.
+
+327
+00:27:24.759 --> 00:27:26.039
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: There you go.
+
+328
+00:27:26.039 --> 00:27:27.359
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Rogu.
+
+329
+00:27:27.359 --> 00:27:28.880
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Get a cherubog in there.
+
+330
+00:27:29.319 --> 00:27:30.319
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: But.
+
+331
+00:27:30.319 --> 00:27:32.960
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Look, how long do you think it's going to take?
+
+332
+00:27:32.960 --> 00:27:34.200
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Because I think it's inevitable.
+
+333
+00:27:34.200 --> 00:27:35.799
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: We'll get it one day, I imagine.
+
+334
+00:27:35.500 --> 00:27:38.619
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: You know, there's plenty of other there's plenty still to go through
+
+335
+00:27:38.880 --> 00:27:40.240
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: There it is.
+
+336
+00:27:40.240 --> 00:27:41.079
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh.
+
+337
+00:27:41.140 --> 00:27:43.140
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Stars aren't island
+
+338
+00:27:42.839 --> 00:27:44.279
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I know I heard about that game.
+
+339
+00:27:44.180 --> 00:27:48.519
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: They announced that their early access is coming out on the 11th of February, which is
+
+340
+00:27:49.500 --> 00:27:52.400
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: today if you're listening to this episode on release day, so
+
+341
+00:27:52.680 --> 00:27:55.319
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: No, no demo, just earthly access.
+
+342
+00:27:55.779 --> 00:28:03.059
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: The yes, the day yes, they also announced taking the demo down the also released a new trailer for the game
+
+343
+00:28:04.059 --> 00:28:06.059
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Which definitely feels like
+
+344
+00:28:05.500 --> 00:28:15.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: a highlights of lesbian relationship.
+
+345
+00:28:07.000 --> 00:28:09.480
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: You know, I got that from the first trailer
+
+346
+00:28:11.759 --> 00:28:13.759
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, no
+
+347
+00:28:14.359 --> 00:28:18.119
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, hey, are that that oh, yeah, you look at the box. Yeah
+
+348
+00:28:20.039 --> 00:28:27.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Man, one of my favorite use a very niche, but one of my favorite reaction images is the sonic one with
+
+349
+00:28:27.880 --> 00:28:29.880
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: The gate you know what I'm talking about
+
+350
+00:28:29.500 --> 00:28:39.299
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: No, but like I think most of it, you could most of the trailer you could be like oh, they're just good friends
+
+351
+00:28:30.319 --> 00:28:34.440
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: No, I'll cut this in you picture, but just good for them good for them. That's that's all
+
+352
+00:28:39.299 --> 00:28:44.259
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But then like there's some serious eye contact like they're they are not just friends
+
+353
+00:28:43.000 --> 00:28:49.880
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh yeah, oh yeah, oh yeah, oh yeah, oh yeah, oh yeah, I know I've watched anime I know how that goes
+
+354
+00:28:51.819 --> 00:28:57.420
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Good for them the childhood best friends coming by together more than friends sitting on the beach
+
+355
+00:28:59.500 --> 00:29:03.819
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It's interesting because we knew it was coming out Q1
+
+356
+00:29:04.579 --> 00:29:08.460
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And then one day they announced that it was coming out on wed and oh, you know
+
+357
+00:29:08.460 --> 00:29:18.140
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Oh, I just over a week after that announcement. They've also got a standard edition and a deluxe edition the deluxe edition includes a bunch of
+
+358
+00:29:18.940 --> 00:29:21.339
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Cosmetics it includes a pumpkin carriage
+
+359
+00:29:22.220 --> 00:29:24.220
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: classic furniture set
+
+360
+00:29:24.220 --> 00:29:26.220
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: elegant formal exit
+
+361
+00:29:26.220 --> 00:29:29.579
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And if you buy either the standard or
+
+362
+00:29:29.500 --> 00:29:36.380
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: the deluxe edition, I don't know when by, I don't know what the deadline is, but there's a Chinese New Year
+
+363
+00:29:36.380 --> 00:29:46.140
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Furniture Set and a new Chinese outfit you get if you buy it. Early. Yeah.
+
+364
+00:29:41.500 --> 00:29:48.900
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: That's a that's a lot of things which I guess is good, but okay like
+
+365
+00:29:49.579 --> 00:29:58.380
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: The game is $27.93 USD or $41.93 USD for the deluxe edition, which considering the deluxe edition just
+
+366
+00:29:58.380 --> 00:29:59.380
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: has cosmetics.
+
+367
+00:30:00.500 --> 00:30:01.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Feels like a law extra.
+
+368
+00:30:01.500 --> 00:30:08.380
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: it does feel like a lot extra um yeah okay that's so much extra
+
+369
+00:30:08.500 --> 00:30:12.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Trying to see if they have a date on the Chinese New Year stuff.
+
+370
+00:30:12.059 --> 00:30:14.940
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: you know it's crazy like how much
+
+371
+00:30:13.500 --> 00:30:14.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Earlier.
+
+372
+00:30:14.500 --> 00:30:15.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Oh, it's just early access.
+
+373
+00:30:15.500 --> 00:30:17.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It looks like it's just an early access.
+
+374
+00:30:18.500 --> 00:30:21.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: The game is also 30% off during early access.
+
+375
+00:30:21.500 --> 00:30:23.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: That's the price I said before is the 30% off.
+
+376
+00:30:23.500 --> 00:30:25.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But when it goes to 1.0,
+
+377
+00:30:24.500 --> 00:30:26.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh
+
+378
+00:30:25.500 --> 00:30:28.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: it'll go up to $30 for the base game.
+
+379
+00:30:27.759 --> 00:30:32.420
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, is the deluxe go up to oh, oh, that's definitely
+
+380
+00:30:30.500 --> 00:30:34.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yes, it goes up to $60.
+
+381
+00:30:34.779 --> 00:30:37.940
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: What who that pumpkin that's an expensive pumpkin?
+
+382
+00:30:38.500 --> 00:30:39.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah.
+
+383
+00:30:39.500 --> 00:30:40.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: All right.
+
+384
+00:30:40.500 --> 00:30:41.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Next.
+
+385
+00:30:41.500 --> 00:30:42.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Google Town.
+
+386
+00:30:42.500 --> 00:30:48.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Have announced that their 1.0 release and their switch release are coming in Q2 this year.
+
+387
+00:30:48.500 --> 00:31:06.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Wait. Okay. Oh, Q2. Okay. That's okay. Yeah. Okay. Sorry. No, like, I don't know if it's her joke. Okay. Um, that's cool. Uh, I really feels like that was what we've already hit 1.0, but you know, okay, fine. It's on switch. That's, that's your, that's your sign.
+
+388
+00:31:03.000 --> 00:31:13.400
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Well, yeah. So, well, yeah. So they said there's secrets new major features coming. So I don't know what they mean.
+
+389
+00:31:12.500 --> 00:31:20.559
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, oh that you know what I like I like that calling out the secret, right? Because you know when when started drops
+
+390
+00:31:21.940 --> 00:31:26.180
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Or let me not start to animal crossing update drops. There's always hidden stuff
+
+391
+00:31:26.180 --> 00:31:32.099
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: They don't talk about but it's all hidden, but now another game to challenge go find the secret features maybe
+
+392
+00:31:34.000 --> 00:31:37.839
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I'm sure they'll, I'm sure they'll announce what they are on release. Like, they're not going to be C craft.
+
+393
+00:31:38.559 --> 00:31:39.839
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I think it's just they're not.
+
+394
+00:31:38.740 --> 00:31:41.240
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: - Oh, no, no, that's what I wanted.
+
+395
+00:31:41.240 --> 00:31:42.079
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: - Target!
+
+396
+00:31:42.640 --> 00:31:45.279
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I think it's just they're not going to tell us before release. No.
+
+397
+00:31:42.740 --> 00:31:45.859
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: - We're updating, but we're not telling you what it is.
+
+398
+00:31:45.859 --> 00:31:47.299
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: - No, I want that.
+
+399
+00:31:47.299 --> 00:31:49.700
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: - It's fine, well, gaslight into thinking you
+
+400
+00:31:49.700 --> 00:31:51.380
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: is this an update or a glitch.
+
+401
+00:31:54.400 --> 00:31:58.079
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Two picks, Ali. I have announced a max support down now.
+
+402
+00:31:58.960 --> 00:32:02.240
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So they still don't have control of support. Just saying.
+
+403
+00:32:01.500 --> 00:32:05.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Well, wow, that's...
+
+404
+00:32:04.319 --> 00:32:05.680
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But they do have max support now.
+
+405
+00:32:05.500 --> 00:32:08.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Control is support only for the Mac.
+
+406
+00:32:13.440 --> 00:32:14.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And.
+
+407
+00:32:13.500 --> 00:32:15.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I bet somebody's done that.
+
+408
+00:32:16.240 --> 00:32:24.720
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah. And cause of caravan have released a 1.1 update, which is very small. It gives you accessories
+
+409
+00:32:24.720 --> 00:32:28.880
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: for rig B. I think it's a bug.
+
+410
+00:32:27.000 --> 00:32:28.720
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: What's a Rigby?
+
+411
+00:32:28.720 --> 00:32:29.680
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Let me see.
+
+412
+00:32:29.680 --> 00:32:33.200
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, it's the Sheep B or Ant.
+
+413
+00:32:31.759 --> 00:32:33.759
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Sheepbug thing.
+
+414
+00:32:33.200 --> 00:32:34.119
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: It's like an Ant.
+
+415
+00:32:34.000 --> 00:32:42.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So you can you can coordinate yourself, your caravan and Rigby all other things.
+
+416
+00:32:34.119 --> 00:32:37.079
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, some of the skins look like Ant.
+
+417
+00:32:37.079 --> 00:32:39.279
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: It's come type of bug.
+
+418
+00:32:42.359 --> 00:32:43.119
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: You know what?
+
+419
+00:32:43.119 --> 00:32:46.200
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, that's probably a needed update, good for them.
+
+420
+00:32:46.200 --> 00:32:47.559
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Some of these skins are really good.
+
+421
+00:32:47.559 --> 00:32:49.680
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: One of them makes Rigby look like a B.
+
+422
+00:32:49.680 --> 00:32:51.319
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I didn't realize Rigby had wings at first,
+
+423
+00:32:51.319 --> 00:32:52.200
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: but I see them.
+
+424
+00:32:53.640 --> 00:32:55.119
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, there you go.
+
+425
+00:32:55.119 --> 00:32:57.079
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: One of them has literally a fork sticking it.
+
+426
+00:32:57.000 --> 00:33:02.440
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, there's one that makes it look quick and like a tarantian. Yeah, that's what I'm talking about.
+
+427
+00:33:02.440 --> 00:33:07.079
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Star Mobile was one of the best things they didn't spell it while and they didn't use it further.
+
+428
+00:33:06.500 --> 00:33:14.700
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And fields of mystery have announced that their fourth major update is coming on the 23rd
+
+429
+00:33:14.700 --> 00:33:15.859
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: of February.
+
+430
+00:33:15.859 --> 00:33:23.799
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: This includes the conclusion to the mine storyline and a new bachelorette, bachelorette,
+
+431
+00:33:23.500 --> 00:33:26.779
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, okay. Oh, hi.
+
+432
+00:33:23.799 --> 00:33:24.799
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: bachelorette.
+
+433
+00:33:24.799 --> 00:33:27.299
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Look, I just won the 1.0.
+
+434
+00:33:27.299 --> 00:33:28.299
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Just give me the 1.0.
+
+435
+00:33:28.299 --> 00:33:29.299
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Actually, no don't do that yet.
+
+436
+00:33:29.299 --> 00:33:32.059
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I've had the beginning of this year's busy.
+
+437
+00:33:32.059 --> 00:33:36.259
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I've got Starsend Island, I've got Pocopia, I've got
+
+438
+00:33:36.500 --> 00:33:43.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Tama Da Chi, Tama Da Chi, Tama Da Chi, I've got weird sims.
+
+439
+00:33:41.500 --> 00:33:50.140
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: No, yeah, which, or what's, what's the, who's the batch for it?
+
+440
+00:33:43.500 --> 00:33:45.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It's too much happening.
+
+441
+00:33:45.500 --> 00:33:51.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Make this near the end of the year, please.
+
+442
+00:33:51.500 --> 00:34:01.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: You'll find out, I believe this is the last update before the 1.0 update, so we'll see you later.
+
+443
+00:33:56.500 --> 00:34:02.640
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: No, I don't yeah, we're exactly we'll see you. Oh, let's always my attitude
+
+444
+00:34:04.039 --> 00:34:06.039
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: 1.0
+
+445
+00:34:07.500 --> 00:34:21.300
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Alright, finally, we're not finally finally. Finally, before the new games, we have an interview that IGN did with ConcernD, about 10th anniversary of Stardew Valley.
+
+446
+00:34:18.500 --> 00:34:29.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Okay, first of all, I mean, did you start aging instantly? Did you like feel the grip if you're sprouting when you heard that?
+
+447
+00:34:27.000 --> 00:34:35.480
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: oh yeah don't even yeah it's all right only one year and then the switch will be
+
+448
+00:34:29.500 --> 00:34:37.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I didn't realize it's nook up on me. And yeah.
+
+449
+00:34:35.480 --> 00:34:41.719
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: 10 years old so you know just gonna keep keep coming and keep happening and you
+
+450
+00:34:41.719 --> 00:34:49.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: know the um the Wii is 20 years old this year as well
+
+451
+00:34:44.000 --> 00:34:46.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: So now the concern dates ancient.
+
+452
+00:34:47.440 --> 00:34:50.880
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh my goodness. No, that one I can live with. That one is all that's fine.
+
+453
+00:34:52.599 --> 00:34:56.440
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: anyway there were a couple of things I found interesting from this interview
+
+454
+00:34:57.159 --> 00:35:01.079
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: so he does talk a bit about concern not pretending
+
+455
+00:35:01.079 --> 00:35:06.280
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: haunted juggle tier but that's all we covered that in his blub but like this
+
+456
+00:35:06.280 --> 00:35:10.440
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: feels like the blog post was in reaction to these questions
+
+457
+00:35:08.000 --> 00:35:09.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Leave him.
+
+458
+00:35:11.000 --> 00:35:12.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah.
+
+459
+00:35:12.000 --> 00:35:14.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: [laughter]
+
+460
+00:35:13.400 --> 00:35:17.719
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: but interestingly so he said that he would consider doing a starchy valley at some point
+
+461
+00:35:17.719 --> 00:35:22.599
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I've starchy valley too at some point and even started working on one but I ended up
+
+462
+00:35:23.719 --> 00:35:25.599
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: doing Hunter Chocolatier instead.
+
+463
+00:35:25.599 --> 00:35:26.440
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: - Yeah.
+
+464
+00:35:27.239 --> 00:35:30.440
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: He says that he would find it interesting,
+
+465
+00:35:30.440 --> 00:35:36.760
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: but he'd need to decide whether it was like different characters and a different area,
+
+466
+00:35:36.760 --> 00:35:43.239
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: or whether it's the same characters, but then you have to decide on which story lines progress and
+
+467
+00:35:43.239 --> 00:35:48.199
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: stuff like that. So I don't think we'll ever get that, but I thought it was an interesting thing
+
+468
+00:35:44.000 --> 00:35:52.960
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, it is an interesting thought. I don't think you should do it because you have for those
+
+469
+00:35:52.960 --> 00:35:59.360
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: exact reasons. It's a it's a pickle to think and no one's someone's gonna be upset by it no
+
+470
+00:35:59.360 --> 00:36:03.840
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: matter what it what you pick so there's no no winning
+
+471
+00:36:00.000 --> 00:36:07.679
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But you probably shouldn't, you should probably shouldn't decide to use that as the reason
+
+472
+00:36:07.679 --> 00:36:08.960
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: not to do something, right?
+
+473
+00:36:09.280 --> 00:36:11.599
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: - Well, I guess, yeah.
+
+474
+00:36:11.599 --> 00:36:12.400
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: - Yeah, I mean, look at us.
+
+475
+00:36:12.400 --> 00:36:13.599
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: [laughs]
+
+476
+00:36:14.639 --> 00:36:16.880
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: - Uh, yeah, the real secret.
+
+477
+00:36:16.880 --> 00:36:19.280
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Start new two, and possibly one could argue,
+
+478
+00:36:19.280 --> 00:36:20.679
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: start a three-party release.
+
+479
+00:36:20.679 --> 00:36:22.079
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: They're just hitting the updates.
+
+480
+00:36:22.079 --> 00:36:23.360
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: [laughs]
+
+481
+00:36:23.000 --> 00:36:25.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah
+
+482
+00:36:23.360 --> 00:36:24.760
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Basically.
+
+483
+00:36:24.760 --> 00:36:26.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: [laughs]
+
+484
+00:36:25.599 --> 00:36:27.880
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: What the other thing I found interesting now
+
+485
+00:36:27.880 --> 00:36:31.719
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I don't know whether he's saying that this is not happening or is happening or might be happening
+
+486
+00:36:32.000 --> 00:36:36.559
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But let me just quote this for you one idea that we were toying with for 1.7
+
+487
+00:36:36.559 --> 00:36:40.960
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I don't know if this will happen or not was adding a farm map editor for the public
+
+488
+00:36:41.079 --> 00:36:44.320
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So you could basically make your own because with every update
+
+489
+00:36:44.320 --> 00:36:47.320
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It's traditional to add a new farm type when they came first came out
+
+490
+00:36:47.320 --> 00:36:52.800
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: There was just standard farm and that was it and then 1.0 added four different farms and then with every update
+
+491
+00:36:54.000 --> 00:37:01.760
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: What if we opened up this up to the community and it was like now you could press an extra button go into a browser and look at everyone's farm creation
+
+492
+00:37:02.000 --> 00:37:08.519
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: That now adds almost infinite replayability to Stardew Valley. I think this would be great
+
+493
+00:37:08.679 --> 00:37:13.719
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Like being able to go like oh, here's a starter farm. I've made this swamp or
+
+494
+00:37:14.239 --> 00:37:19.119
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: like here's our second beach farm or something like I love the idea of being able to go
+
+495
+00:37:19.800 --> 00:37:23.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: you know, oh, another cell, let me see what other random
+
+496
+00:37:23.000 --> 00:37:29.300
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: farm layouts people have done like another kind of for like because this allows you because obviously you can do this with mods
+
+497
+00:37:29.300 --> 00:37:33.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: but not everybody has mods and being able to have this would be I think fantastic
+
+498
+00:37:31.000 --> 00:37:37.579
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, I think so too, and you know what I think it should be a separate part
+
+499
+00:37:38.559 --> 00:37:40.559
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Like I don't know I think the
+
+500
+00:37:41.199 --> 00:37:46.039
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Making it like these the starter farm sounds like a lot because like
+
+501
+00:37:46.599 --> 00:37:53.280
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: That's a lot to do before you start the game, you know, but anyways, but generally speaking the idea of a bar map editor
+
+502
+00:37:54.500 --> 00:37:57.219
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Well, I think I think the idea would not necessarily
+
+503
+00:37:57.219 --> 00:37:59.900
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: be the someone who's first playing Stardew Valley
+
+504
+00:37:59.900 --> 00:38:02.579
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: goes, oh, I'm going to create my own custom map.
+
+505
+00:38:02.579 --> 00:38:04.980
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It's another option, right?
+
+506
+00:38:04.980 --> 00:38:08.659
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Like you can go in and either you can select one of the eight
+
+507
+00:38:08.659 --> 00:38:14.179
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: that you currently has or you can scan a QR code
+
+508
+00:38:14.179 --> 00:38:17.860
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: and get someone set up, or if you really want,
+
+509
+00:38:17.860 --> 00:38:19.699
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: you can then do a custom one yourself.
+
+510
+00:38:19.699 --> 00:38:23.139
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Like I don't think the idea is that you'll open up.
+
+511
+00:38:23.139 --> 00:38:25.139
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And it'll be like, "Oh, what's your name?"
+
+512
+00:38:24.500 --> 00:38:26.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I know we're like, "Okay, now design a farm."
+
+513
+00:38:26.500 --> 00:38:28.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I don't think that's what it will be.
+
+514
+00:38:27.000 --> 00:38:29.239
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: [laughs]
+
+515
+00:38:28.500 --> 00:38:31.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Like, if there is a farm designer, I think it will be, yeah.
+
+516
+00:38:31.500 --> 00:38:34.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I think you're right, it will be like accessible within the game,
+
+517
+00:38:34.500 --> 00:38:38.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: but not like you have to design it before you start the game.
+
+518
+00:38:38.500 --> 00:38:40.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah, that would feel a lot.
+
+519
+00:38:40.000 --> 00:38:45.599
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, yeah, you get my point. Okay. Well, yeah, no
+
+520
+00:38:42.500 --> 00:38:44.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I think I get your point. I think I get your point.
+
+521
+00:38:46.500 --> 00:38:49.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But I just love the idea of going like, "I'm going to do a new save."
+
+522
+00:38:49.500 --> 00:38:53.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: You know, someone's created this really weird thing that makes it really hard
+
+523
+00:38:54.500 --> 00:38:56.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: to give you a bunch more options.
+
+524
+00:38:56.500 --> 00:39:00.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Like, I really like the one that has a little bit of, you know, stone area.
+
+525
+00:39:00.500 --> 00:39:03.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Maybe I want one that has more of that, you know, stuff like that.
+
+526
+00:39:03.500 --> 00:39:04.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I really like that.
+
+527
+00:39:04.000 --> 00:39:10.320
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, okay, sure. Yeah, I'm I'm just I guess not think about a little further how
+
+528
+00:39:10.900 --> 00:39:14.960
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Or wonder how much you can actually do with it because I don't know
+
+529
+00:39:15.519 --> 00:39:18.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Because on the just break it open to
+
+530
+00:39:16.000 --> 00:39:21.119
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It's definitely more about layout rather than anything else, right? Like it's not like you're
+
+531
+00:39:21.119 --> 00:39:26.159
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: going to be able to do big, complicated things, right? You'll be able to say this area is beach,
+
+532
+00:39:26.159 --> 00:39:32.239
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: this area is, you know, normal farmland, this is a cave. You could, you could have, and you can
+
+533
+00:39:32.239 --> 00:39:38.960
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: have different levels on there, right? Like we've seen that on the, it's not the four levels,
+
+534
+00:39:38.960 --> 00:39:43.760
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: the four corners farm. It's the other one that's like the different areas. It has an area that's
+
+535
+00:39:43.760 --> 00:39:46.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: for rocks in an area that's watery and in
+
+536
+00:39:45.500 --> 00:39:47.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, yeah
+
+537
+00:39:46.559 --> 00:39:53.360
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: That has one where you go up, a bit and like the rock bit is up high, isn't it? So you could do multiple
+
+538
+00:39:53.360 --> 00:39:55.599
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: levels, for example.
+
+539
+00:39:55.000 --> 00:40:03.320
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, sure. Yeah, all right, can't make the Jojo Mark farm or your entire plots of Jojo Mark
+
+540
+00:40:03.500 --> 00:40:15.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah, I don't think it'll be. I mean, maybe he'll add like one other idea of something that could be added in, but I don't think it's suddenly going to be like, you could build the entire village in your farm or anything.
+
+541
+00:40:15.500 --> 00:40:17.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: heh heh heh heh heh.
+
+542
+00:40:17.500 --> 00:40:20.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Alright sure. Yeah either way, it's probably a fun idea.
+
+543
+00:40:20.500 --> 00:40:28.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Do it. I did rea- before this interview, I didn't realize we're getting more, um, you know, marriage candidates or whatever.
+
+544
+00:40:31.000 --> 00:40:36.340
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yes. Yeah, that was the other thing is is he said that there's gonna be more of that, but we don't know
+
+545
+00:40:38.000 --> 00:40:46.639
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: and mmm there's a lot obviously we have a lot of fee I have a lot of feelings on that but I'll just wait to see who it is
+
+546
+00:40:45.000 --> 00:40:49.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Do you? Yes.
+
+547
+00:40:49.119 --> 00:40:50.960
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: yeah
+
+548
+00:40:51.519 --> 00:41:00.880
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: oh we we can't I can't I can't bring myself to dare to hope that you'll be right now that we can do divorce simulator
+
+549
+00:41:01.500 --> 00:41:04.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I don't think we will, I don't think you'll do that.
+
+550
+00:41:01.840 --> 00:41:09.840
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I don't think so either but it's so tempting to hope
+
+551
+00:41:08.000 --> 00:41:13.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I just, I think it would be hilarious if he just added Clint and no one else.
+
+552
+00:41:08.480 --> 00:41:08.960
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: we can
+
+553
+00:41:13.000 --> 00:41:18.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It's like, here's your new, your new romance of all is, it's just the ultimate troll update, right?
+
+554
+00:41:14.239 --> 00:41:15.440
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: that would be pretty good
+
+555
+00:41:18.400 --> 00:41:23.679
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: that'd be good I'm down for that yeah absolutely
+
+556
+00:41:22.500 --> 00:41:31.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: All right, next we have two new games announced. First up, we have Emberville, awakened with no one else.
+
+557
+00:41:31.500 --> 00:41:52.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And no memories inside, here we go, the Vitromotus, a vast underground world created as a magical dungeon where death no longer lasts, explore its depth, battle dangerous creatures, rescue survivors and rebuild the ruined town of Emberville while uncovering the truth behind this prison.
+
+558
+00:41:52.500 --> 00:42:09.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Uh, that's, that's a lot of okay. Yeah, that that's a lot to take in. I'm, I'm down for these. I think just get you know, I won't lie. They, they caught me off guard. I didn't expect that the final word of that to be prison.
+
+559
+00:42:09.500 --> 00:42:16.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Okay. Okay. And no one stopped it. Okay. Wait. Does that count for the crops too?
+
+560
+00:42:16.500 --> 00:42:19.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I don't know.
+
+561
+00:42:19.000 --> 00:42:22.360
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Ooh, good question. Yeah, does death exist for crops?
+
+562
+00:42:23.500 --> 00:42:29.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: And how does the combat work if you can't, or I guess I'm just getting off.
+
+563
+00:42:27.340 --> 00:42:31.760
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah, I'm presuming it's if I think I'm presuming it just means roguelike
+
+564
+00:42:33.280 --> 00:42:37.440
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Right like you can't die, but you can you know respawn
+
+565
+00:42:37.500 --> 00:42:44.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, it's Hades, it's just Hades.
+
+566
+00:42:41.760 --> 00:42:44.400
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Farming hit wait. There's farming in Hades too, isn't there?
+
+567
+00:42:44.500 --> 00:42:50.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: A little bit, I think, at least in Hades too, yeah, yeah.
+
+568
+00:42:47.840 --> 00:42:49.840
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So yeah, it's just
+
+569
+00:42:49.000 --> 00:43:00.039
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: just, yeah, I don't know. It's interesting. I wonder whether the mystery will actually
+
+570
+00:42:50.500 --> 00:42:56.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: They reinvented Hades, they got me, they got me figured out.
+
+571
+00:43:00.039 --> 00:43:08.039
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: be interesting or not. I'm not super interested in the farming part of this. It just looks pretty
+
+572
+00:43:08.039 --> 00:43:14.199
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: basic, but that doesn't feel like it's the main part of it. That's just a thing that they've
+
+573
+00:43:14.199 --> 00:43:20.599
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: slotted into the game as part of you know it looks like you are
+
+574
+00:43:19.000 --> 00:43:35.360
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: rebuilding a town right so it is a life simulator is a you know town builder but it very much looks like the point is the exploring and the finding out the mysteries and the combat that's like the main part so yeah.
+
+575
+00:43:35.000 --> 00:43:42.179
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I do like the aesthetic. It's a little bit somber, I guess, like, it's very not gray like
+
+576
+00:43:42.179 --> 00:43:46.119
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: bad, like just the tones are very cool and a little dark.
+
+577
+00:43:47.000 --> 00:43:51.360
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: - Yeah, I also think it's, your farm is a lot brighter.
+
+578
+00:43:51.360 --> 00:43:53.599
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And I wonder if that's deliberate
+
+579
+00:43:53.599 --> 00:43:57.960
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: in that it's meant to be like this is the cam happy area.
+
+580
+00:43:58.000 --> 00:44:02.400
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I guess so. Yeah, there's like a beach area too. Yeah, there's a few spots.
+
+581
+00:44:02.800 --> 00:44:05.400
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah, but I think that could be the same,
+
+582
+00:44:05.400 --> 00:44:07.639
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: like maybe there's a part of it that's cam
+
+583
+00:44:07.639 --> 00:44:11.039
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: and part of it is, oh, that beach area does not look cam.
+
+584
+00:44:11.039 --> 00:44:14.559
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: That looks like a xenomorph from alien
+
+585
+00:44:14.500 --> 00:44:20.099
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: yep that yeah there is something coming out of the ground there you're right but it is the bright
+
+586
+00:44:14.559 --> 00:44:15.940
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: coming out of the sand there.
+
+587
+00:44:17.599 --> 00:44:21.079
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: How do you make sand look not
+
+588
+00:44:21.079 --> 00:44:22.440
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: bright? That's the question.
+
+589
+00:44:22.179 --> 00:44:33.860
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: yeah I guess um that's a good yeah yeah yeah good point um that it's it has me intrigued
+
+590
+00:44:24.119 --> 00:44:25.519
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Then it's just mud if it's not
+
+591
+00:44:25.519 --> 00:44:25.960
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: bright.
+
+592
+00:44:29.840 --> 00:44:31.079
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Certainly want to keep an eye on I
+
+593
+00:44:34.500 --> 00:44:38.900
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: at worst it might be cult of the lambish and that's what that was a good game
+
+594
+00:44:39.780 --> 00:44:44.179
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: It's a good game. We'll haven't kicked the game out. I should probably get back to that one day.
+
+595
+00:44:45.000 --> 00:44:51.119
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yeah, you do you do seem to be rebuilding the town and there just seem to be at least some sort of movement
+
+596
+00:44:51.119 --> 00:44:53.360
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: There might be just be on your farm that you're moving buildings
+
+597
+00:44:53.360 --> 00:44:58.800
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But you definitely see moving buildings and I see in the town. They're definitely like rebuilding buildings
+
+598
+00:44:59.199 --> 00:45:07.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So it might just be your farm you have control over where everything is and on in the rest of the town. You're just fixing things up
+
+599
+00:45:08.000 --> 00:45:13.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Possibly but there's at least something there who knows how sandboxy it'll be
+
+600
+00:45:09.500 --> 00:45:14.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, something like that.
+
+601
+00:45:13.440 --> 00:45:15.039
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: as we can. This change.
+
+602
+00:45:15.000 --> 00:45:41.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: No, no, no, no, no. The cover art doesn't have the jewel chained. It just has the jewel, but on the video it's chained up at the end. So I think that the idea is to unchain it.
+
+603
+00:45:15.860 --> 00:45:17.820
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, that looks important.
+
+604
+00:45:17.820 --> 00:45:20.340
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Sondyl, Blake Logo, who knows.
+
+605
+00:45:20.340 --> 00:45:22.340
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: The mystery solved the mystery.
+
+606
+00:45:22.340 --> 00:45:24.539
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Why is that jewel changed?
+
+607
+00:45:24.539 --> 00:45:28.019
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I don't know.
+
+608
+00:45:28.019 --> 00:45:31.420
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, just the jewel itself, yeah, okay.
+
+609
+00:45:31.420 --> 00:45:34.300
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Wait, what?
+
+610
+00:45:34.300 --> 00:45:36.340
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, yeah, yeah.
+
+611
+00:45:42.500 --> 00:45:47.440
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, it's though you beat the game and other chains off
+
+612
+00:45:49.000 --> 00:45:52.239
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yes, maybe, maybe we'll see.
+
+613
+00:45:52.239 --> 00:45:54.639
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: So yeah, lots to keep an eye on.
+
+614
+00:45:54.500 --> 00:45:59.179
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, the one one more note that chicken. There's like a chicken with like a very like
+
+615
+00:45:59.460 --> 00:46:05.980
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I heard of your nonsense expression. I don't know how to best describe it thumbs up for that chicken
+
+616
+00:46:02.000 --> 00:46:04.320
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: [laughs]
+
+617
+00:46:04.320 --> 00:46:07.360
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: No, I get what you mean, I get what you mean.
+
+618
+00:46:06.980 --> 00:46:08.980
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, I like that chicken
+
+619
+00:46:09.840 --> 00:46:14.340
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And finally, we have Mystical Demon Farm.
+
+620
+00:46:13.900 --> 00:46:15.900
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: That's a title
+
+621
+00:46:14.340 --> 00:46:15.820
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Mystical?
+
+622
+00:46:15.820 --> 00:46:18.940
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It is, it is very words.
+
+623
+00:46:18.940 --> 00:46:23.300
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Mystical Demon Farm is a cute, cozy, but lively farm game
+
+624
+00:46:23.300 --> 00:46:26.019
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: that blends farming simulation, monster collecting,
+
+625
+00:46:26.019 --> 00:46:28.659
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: and dungeon crawling, collect demons,
+
+626
+00:46:28.659 --> 00:46:31.460
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: grow your operation and build an amazing farm
+
+627
+00:46:32.000 --> 00:46:33.940
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: of the Queen's Recognition.
+
+628
+00:46:34.000 --> 00:46:46.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, okay, um, look, so sometimes, and I'm not trying to single anyone out, it's just a friend.
+
+629
+00:46:37.000 --> 00:46:38.860
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: [laughs]
+
+630
+00:46:38.860 --> 00:46:40.119
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: That is correct, okay.
+
+631
+00:46:46.500 --> 00:46:51.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Sometimes the gains that we've covered just feel a little madlifts, right?
+
+632
+00:46:51.500 --> 00:46:57.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Just insert your adjective and noun and and genre or two.
+
+633
+00:46:57.500 --> 00:47:03.699
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: And here we are, um, no, not necessarily inherently.
+
+634
+00:47:00.000 --> 00:47:01.199
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Is that bad?
+
+635
+00:47:05.000 --> 00:47:06.800
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: But let's see what we've got to put in here.
+
+636
+00:47:06.800 --> 00:47:09.400
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Um, the arts are right.
+
+637
+00:47:09.400 --> 00:47:11.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I guess there's a lot of wiggling stuff.
+
+638
+00:47:11.500 --> 00:47:15.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I don't know, I don't know how I feel about that, but plants are wiggling.
+
+639
+00:47:13.500 --> 00:47:17.019
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Everything wiggle.
+
+640
+00:47:15.000 --> 00:47:15.699
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I don't like that.
+
+641
+00:47:16.300 --> 00:47:21.900
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Um, there's very cute bunnies, creature things.
+
+642
+00:47:22.599 --> 00:47:25.900
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Um, what, what is, okay, some of the designs are fun.
+
+643
+00:47:25.900 --> 00:47:28.300
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: There's like sheep, but I don't know what that head is.
+
+644
+00:47:28.300 --> 00:47:29.300
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: It looks like a turtle.
+
+645
+00:47:29.300 --> 00:47:33.539
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Is that a trunk? Maybe there's radish
+
+646
+00:47:33.000 --> 00:47:41.320
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Where are you in this trailer? I'm not, oh wait, I think I just saw where it was. So that was a sheep without green head and I
+
+647
+00:47:34.000 --> 00:47:45.199
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: here? Oh yeah, oh 24 you can see a farm and all sorts of crazy animals. You've got
+
+648
+00:47:44.440 --> 00:47:45.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Okay.
+
+649
+00:47:45.199 --> 00:47:52.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: slimes, you've got sonic, the hedgehog over there. There's a lady in a bunny suit. I don't
+
+650
+00:47:49.880 --> 00:47:50.440
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Oh yeah.
+
+651
+00:47:52.000 --> 00:47:56.800
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: know what's up with that, but there is no, no, no, I'm not talking like the, the, the
+
+652
+00:47:56.800 --> 00:48:01.840
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: hot bunny suit. I mean like like it looks like the other bunnies looks like an animal, but it's
+
+653
+00:48:01.500 --> 00:48:03.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Oh
+
+654
+00:48:01.840 --> 00:48:03.840
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Ladies, is that a lady?
+
+655
+00:48:04.000 --> 00:48:08.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I don't know what's going on over there.
+
+656
+00:48:06.579 --> 00:48:14.059
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I think oh I don't know that's part of the UI. Yeah, I think that just might be I think that might just be the spring
+
+657
+00:48:08.000 --> 00:48:11.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Or is that part of the UI?
+
+658
+00:48:11.000 --> 00:48:13.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: It's sort of the UI.
+
+659
+00:48:14.059 --> 00:48:19.059
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I think like because it's spring you're seeing your player character in a bunny outfit
+
+660
+00:48:19.500 --> 00:48:25.420
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, it looks like Easter bunny that's the that's the yeah, okay. That's what it is. Yeah, it never rides on the corner
+
+661
+00:48:20.059 --> 00:48:22.059
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I think that's yeah
+
+662
+00:48:23.539 --> 00:48:30.019
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: But the but but but but the bunnies do look like just a person in a bunny suit
+
+663
+00:48:30.599 --> 00:48:35.539
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: They do like zipper tea and animal crossing if you'll they are they are they are upright there
+
+664
+00:48:37.500 --> 00:48:43.260
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yes. Look, I will see. I get the concerns about this game, but it does feel like it's coming from
+
+665
+00:48:43.260 --> 00:48:48.699
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: somewhere trying to do something interesting, even if it does feel a little bit bandwagonly as well.
+
+666
+00:48:46.000 --> 00:48:58.420
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: it is. Yeah. Yeah. Okay. Oh, that is that those are some, there are some designs that
+
+667
+00:48:49.659 --> 00:48:52.860
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: You don't write on a broom, you write on a book, apparently.
+
+668
+00:48:58.420 --> 00:49:07.360
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: thing, it's certain uses. Um, um, there's a lot of like, look at that's a crazy looking
+
+669
+00:49:02.500 --> 00:49:04.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yes.
+
+670
+00:49:07.360 --> 00:49:12.719
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: skill tree. What is going on there? There's a lot of menus in this game. Not again, not
+
+671
+00:49:12.719 --> 00:49:17.440
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: bad thing just... I'm gonna burn off.
+
+672
+00:49:13.500 --> 00:49:15.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Well, maybe a bad thing.
+
+673
+00:49:16.000 --> 00:49:22.880
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Okay, well, oh, you are writing books. You're like surfing them. Um, yeah, I don't know.
+
+674
+00:49:22.000 --> 00:49:24.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Well, say it's at all.
+
+675
+00:49:24.480 --> 00:49:31.039
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, it is like a turtle sheep and burn up boy, but it's radish. Redish boy.
+
+676
+00:49:33.599 --> 00:49:37.599
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: There's a lot going on. Oh my gosh, there's world maps. It's like final fantasy.
+
+677
+00:49:38.079 --> 00:49:42.800
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Um, they got a lot going on. Again, none of it necessarily bad just, oh yeah.
+
+678
+00:49:43.000 --> 00:49:44.800
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: It has some problems.
+
+679
+00:49:46.000 --> 00:49:50.239
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: It has very like, there's clearly like a dungeon rope.
+
+680
+00:49:50.239 --> 00:49:56.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Who like feeling thin because you've got vampire survivor, because you've got like all these
+
+681
+00:49:56.000 --> 00:50:00.400
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: monsters and animals around you and you're doing it at a hyperbeam and...
+
+682
+00:50:00.500 --> 00:50:02.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Kevin there's a blue hedgehog
+
+683
+00:50:02.400 --> 00:50:08.480
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, I told you, I said Sonic! I said I'm the farm! Yeah, you got Sonic's there.
+
+684
+00:50:03.900 --> 00:50:06.699
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Oh, I missed you saying that and missed you saying that
+
+685
+00:50:09.260 --> 00:50:12.820
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: This is the problem with trying to talk a better way. I'll also watching the video is
+
+686
+00:50:13.599 --> 00:50:15.599
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, no, that's, but now I get it.
+
+687
+00:50:14.179 --> 00:50:16.179
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: not a big attention
+
+688
+00:50:17.000 --> 00:50:23.400
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: It's fine. Oh, yeah, there's a lot going, let's just think of it out. No, no, no, no, no.
+
+689
+00:50:25.000 --> 00:50:28.360
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yes, so we don't have any information about when it's coming out yet.
+
+690
+00:50:28.360 --> 00:50:29.199
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Just coming soon.
+
+691
+00:50:30.000 --> 00:50:36.559
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, okay. You know what? I think they won me over. There's a lot of nonsense going on here.
+
+692
+00:50:36.500 --> 00:50:38.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: [Laughter]
+
+693
+00:50:38.480 --> 00:50:45.920
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I'm down for some. Yeah, yeah. Had a lot of times, yeah, but the good kind, huh? But
+
+694
+00:50:38.500 --> 00:50:40.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: That's what Kevin wants in a game, nonsense.
+
+695
+00:50:46.500 --> 00:50:49.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: All right, I think that's everything then, Kevin.
+
+696
+00:50:49.500 --> 00:50:52.539
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Thank you for joining me on this news episode.
+
+697
+00:50:49.760 --> 00:50:50.400
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, okay.
+
+698
+00:50:52.639 --> 00:50:58.719
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Thank you. I'll for having me on for my thoughts on getting the Queen's recognition for that far.
+
+699
+00:50:58.000 --> 00:51:03.519
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: is there anything you would like to share with the audience?
+
+700
+00:51:00.480 --> 00:51:02.000
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: sis
+
+701
+00:51:04.559 --> 00:51:11.440
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Um, oh gosh darn it. They're actually was and I lost it. I mean, I've had something. It was something done, I'm sure.
+
+702
+00:51:11.440 --> 00:51:18.719
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: But anyways, I'm cooped for as whatever go, whatever, just I'm out there. I probably don't have
+
+703
+00:51:18.719 --> 00:51:24.320
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: anything to say. Um, about you, uh, where do people find you for the work they can
+
+704
+00:51:24.500 --> 00:51:31.539
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: You can find the podcast on Tumblr and on blue sky at THS pod. You can send us feedback from our website harvest season.club
+
+705
+00:51:31.940 --> 00:51:40.059
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Where you can also find links to everything to do with the podcast including our link to our patreon where you can get access to this slack and
+
+706
+00:51:37.500 --> 00:51:39.500
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah
+
+707
+00:51:40.420 --> 00:51:42.980
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: You can go see the sonic meme I was talking about
+
+708
+00:51:43.659 --> 00:51:45.659
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Yes, you can
+
+709
+00:51:45.260 --> 00:51:47.260
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Good one
+
+710
+00:51:47.059 --> 00:51:51.420
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Also, you can get bonus episodes of the podcast. We will have one up very soon
+
+711
+00:51:52.099 --> 00:51:54.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: about our predictions before.
+
+712
+00:51:54.500 --> 00:52:00.099
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: And then we'll probably do a reactions one to Pokemon day.
+
+713
+00:51:55.000 --> 00:52:10.199
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, yeah. I predict. Yeah, yeah, that's it's probably my favorite bit in the year because the one too of us immediately looking ridiculous and then complaining about stuff.
+
+714
+00:52:12.000 --> 00:52:14.699
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: I mean, we always look ridiculous, don't we?
+
+715
+00:52:13.800 --> 00:52:24.280
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, that's true. That's kind of my thing. Um, I, yeah, I'm excited. Oh good God, but again, it's only if you join the page you're on and you get this leg.
+
+716
+00:52:26.000 --> 00:52:29.960
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: You don't have to do one of the other both good, but the patreon. That's the key take away here.
+
+717
+00:52:28.500 --> 00:52:33.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: All right. Thank you, Kevin for joining me.
+
+718
+00:52:32.800 --> 00:52:34.280
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Thank you all for having me on.
+
+719
+00:52:33.500 --> 00:52:39.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Thank you, listeners, for listening and until next time. Have a good harvest.
+
+720
+00:52:37.500 --> 00:52:48.500
+<v CD3D00B6-8AA1-47B4-812D-551E1FC9155B>Theme Tune: The harvest season is created by Al Mahinley with support from our patrons, including our
+
+721
+00:52:39.500 --> 00:52:41.500
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Mm-hmm.
+
+722
+00:52:48.500 --> 00:52:52.340
+<v CD3D00B6-8AA1-47B4-812D-551E1FC9155B>Theme Tune: pro farmers, Kevin Stewart and Alisa.
+
+723
+00:52:52.340 --> 00:52:56.940
+<v CD3D00B6-8AA1-47B4-812D-551E1FC9155B>Theme Tune: Our art is done by Micah the Brave and our music is done by Nick Brutus.
+
+724
+00:52:56.940 --> 00:53:02.739
+<v CD3D00B6-8AA1-47B4-812D-551E1FC9155B>Theme Tune: Feel free to visit our website harvestseason.club for show notes and links to things we discussed
+
+725
+00:53:02.739 --> 00:53:03.659
+<v CD3D00B6-8AA1-47B4-812D-551E1FC9155B>Theme Tune: in this episode.
+
+726
+00:53:07.500 --> 00:53:10.500
+<v CD3D00B6-8AA1-47B4-812D-551E1FC9155B>Theme Tune: [Music]
+
+727
+00:53:12.000 --> 00:53:15.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: We're such an enthusiastic woo.
+
+728
+00:53:14.500 --> 00:53:23.699
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, oh, I just you know, all this is just we're gonna be playing starting again. So that's all this is leading up to
+
+729
+00:53:25.000 --> 00:53:27.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Well, probably not this year.
+
+730
+00:53:27.539 --> 00:53:29.539
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: I will
+
+731
+00:53:28.800 --> 00:53:29.800
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Oh, well, you.
+
+732
+00:53:30.340 --> 00:53:32.340
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Probably I've got the itch
+
+733
+00:53:31.000 --> 00:53:33.599
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Is that what's going to keep you going to book, to Procopia?
+
+734
+00:53:33.860 --> 00:53:37.059
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Oh, I don't know. No, I probably will not that would be a mistake
+
+735
+00:53:40.179 --> 00:53:42.280
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: What copy is going to scratch a different itch?
+
+736
+00:53:42.280 --> 00:53:44.260
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Well, it's different.
+
+737
+00:53:44.000 --> 00:53:46.000
+<v 1C19D2D3-4147-44F5-864B-CD55F064DD75>Al: Always you're going to scratch the Pokemon edge.
+
+738
+00:53:45.500 --> 00:53:48.480
+<v F76CEB25-5405-425E-9BAD-13FD41F3687D>Kev: Yeah, yeah, probably actually, yeah.
