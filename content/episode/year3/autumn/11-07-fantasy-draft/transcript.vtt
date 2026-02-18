@@ -1,0 +1,5271 @@
+WEBVTT
+
+STYLE
+::cue(v[voice="DC299739-8FE3-449A-84CD-70C1B0263E53"])
+{
+    color: #00D2E0;
+}
+::cue(v[voice="3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9"])
+{
+    color: #0091FF;
+}
+::cue(v[voice="2B2C33F9-2724-41DD-B2A4-7F87B468965C"])
+{
+    color: #DB34F2;
+}
+::cue(v[voice="6FC7A04C-0374-44F9-84C8-092F01B5A366"])
+{
+    color: #FF9230;
+}
+
+1
+00:00:00.000 --> 00:00:29.000
+<v DC299739-8FE3-449A-84CD-70C1B0263E53>Theme Tune: [Music]
+
+2
+00:00:30.500 --> 00:00:34.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Hello farmers, and welcome to another episode of the Harvest season!
+
+3
+00:00:32.500 --> 00:00:34.039
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughs]
+
+4
+00:00:32.500 --> 00:00:39.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: And I am Cody.
+
+5
+00:00:34.000 --> 00:00:35.659
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: My name is Al!
+
+6
+00:00:34.039 --> 00:00:36.039
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughs]
+
+7
+00:00:36.039 --> 00:00:39.380
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: My name is Kevin.
+
+8
+00:00:39.340 --> 00:00:42.480
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And we're here today to talk about carterscore games and Kevin Donow,
+
+9
+00:00:39.380 --> 00:00:41.280
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'm noticeably not.
+
+10
+00:00:42.480 --> 00:00:44.519
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: talk over my introduction!
+
+11
+00:00:44.500 --> 00:00:53.539
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, woo! An additional human.
+
+12
+00:00:45.600 --> 00:00:47.820
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughs]
+
+13
+00:00:47.820 --> 00:00:51.379
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I was just going to say, noticeably not just Alan Kevin.
+
+14
+00:00:51.379 --> 00:00:52.840
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I hope he's here.
+
+15
+00:00:51.500 --> 00:00:57.259
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: This is going to be one of those episodes, isn't it?
+
+16
+00:00:52.840 --> 00:00:53.840
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: You guys remember that?
+
+17
+00:00:53.840 --> 00:00:54.640
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughs]
+
+18
+00:00:57.579 --> 00:00:58.640
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah.
+
+19
+00:00:58.460 --> 00:01:03.579
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: All right. Welcome to specifically Dr. Cody.
+
+20
+00:00:58.640 --> 00:00:59.640
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'll do it.
+
+21
+00:00:59.640 --> 00:01:01.179
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughs]
+
+22
+00:01:03.500 --> 00:01:05.159
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, yeah.
+
+23
+00:01:03.500 --> 00:01:08.079
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Well, yeah, it was me. I did it.
+
+24
+00:01:05.159 --> 00:01:07.159
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughs]
+
+25
+00:01:07.099 --> 00:01:10.140
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Congratulations, Dr. Cody.
+
+26
+00:01:07.159 --> 00:01:09.180
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, she did it.
+
+27
+00:01:10.280 --> 00:01:12.819
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Thank you. I did it.
+
+28
+00:01:12.000 --> 00:01:13.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: We can all--
+
+29
+00:01:13.180 --> 00:01:17.099
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Officially the first person with a PhD to appear on this podcast.
+
+30
+00:01:17.500 --> 00:01:18.219
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, dang.
+
+31
+00:01:17.620 --> 00:01:20.620
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I don't I don't know. Is that true or?
+
+32
+00:01:18.219 --> 00:01:21.460
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: She's an authority more of an authority.
+
+33
+00:01:20.460 --> 00:01:22.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Well, who would- who would-
+
+34
+00:01:21.500 --> 00:01:32.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: have you been? One of the game developers? Come on.
+
+35
+00:01:24.099 --> 00:01:28.480
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, no, Ray has no-- Ray Chase has no PhD.
+
+36
+00:01:24.219 --> 00:01:25.780
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Possibly.
+
+37
+00:01:27.180 --> 00:01:30.700
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: The first the first co-host to earn a PhD.
+
+38
+00:01:31.700 --> 00:01:33.700
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: During the podcast
+
+39
+00:01:32.460 --> 00:01:41.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Well, that's definitely true. That is very niche.
+
+40
+00:01:33.500 --> 00:01:35.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: podcast, it's a great time to be able to do this.
+
+41
+00:01:35.000 --> 00:01:46.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: And, wait, that means literally everything you say, we can quote now, as Dr. Math is quoted saying to whatever.
+
+42
+00:01:43.000 --> 00:01:49.959
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: sure. I mean, you could have, I'm not going to lie. You could have done that before. Like just as a quote
+
+43
+00:01:46.000 --> 00:02:01.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, but now they'll say doctors of people know. Yeah. Yeah, well, people say doctors, so that means things are not in America, but it means things to other sensible people.
+
+44
+00:01:49.959 --> 00:02:04.439
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: that I said, yeah. It's true. I get to do the fun thing now where people say on the airplane,
+
+45
+00:02:01.000 --> 00:02:03.239
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [groans]
+
+46
+00:02:04.439 --> 00:02:10.439
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: "Is there a doctor here?" And I'll stand up and say, "I'm an entomologist." And people can say, "He's dying,"
+
+47
+00:02:05.000 --> 00:02:07.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughs]
+
+48
+00:02:08.000 --> 00:02:10.240
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [laughing]
+
+49
+00:02:10.439 --> 00:02:12.719
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: and I'll say I'll get the pinning supplies.
+
+50
+00:02:13.000 --> 00:02:17.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: [laughs]
+
+51
+00:02:17.439 --> 00:02:20.360
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: All right, Cody and Kev are both here
+
+52
+00:02:20.360 --> 00:02:22.719
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: because we're gonna do a new thing.
+
+53
+00:02:22.719 --> 00:02:26.879
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: We're gonna try a cottagecore of fantasy draft.
+
+54
+00:02:28.319 --> 00:02:30.039
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I will explain fully how this works
+
+55
+00:02:30.039 --> 00:02:32.439
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: when we get to them after the news,
+
+56
+00:02:32.439 --> 00:02:35.920
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: but essentially we are going to choose games
+
+57
+00:02:35.920 --> 00:02:38.079
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: that we hope will come out this year.
+
+58
+00:02:38.000 --> 00:02:43.360
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And we will score it at the end of the year or beginning of next year, I guess.
+
+59
+00:02:43.360 --> 00:02:50.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I'll we'll decide at some point when I don't know, will the score based on Metacritic scores?
+
+60
+00:02:51.039 --> 00:02:55.520
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So the winner will be the one who has the highest total Metacritic score.
+
+61
+00:02:55.520 --> 00:02:58.879
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I will explain all the details of that later on, but that is the general idea.
+
+62
+00:03:00.639 --> 00:03:02.079
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: We'll see how well it works.
+
+63
+00:03:02.500 --> 00:03:03.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: [laughs]
+
+64
+00:03:03.000 --> 00:03:07.400
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: All right, I like this. Now this is this is good. I like this. This is good.
+
+65
+00:03:08.000 --> 00:03:12.159
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Kevin's sounding like he has no idea what's happening, and this is brand new to him.
+
+66
+00:03:12.159 --> 00:03:15.759
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: We've been talking about this for about a month and a half, I think.
+
+67
+00:03:14.680 --> 00:03:21.319
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, I know I know I'm just like here in the long term play and this figuring out I like it. This is good.
+
+68
+00:03:23.280 --> 00:03:28.400
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Before that we have a bunch of news, but first of all, Cody, what have you been up to, Dr. Cody?
+
+69
+00:03:28.000 --> 00:03:57.840
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: woo me um why I defended my dissertation and did that and then so I'm still like finishing up the writing aspect of it and applying to jobs which is horrifying um but i've also been playing I started playing colt of the lamb oh yeah my first time playing colt of the lamb um
+
+70
+00:03:32.719 --> 00:03:33.680
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Whoo!
+
+71
+00:03:45.500 --> 00:03:46.340
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh yeah.
+
+72
+00:03:51.000 --> 00:03:57.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Wooooo! And your thoughts?
+
+73
+00:03:51.740 --> 00:03:53.699
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Ooh, is this your first time?
+
+74
+00:03:58.000 --> 00:04:28.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I am really enjoying it I so I got the pack that has all of it it's it's the pack that's like called the one who waits and it includes includes wool haven which just came out and like a bunch of other dlc's but i'm only playing like the base game right now and then i'll play again once I finish it so yeah yeah so very fun loving that I go on quests to get things for these people and then I come
+
+75
+00:04:15.500 --> 00:04:20.420
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, that's a good way to do it. Yeah, see what the game was like without the
+
+76
+00:04:28.000 --> 00:04:58.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: back and they hate me because one of them died or something um they decide to get sick also the like you know when you're on your crusades sometimes the like gods that you're making mad will just be like all of your people are sick now and you're like cool now i'm stuck in this crusade and i'm just need to try and get out as soon as possible so that my people don't die because I don't have the ability to get out right now
+
+77
+00:04:29.500 --> 00:04:35.379
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: >> How dare they care about that?
+
+78
+00:04:32.000 --> 00:04:34.319
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, you're right.
+
+79
+00:04:53.500 --> 00:05:05.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah. Oh, that's. Yeah.
+
+80
+00:04:58.000 --> 00:05:28.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: um I think I have to find that so yeah it's still really fun it's still really cute like I love when they come at me and they're so happy and they're just like beloved leader I just really want to eat poop and i'm like oh you because if you say no you like they lose faith in you and it's like it okay um so
+
+81
+00:05:01.000 --> 00:05:03.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It's definitely low on the cozy.
+
+82
+00:05:13.500 --> 00:05:18.060
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah.
+
+83
+00:05:15.500 --> 00:05:21.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [laughter]
+
+84
+00:05:28.000 --> 00:05:58.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: that's that's fun also been playing slay the spire still um and yeah just doing specimens I don't really I feel like there was something I wanted to talk about that I may use probably just cold with lamb um I just stuck with colts of the lamb I didn't i'm not original I don't I mean every now and then they they come up to me and they're like please the colt looks lame can you make a they get pretty
+
+85
+00:05:43.000 --> 00:05:47.480
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: What did you what did you call your call? What do you remember wouldn't think what's the name?
+
+86
+00:05:50.279 --> 00:05:52.279
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay
+
+87
+00:05:57.000 --> 00:05:59.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah
+
+88
+00:05:58.000 --> 00:06:28.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: here and i'm like right so i'll add some decorations I don't design anything so uh yeah kevin what have you been up to?
+
+89
+00:06:04.279 --> 00:06:06.279
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: door sure
+
+90
+00:06:09.800 --> 00:06:13.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Ah, that's good. What have I been up to so a Kirby?
+
+91
+00:06:13.000 --> 00:06:18.800
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Airriders? My own file. I played the single player mode for the first time.
+
+92
+00:06:18.800 --> 00:06:30.680
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Let's call it a road trip mode. It's basically doing lots of mini events and races
+
+93
+00:06:30.680 --> 00:06:36.879
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: just in succession, because that's the game. But some of them get really hard.
+
+94
+00:06:36.879 --> 00:06:42.839
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: So if you increase the difficulty, it'll retry a few of them. And it's also...
+
+95
+00:06:43.199 --> 00:06:47.399
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: So you're driving along the road and there's basically three options. They'll give you
+
+96
+00:06:47.399 --> 00:06:53.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: my left, right, middle. And the reward changes. You get different boosts and modifiers for your
+
+97
+00:06:53.000 --> 00:07:00.519
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: vehicles and your overall character stats and so on. But each option is a different event.
+
+98
+00:07:00.519 --> 00:07:05.079
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: So you have to balance, "Well, am I going to be good at this event? Or do I really want this
+
+99
+00:07:05.079 --> 00:07:11.079
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: reward?" etc, etc. And so you just keep doing that a handful of times. There's branching paths.
+
+100
+00:07:11.079 --> 00:07:13.079
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: So it was cute. It was fun.
+
+101
+00:07:13.000 --> 00:07:34.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: The story is kind of existentially horrifying when you think about it too much, because, yeah, it's interesting because curvy stories are no stranger to cosmic eldritch horrors and whatnot, but this one was a smaller scale story and I guess because it was a little more personal.
+
+102
+00:07:18.500 --> 00:07:20.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I ha- I ha- I ha- I haired about that.
+
+103
+00:07:34.000 --> 00:07:43.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: And I didn't feel comfortable with that, that living robot being torn to pieces like as it's still conscious. That wasn't fun.
+
+104
+00:07:44.000 --> 00:07:56.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But, but yeah, no, good stuff. I like the curb air ride. When else have I been up to? That's probably really all I've been very busy with work on tired people.
+
+105
+00:07:56.000 --> 00:08:04.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's all I can think of really. What about you, Alex, been going on?
+
+106
+00:08:03.500 --> 00:08:09.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So I've been continuing trying to get my Pokemon Sword and Shield decks done in Pokemon home.
+
+107
+00:08:09.500 --> 00:08:11.019
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: My plan is to get that done.
+
+108
+00:08:16.500 --> 00:08:37.059
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think I have 400 left, but it's actually probably less than that because the the the app I'm using has the DLCs in there, the DLC decks in there as well because obviously you have to get that for the Pokemon home thing, but there's duplicate Pokemon so I haven't gone through and like checked off the ones that are duplicate that I haven't caught yet, right.
+
+109
+00:08:38.500 --> 00:08:46.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: But like for, you know, for example, like I call what was it? I can't remember. Let's say it was a power to it. I don't think it was. I think power to it was only in one
+
+110
+00:08:46.500 --> 00:09:04.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: deck, but I caught a palpitode and it was in two of the decks. So that's actually two, not just one. So yeah, there's quite a few still to catch, but at most 400 probably like 300, but I've got two weeks left to get it done. Let's see if I do it.
+
+111
+00:09:04.500 --> 00:09:06.179
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I'm sure you will, you got this.
+
+112
+00:09:06.500 --> 00:09:16.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I'm not sure I will because the other thing I'm playing and, you know, that can suck up a lot of time is I've bought the full version of star set.
+
+113
+00:09:16.500 --> 00:09:24.740
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Island after it came out, which here. Oh, yes. So there's a fun story that the slack people already know,
+
+114
+00:09:24.740 --> 00:09:29.940
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: but I've got to got to talk about it here as well. So loaded up the game on my steam deck,
+
+115
+00:09:25.000 --> 00:09:27.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, yeah, I was about to bring that up
+
+116
+00:09:29.940 --> 00:09:37.299
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: bit up and horrifying flashing. I don't even know how to describe it. It was like the resolution
+
+117
+00:09:37.299 --> 00:09:44.820
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: was changing for part of the screen a couple of times a second. And so on the the loading screen,
+
+118
+00:09:44.820 --> 00:09:45.820
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Oh, that's it.
+
+119
+00:09:46.500 --> 00:09:51.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: The start-up screen, that just meant like the image was like horrifying and like flash, flash, flash.
+
+120
+00:09:51.500 --> 00:09:54.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: We'd definitely give you an epileptic fit if you had that.
+
+121
+00:09:54.500 --> 00:10:07.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And then you go through to the game, and it's like UI elements are bouncing around the screen, like moving a centimeter multiple times a second, basically making it unplayable.
+
+122
+00:09:55.000 --> 00:09:56.200
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughs]
+
+123
+00:10:05.500 --> 00:10:07.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: [laughs]
+
+124
+00:10:07.500 --> 00:10:14.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So that was fun, but I did figure out that if you boot up the game in a lower resolution, then it works.
+
+125
+00:10:14.500 --> 00:10:16.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Works. Great. So I was
+
+126
+00:10:16.000 --> 00:10:18.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: [laughs]
+
+127
+00:10:16.500 --> 00:10:28.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: playing in what was 800 by 600, I think, on my steam deck. Very low resolution. But the good news is this morning they released an update that fixes the issue. So I'm back to full resolution.
+
+128
+00:10:20.000 --> 00:10:22.879
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah. Oh.
+
+129
+00:10:27.500 --> 00:10:33.480
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: with oooh oooh oooh is it yeah
+
+130
+00:10:29.000 --> 00:10:31.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah
+
+131
+00:10:30.500 --> 00:10:40.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Anyway, it's very interesting because there's a bunch of stuff that I talked about in the last episode about how this game works. It is no longer the case.
+
+132
+00:10:42.000 --> 00:10:44.419
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: What? What's that for me?
+
+133
+00:10:44.500 --> 00:10:46.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So like for example, I talked about
+
+134
+00:10:46.500 --> 00:10:52.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: the tool wheel, right? Which I thought was good but needed more entries.
+
+135
+00:10:52.500 --> 00:10:58.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: They didn't do that. They just changed to how stargy does tools instead.
+
+136
+00:10:58.500 --> 00:11:04.919
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay, yeah, it just you it only needed one more entry right for the for the skateboard
+
+137
+00:10:58.500 --> 00:11:08.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I'm like, okay, interesting. It's such a bizarre way of doing things, but whatever.
+
+138
+00:11:08.500 --> 00:11:12.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I do think there is an advantage of this. So it's not quite how stargy does it.
+
+139
+00:11:12.500 --> 00:11:16.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: it's slightly different in the, in your bag, you have your bag slots and
+
+140
+00:11:16.500 --> 00:11:27.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: you have your toolbar slots. And so if you put your tools in the toolbar slot, they're not taking up space in your normal bag. I mean, that's just a technicality, right? Because the bag can still be the same size, but whatever.
+
+141
+00:11:27.500 --> 00:11:41.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: But when you're like, you, you can have their two toolbar lines so you can scroll between them. And so it means that you're, it's quite easy to make sure that you're not filling up your toolbar with things like in Stardew.
+
+142
+00:11:41.500 --> 00:11:46.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: If you just pick something up automatically, it goes into your, you know, your first, your top space.
+
+143
+00:11:46.500 --> 00:11:57.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Whereas here it will go into your first space in the bag and only goes into the toolbar if you specifically ask it to. Right. So it means you don't like fill up your toolbar with stuff that you're never going to use like that.
+
+144
+00:11:57.500 --> 00:12:12.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So it's interesting. I liked, I kind of liked the tool ring that they had, but I mean, this is, this is fine. It certainly makes it easier to do the seeds as well, which is good.
+
+145
+00:12:12.500 --> 00:12:16.340
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: The other big thing that I notice the change is the scale of
+
+146
+00:12:16.500 --> 00:12:25.600
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: How long crops take? So they are still based in hours, but like they seem to have like doubled how long most of them take
+
+147
+00:12:26.940 --> 00:12:30.200
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So some things multiple things now do take multiple days
+
+148
+00:12:31.139 --> 00:12:38.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Which is not the end of the world, but I was enjoying being like I'm gonna do three different harvests of wheat in one day
+
+149
+00:12:39.659 --> 00:12:43.139
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So you're still you still get things much faster than in stargy, right?
+
+150
+00:12:43.139 --> 00:12:46.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: like, I just put something down and it was, it has three days.
+
+151
+00:12:46.500 --> 00:12:52.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And that's like one of the more expensive ones, whereas in Stardew, I think turnips take three days.
+
+152
+00:12:52.500 --> 00:12:57.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So, like, it's still much faster, but I quite liked how fast it was.
+
+153
+00:12:57.500 --> 00:13:01.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It's interesting. I am, I think I'm generally enjoying it.
+
+154
+00:13:01.500 --> 00:13:07.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I have probably a lot more thoughts that I'll put into a full episode on the topic, but I am enjoying it.
+
+155
+00:13:07.500 --> 00:13:13.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think it's possibly my, the most enjoyable I've found a 3D farming game.
+
+156
+00:13:13.500 --> 00:13:16.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Which isn't a hot...
+
+157
+00:13:14.500 --> 00:13:16.980
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: You heard him game of the year, 2026!
+
+158
+00:13:16.500 --> 00:13:25.700
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: isn't a high bar, because I've not really enjoyed much 3D farming, but yeah, it'll be interesting to see.
+
+159
+00:13:22.500 --> 00:13:29.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: what would you consider Coral Island a 3D farming game?
+
+160
+00:13:28.899 --> 00:13:35.299
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: No, no, no, by 3D, I don't mean the graphics. I mean like gameplay wise, right? So
+
+161
+00:13:29.500 --> 00:13:34.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay.
+
+162
+00:13:34.500 --> 00:13:36.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay, got it, got it, yep.
+
+163
+00:13:36.000 --> 00:13:37.860
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: and you rotate the camera, right?
+
+164
+00:13:36.899 --> 00:13:43.059
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: you're rotating the camera and yeah, and you can like, you know, you're visibly going up hills
+
+165
+00:13:37.860 --> 00:13:39.139
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Like that's the question.
+
+166
+00:13:43.059 --> 00:13:48.419
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: rather than like oh it's just you move left and that it takes you up.
+
+167
+00:13:46.500 --> 00:13:58.740
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I have a hill sort of thing. Kevin, I have unlocked the roller skates. They are very fun. I'm enjoying them.
+
+168
+00:13:47.000 --> 00:13:51.399
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, the grid, yeah. Is there a secret gradient?
+
+169
+00:13:48.000 --> 00:13:50.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay got it
+
+170
+00:13:54.440 --> 00:13:56.600
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Ah, how are they?
+
+171
+00:13:58.740 --> 00:14:07.139
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: They're much quicker to put on than the skateboard, which is ironic. But I know they're definitely an
+
+172
+00:13:59.080 --> 00:14:05.159
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, that's okay.
+
+173
+00:14:08.919 --> 00:14:12.600
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's interesting. I don't get it either.
+
+174
+00:14:10.000 --> 00:14:10.820
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - How?
+
+175
+00:14:12.720 --> 00:14:14.360
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - What did they go faster?
+
+176
+00:14:14.000 --> 00:14:28.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: they are faster. They're just faster to transition, right? Like if you're walking around and you want to jump on your skateboard, you press it and it takes like like the transition is slower and you're speeding up a slower.
+
+177
+00:14:28.000 --> 00:14:37.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Whereas if you're if you've got the skateboard, you just press the button and you're like you transition at the same speed into skating.
+
+178
+00:14:35.500 --> 00:14:37.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: So, they're wheelies.
+
+179
+00:14:37.000 --> 00:14:44.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I guess so, but no, I mean visually you have put on roller skates, but they're like a...
+
+180
+00:14:42.500 --> 00:14:45.279
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: but they're mechanically, they're wheelies.
+
+181
+00:14:45.000 --> 00:14:49.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: and mechanically they're wheelies. Yeah, I guess I guess they are.
+
+182
+00:14:46.000 --> 00:14:53.360
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: So it's like the XY ones, basically, that's what it sounds like.
+
+183
+00:14:49.000 --> 00:14:52.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Why not?
+
+184
+00:14:52.000 --> 00:14:58.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, yeah, it's fun. And you can skate into the houses.
+
+185
+00:14:53.360 --> 00:14:56.720
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: And you do.
+
+186
+00:14:56.720 --> 00:14:57.720
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Huh.
+
+187
+00:14:57.500 --> 00:15:00.700
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: In houses? Oh my gosh.
+
+188
+00:14:57.720 --> 00:14:58.720
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh.
+
+189
+00:14:58.000 --> 00:15:09.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, you can skate into the houses through the door, smash into the house. It's great fun. I'm enjoying it.
+
+190
+00:14:58.720 --> 00:15:11.840
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: You get, are there any tricks at all on any of these options?
+
+191
+00:15:09.000 --> 00:15:13.799
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: You can jump, but it's not like it's not like, you know.
+
+192
+00:15:11.840 --> 00:15:12.679
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: All right.
+
+193
+00:15:14.000 --> 00:15:27.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Tony Hawk, you're going to grind and stuff like that, but you can jump, which yeah, it's very much movement based rather than like, you know, mechanics based and and it does the jumping is is good.
+
+194
+00:15:16.840 --> 00:15:20.120
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'm not doing sick kick flips off the rails.
+
+195
+00:15:23.159 --> 00:15:25.399
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, I get it.
+
+196
+00:15:27.000 --> 00:15:42.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I would feel much worse if you didn't have the jumping because you can jump over obstacles and keep your speed up and stuff like that and you know, like I've come down a come down a mountain and jumped over a fence into someone's garden and then jumped over the other side of the fence, don't further down the hill.
+
+197
+00:15:42.000 --> 00:15:43.759
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I get just, it makes trans.
+
+198
+00:15:44.000 --> 00:15:46.799
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Transporting yourself around the island much quicker.
+
+199
+00:15:46.500 --> 00:15:50.179
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Mm-hmm important clarifying question. Do you wear a helmet?
+
+200
+00:15:50.480 --> 00:15:52.399
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I have not paid attention. I don't think so.
+
+201
+00:15:52.740 --> 00:15:54.580
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh lame boo
+
+202
+00:15:54.399 --> 00:16:03.360
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And I think that it, well, so I mean, there is much customization, so you can wear a helmet,
+
+203
+00:15:54.500 --> 00:15:57.539
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: What kind of message are we delivering to the
+
+204
+00:15:56.740 --> 00:15:58.740
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: What are we saying?
+
+205
+00:16:03.360 --> 00:16:05.759
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: if you want, but you're wearing the helmet all the time or you're never wearing.
+
+206
+00:16:05.500 --> 00:16:08.980
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: No, you should always have to wear a helmet when you're on wheels.
+
+207
+00:16:09.440 --> 00:16:12.399
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, I mean, also wheat doesn't grow in three hours, so
+
+208
+00:16:13.559 --> 00:16:18.740
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: See, but that, but the, the helmet though, that's so.
+
+209
+00:16:14.639 --> 00:16:21.759
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: can't fall over, Cody.
+
+210
+00:16:20.059 --> 00:16:24.580
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Kids aren't going to be going out in forest and wheat, but they will skateboard.
+
+211
+00:16:24.980 --> 00:16:28.460
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: If we need to model good skateboard behavior.
+
+212
+00:16:25.000 --> 00:16:37.240
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: How long, how long is it until we get Tony Hawk cross cottage core it feels like one day we'll get here?
+
+213
+00:16:29.200 --> 00:16:32.720
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I don't know what to tell you.
+
+214
+00:16:37.000 --> 00:16:40.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Like official Tony Hark or just generic skateboarding?
+
+215
+00:16:39.080 --> 00:16:43.720
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: No, no, not official like skateboarding is half the mechanics
+
+216
+00:16:44.000 --> 00:16:45.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Twenty twenty eight.
+
+217
+00:16:46.000 --> 00:16:50.559
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I'm gonna say never, I'm saying never.
+
+218
+00:16:46.519 --> 00:16:54.840
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: How many? Someone will do it. So, um, whoa, let's start
+
+219
+00:16:47.799 --> 00:16:50.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: No, not never. Come on.
+
+220
+00:16:55.000 --> 00:17:12.359
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: in island and start saying I like may be the impetus. You never know. Um, cool. I'm glad you're enjoying it. Um, I like that, I like that game looks because I'm a weeb. I know it's nice to know it's good.
+
+221
+00:17:06.500 --> 00:17:13.140
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, no, it's good. I'm enjoying it. Yeah, if you're being a
+
+222
+00:17:13.140 --> 00:17:16.420
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: weeb, there's there's much for you here. Let's put it that way.
+
+223
+00:17:15.559 --> 00:17:23.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah. Yeah. Yeah.
+
+224
+00:17:17.140 --> 00:17:19.220
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: There are there are many knees.
+
+225
+00:17:24.019 --> 00:17:28.900
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Just one thing I noticed is most people's outfits do not go below the knee.
+
+226
+00:17:30.000 --> 00:17:43.460
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay, I thought you went n_i, but no, okay, you're similar to that. Yes, um,
+
+227
+00:17:31.059 --> 00:17:33.140
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: There are a few, but not many of them.
+
+228
+00:17:35.059 --> 00:17:37.059
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah. I think.
+
+229
+00:17:36.500 --> 00:17:38.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: As in we are the night to see.
+
+230
+00:17:38.500 --> 00:17:40.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I don't.
+
+231
+00:17:40.500 --> 00:17:42.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I don't.
+
+232
+00:17:43.460 --> 00:17:53.440
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: um, reconigone, yeah, yeah, forget it. All right. Oh, good touch.
+
+233
+00:17:44.000 --> 00:17:52.160
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: the different type of weeb I'm that I am that kind of weeb
+
+234
+00:17:45.500 --> 00:17:47.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I do.
+
+235
+00:17:52.500 --> 00:17:56.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Well, I mean, if you were expecting a Monty Python reference, there we are.
+
+236
+00:17:56.500 --> 00:17:58.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Moving on.
+
+237
+00:17:56.559 --> 00:17:59.200
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: just take a shot
+
+238
+00:18:00.500 --> 00:18:02.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: All right.
+
+239
+00:18:00.940 --> 00:18:04.140
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Actually, wait, can I take the ball back. There's one more thing I, I
+
+240
+00:18:04.140 --> 00:18:10.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: remember. Um, I don't talk about, um, no, and it's not something I know, although I,
+
+241
+00:18:06.500 --> 00:18:08.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Is it Monty Python?
+
+242
+00:18:10.500 --> 00:18:13.619
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I learned about the life of Brian. I didn't actually know what it was, but I
+
+243
+00:18:13.500 --> 00:18:16.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: You didn't know what a long life of Brian was.
+
+244
+00:18:13.619 --> 00:18:18.940
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: have to watch it. Anyways, I did it. No, I didn't know what it was. I just, I
+
+245
+00:18:17.500 --> 00:18:22.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It's excellent. Do not short. Do not short to your mother.
+
+246
+00:18:18.940 --> 00:18:27.140
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: don't know completely once. Oh, yeah. Oh, no, I would go. Yeah, but, uh, yeah,
+
+247
+00:18:27.140 --> 00:18:28.259
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: - I have to catch that.
+
+248
+00:18:27.500 --> 00:18:29.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: From what I am aware of you.
+
+249
+00:18:29.500 --> 00:18:30.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah.
+
+250
+00:18:30.480 --> 00:18:31.359
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: - Yeah, that is correct.
+
+251
+00:18:31.359 --> 00:18:33.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yes, that is correct.
+
+252
+00:18:33.000 --> 00:18:35.039
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That is, maybe not an airplane movie,
+
+253
+00:18:35.039 --> 00:18:37.079
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: 'cause I don't think I've seen the airplanes,
+
+254
+00:18:37.079 --> 00:18:38.240
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: but I'll find it one day.
+
+255
+00:18:37.500 --> 00:18:40.380
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It's great. I love it.
+
+256
+00:18:41.279 --> 00:18:42.480
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: - Yeah, that sounds great.
+
+257
+00:18:43.640 --> 00:18:46.759
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's not something I did, but have you guys been
+
+258
+00:18:46.759 --> 00:18:49.359
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: keeping up with the Mario Galaxy movie
+
+259
+00:18:49.359 --> 00:18:51.119
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: and all the promo stuff coming out?
+
+260
+00:18:51.000 --> 00:18:53.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Deep
+
+261
+00:18:52.000 --> 00:18:56.099
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Nope, I've been keeping up with more depressing things.
+
+262
+00:18:56.240 --> 00:18:58.119
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: - Well, he liked it.
+
+263
+00:18:57.000 --> 00:18:59.519
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, that too. You could you could you could do both
+
+264
+00:18:58.119 --> 00:18:58.960
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah.
+
+265
+00:19:01.000 --> 00:19:02.799
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, yeah, no, me.
+
+266
+00:19:01.279 --> 00:19:06.160
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: You do a little bit of descent into fascism and then a little bit of the Mario boys
+
+267
+00:19:06.500 --> 00:19:08.759
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: [laughing]
+
+268
+00:19:06.599 --> 00:19:08.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, exactly.
+
+269
+00:19:08.000 --> 00:19:09.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: He's right.
+
+270
+00:19:09.000 --> 00:19:10.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: He's right.
+
+271
+00:19:10.000 --> 00:19:11.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah.
+
+272
+00:19:10.940 --> 00:19:11.779
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - I can't.
+
+273
+00:19:11.000 --> 00:19:15.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Boy, the world's on fire and every day of liberties are being lost.
+
+274
+00:19:12.500 --> 00:19:25.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: >> There's a new Minions film coming over this year, maybe that's what you're here one.
+
+275
+00:19:15.000 --> 00:19:17.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But, but have you seen PCOPIA, though?
+
+276
+00:19:17.000 --> 00:19:19.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: And that Mario movie?
+
+277
+00:19:19.000 --> 00:19:21.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's how I roll these days.
+
+278
+00:19:21.000 --> 00:19:23.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Um, anyways, I mean...
+
+279
+00:19:25.000 --> 00:19:26.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: There you go.
+
+280
+00:19:25.500 --> 00:19:33.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: >> Oh, yes, I saw that that was some.
+
+281
+00:19:26.000 --> 00:19:26.839
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: You got that.
+
+282
+00:19:26.839 --> 00:19:28.420
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Hey, I'm me.
+
+283
+00:19:28.420 --> 00:19:30.220
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: We're in the Olympics.
+
+284
+00:19:31.000 --> 00:19:32.839
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Anyways, I'm posting some.
+
+285
+00:19:32.839 --> 00:19:39.140
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, well, I know you guys the market movie looks like a banger.
+
+286
+00:19:39.140 --> 00:19:43.819
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I've been, I'm putting the thread in the slack of just images.
+
+287
+00:19:43.819 --> 00:19:46.299
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: They've been putting up posters and promo stuff.
+
+288
+00:19:46.299 --> 00:19:57.839
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, let's just spot on unfortunately, yeah, but it's
+
+289
+00:19:49.000 --> 00:19:50.480
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Is it still Chris Pratt?
+
+290
+00:19:52.000 --> 00:19:56.759
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, but like we we move path we we we ignore him
+
+291
+00:19:57.839 --> 00:19:58.839
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It's ignorable.
+
+292
+00:19:58.000 --> 00:20:00.680
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I, okay, good luck to y'all.
+
+293
+00:20:00.440 --> 00:20:02.440
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Look look look look look
+
+294
+00:20:01.000 --> 00:20:02.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Well, yeah.
+
+295
+00:20:03.119 --> 00:20:03.960
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Look.
+
+296
+00:20:06.000 --> 00:20:07.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It's relaxing.
+
+297
+00:20:06.319 --> 00:20:10.279
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: There's not, it's not a, it's not a,
+
+298
+00:20:10.279 --> 00:20:13.440
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: it's one of, this is not the greenhouse.
+
+299
+00:20:13.000 --> 00:20:15.259
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [laughing]
+
+300
+00:20:13.440 --> 00:20:15.440
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I'm so happy for you guys.
+
+301
+00:20:13.500 --> 00:20:15.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, it's
+
+302
+00:20:16.420 --> 00:20:21.960
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Look, no, I get it look. I'm I'm not blaming you. I'm not blaming you
+
+303
+00:20:17.039 --> 00:20:18.680
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I look forward to hearing about.
+
+304
+00:20:17.339 --> 00:20:20.319
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: But, but, but, but Brie Larson.
+
+305
+00:20:22.140 --> 00:20:26.220
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But yes, Brie Larson and Jack Black's buzzers per the code
+
+306
+00:20:26.740 --> 00:20:32.819
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But okay, but you know, that's fair, but anyways, it looks good and just a whole bunch of stuff
+
+307
+00:20:33.940 --> 00:20:35.940
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: and and
+
+308
+00:20:35.940 --> 00:20:40.980
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: As I've been wandering through all this promo stuff have you this is unrelated to the movie
+
+309
+00:20:40.980 --> 00:20:43.339
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But it is Mario. Have you guys seen this?
+
+310
+00:20:43.500 --> 00:20:45.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Singing Yoshi plush?
+
+311
+00:20:46.500 --> 00:20:48.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: What is it singing?
+
+312
+00:20:46.960 --> 00:20:56.220
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh my god, how did you, well I'm posting the link in the in the thread, but it's Yoshi singing Yoshi sounds
+
+313
+00:20:56.220 --> 00:21:02.940
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It's quite adorable and cute and I just I just want one. I just want to say that. Anyways, Mario The movie looks good
+
+314
+00:21:03.380 --> 00:21:12.099
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yoshi sings, I like Mario. Okay. Um, that's that's all. Okay. I'm done now. We can we can go to a regular schedule program
+
+315
+00:21:12.099 --> 00:21:13.420
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I don't know if she sits.
+
+316
+00:21:13.500 --> 00:21:14.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It's very cute.
+
+317
+00:21:14.500 --> 00:21:15.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It moves too.
+
+318
+00:21:15.500 --> 00:21:16.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It's only Japan right now.
+
+319
+00:21:16.500 --> 00:21:23.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Maybe it'll come out to be U.S. but I may have to figure out how to get one of those.
+
+320
+00:21:22.000 --> 00:21:26.880
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: All right. I was expecting something like horrifying that was like AI powered or
+
+321
+00:21:23.500 --> 00:21:29.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: No, no, no, it's just, I know it's just genuinely cute.
+
+322
+00:21:26.880 --> 00:21:30.480
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: something. No, it's just yeah.
+
+323
+00:21:28.000 --> 00:21:33.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: So that's the, that's what Kev is going to introduce
+
+324
+00:21:33.200 --> 00:21:34.920
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: to the Slack this, this episode.
+
+325
+00:21:34.920 --> 00:21:37.599
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I'm going to show a picture of a scorpion fly
+
+326
+00:21:37.599 --> 00:21:38.839
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: that I just found.
+
+327
+00:21:38.500 --> 00:21:40.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [Laughter]
+
+328
+00:21:39.000 --> 00:21:40.279
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: that doesn't sound fun.
+
+329
+00:21:40.440 --> 00:21:42.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: It's, they're so cute.
+
+330
+00:21:41.960 --> 00:21:45.119
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: That sounds horrifying, scorpion fly.
+
+331
+00:21:43.279 --> 00:21:44.839
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: They're so cute.
+
+332
+00:21:44.839 --> 00:21:45.680
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yep.
+
+333
+00:21:45.119 --> 00:21:46.680
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I'm waiting for this picture, come on.
+
+334
+00:21:46.759 --> 00:21:47.599
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, I got it.
+
+335
+00:21:47.500 --> 00:21:54.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay, does the scorpion flies also sing?
+
+336
+00:21:47.599 --> 00:21:49.359
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Sorry, I got to, I got to pose it.
+
+337
+00:21:53.500 --> 00:21:55.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Not anymore.
+
+338
+00:21:54.000 --> 00:21:56.599
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: No, yeah, now they're,
+
+339
+00:21:54.500 --> 00:21:59.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: No, no, not that one, maybe, but...
+
+340
+00:21:58.799 --> 00:21:59.960
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: this one.
+
+341
+00:21:59.960 --> 00:22:04.400
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: No, this will be like 15 minutes or so.
+
+342
+00:22:04.400 --> 00:22:05.640
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: So we can keep going.
+
+343
+00:22:04.500 --> 00:22:07.039
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Oh, goodness me, right? Okay. Fine.
+
+344
+00:22:05.500 --> 00:22:11.519
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay, I love scorpions. They're cool. I'm a Scorpio. They tell me
+
+345
+00:22:07.539 --> 00:22:11.740
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Ah, all right. That's what we've been up to.
+
+346
+00:22:12.000 --> 00:22:15.839
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, woo! I'm in Aries!
+
+347
+00:22:15.900 --> 00:22:22.019
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: We I'm a Virgo, I was about to say I'm a virgin because I wasn't what do you mean that tracks?
+
+348
+00:22:18.880 --> 00:22:20.559
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Attracts. That's...
+
+349
+00:22:22.559 --> 00:22:25.200
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Uh, that's not a bad thing.
+
+350
+00:22:22.619 --> 00:22:23.619
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: What does that mean?
+
+351
+00:22:25.380 --> 00:22:28.140
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I don't know if it is or no, I just think
+
+352
+00:22:26.720 --> 00:22:29.759
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: My husband also a Virgo.
+
+353
+00:22:30.000 --> 00:22:48.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah. Well there you look at that. That's hyper reason. I hear can't it cancers or the one thing that I don't get. Well, I'm with my excuse, maybe. Yeah. I don't know. I imagine it varies. Well, that too. Yeah, that's not a good one.
+
+354
+00:22:38.000 --> 00:22:39.759
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: No, I hear Pisces.
+
+355
+00:22:39.759 --> 00:22:41.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, that you don't get along.
+
+356
+00:22:43.000 --> 00:22:45.960
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I mean, I don't like cancer, just in general, you know?
+
+357
+00:22:47.500 --> 00:22:49.740
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: [coughing]
+
+358
+00:22:48.680 --> 00:22:54.519
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: All right, we're going to talk about some news. First stop tiny garden. I've announced that their
+
+359
+00:22:54.519 --> 00:23:05.319
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: switch release is the 26th of February. You got one day before Pokémon Day to play that.
+
+360
+00:22:59.000 --> 00:23:03.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Wooooooh. Yeah.
+
+361
+00:23:01.000 --> 00:23:03.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Reuben did you um
+
+362
+00:23:07.299 --> 00:23:12.279
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Well, I just cuz it Pokemon day happens doesn't mean it's you know
+
+363
+00:23:13.799 --> 00:23:19.240
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: You have a few days before pakopia. That's the one right cuz announcements come out, but you have a few days to pakopia
+
+364
+00:23:18.000 --> 00:23:24.240
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yeah, but if you, but if spoiler alert people haven't listened to y'all's green house episode,
+
+365
+00:23:24.960 --> 00:23:32.319
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: y'all say there's probably a game that might get shadow dropped on Pokemon day. So if that happens,
+
+366
+00:23:28.500 --> 00:23:42.099
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah. Yeah. Probably more I've heard things. I will say this. I believe I may not be right,
+
+367
+00:23:32.000 --> 00:23:36.480
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, I mean, we're, we're also talking nonsense. We have no idea what we're talking about.
+
+368
+00:23:42.099 --> 00:23:49.619
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: but I do believe something will drop that day. But anyways, but look, going back to Tiny Guard,
+
+369
+00:23:49.619 --> 00:23:53.220
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: it's not on the plate. I want to crank this thing for real. That's all that matters.
+
+370
+00:23:54.500 --> 00:23:57.779
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: How much would it take for them to invest in a line of toys?
+
+371
+00:23:58.500 --> 00:24:03.140
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It's just to have a little clench up.
+
+372
+00:23:59.500 --> 00:24:02.640
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Ah, a lawsuit, probably.
+
+373
+00:24:03.140 --> 00:24:07.140
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Mmm.
+
+374
+00:24:03.500 --> 00:24:08.940
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Are they not affiliated with Tamagatchi or not Tamagatchi? The polypocket?
+
+375
+00:24:07.140 --> 00:24:08.140
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Ollie pocket?
+
+376
+00:24:07.440 --> 00:24:10.160
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Probably pocket, of course they're not, of course they're not.
+
+377
+00:24:08.140 --> 00:24:09.140
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: No.
+
+378
+00:24:09.140 --> 00:24:10.140
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: No.
+
+379
+00:24:10.059 --> 00:24:11.259
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, I didn't know that.
+
+380
+00:24:10.140 --> 00:24:11.140
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But, like, how?
+
+381
+00:24:11.140 --> 00:24:14.140
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Ollie, a legal time.
+
+382
+00:24:14.140 --> 00:24:22.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: How ironclad is polypocket's patent on the onset of a pocket clamshell toy.
+
+383
+00:24:20.000 --> 00:24:24.920
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Not gonna lie it's been so long they might be in the public domain at this point
+
+384
+00:24:22.500 --> 00:24:28.539
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I don't know.
+
+385
+00:24:28.500 --> 00:24:37.319
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I don't know, I have to look at a few US patent law fun times because, you know, I'll be
+
+386
+00:24:37.319 --> 00:24:39.259
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: right with last a good one.
+
+387
+00:24:39.259 --> 00:24:41.259
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'll Mickey just hit public domain.
+
+388
+00:24:39.500 --> 00:24:48.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I mean, copy, yeah, copyright is like functionally infinite, if something comes out during your lifetime, you, you will not see the end of his copyright.
+
+389
+00:24:48.500 --> 00:24:53.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, 75 years, I believe actually the number Pat and so I don't know the number
+
+390
+00:24:52.500 --> 00:25:04.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It's, yeah, the, I don't think it's quite as simple as that. It's, it's like, I think it's something like 75 years after their death or 100 years or something weird like that.
+
+391
+00:25:04.500 --> 00:25:06.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I said what I said.
+
+392
+00:25:05.000 --> 00:25:11.480
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Let's see U.S. 20 years, apparently. It's the term of Benton in the U.S.
+
+393
+00:25:09.500 --> 00:25:16.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Hmm, which would, which would make, because it was 1983 was poly pockets were patterned.
+
+394
+00:25:15.400 --> 00:25:21.799
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, so there's probably grounds to make it. Come on, Tony Garden Devs. I believe in you make the
+
+395
+00:25:21.500 --> 00:25:28.859
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yeah, the freak the game looks pretty cute. I know y'all y'all did it right?
+
+396
+00:25:21.799 --> 00:25:32.200
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: physical one. Oh, by one of those, good idea. Yeah. Yeah. I played it. I am played it, but I was on the
+
+397
+00:25:32.200 --> 00:25:33.640
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: the episode with him.
+
+398
+00:25:33.000 --> 00:25:38.920
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It's fun. It's fun. It's more like a puzzle type game where you're trying to figure out how to
+
+399
+00:25:38.920 --> 00:25:44.200
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: get certain things in the effect, plants next to them, and there's different
+
+400
+00:25:45.240 --> 00:25:50.359
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: like ground that you need to put in and creating one, putting certain plants in,
+
+401
+00:25:50.359 --> 00:25:56.200
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: creates certain ground. It's fun. But it's definitely more puzzle than just like
+
+402
+00:25:56.839 --> 00:25:58.920
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: plant crops, harvest crops.
+
+403
+00:25:58.000 --> 00:26:02.460
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, I could give it a Sean switch actually like just looking at the screenshots again
+
+404
+00:26:02.460 --> 00:26:04.680
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I forgot how good it actually looks. I might do it
+
+405
+00:26:03.000 --> 00:26:14.359
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think it's definitely worth it. I think it's how much is it on this 15. Not bad. Not bad at all.
+
+406
+00:26:09.519 --> 00:26:12.480
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: 15 USD, I think they're saying on on switch
+
+407
+00:26:14.200 --> 00:26:19.039
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, yeah, all right. I'm down for that. Yeah, it's not bad good for you, Tanny
+
+408
+00:26:19.640 --> 00:26:24.920
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Next we have another dude's new dream life value update. They keep coming.
+
+409
+00:26:24.000 --> 00:26:33.640
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: But it's, but it's a good one, it's Lady, it's Lady in the China.
+
+410
+00:26:27.640 --> 00:26:32.920
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It's called Poppy Love because valentines
+
+411
+00:26:33.500 --> 00:26:40.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I don't know if I actually see a lady in the chat.
+
+412
+00:26:33.640 --> 00:26:35.980
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I love Lady in the Tramp.
+
+413
+00:26:40.500 --> 00:26:42.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Gaaahh! Caffa!
+
+414
+00:26:40.500 --> 00:26:44.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: This might be one of my Disney blind spots.
+
+415
+00:26:42.500 --> 00:26:51.400
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Honestly, the second one's the song from the second one a slap. So 10 out of 10 recommend at least the second one.
+
+416
+00:26:51.000 --> 00:26:54.200
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I'm sorry the second, there's a second lady in the drum.
+
+417
+00:26:54.500 --> 00:26:58.700
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, yeah, with their with their son's camp.
+
+418
+00:26:55.000 --> 00:26:57.720
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, yeah, dude.
+
+419
+00:27:00.859 --> 00:27:01.460
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yep.
+
+420
+00:27:01.059 --> 00:27:02.279
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: What year did that come out?
+
+421
+00:27:02.279 --> 00:27:03.460
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Hold on, let me see.
+
+422
+00:27:03.460 --> 00:27:08.460
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: 20, 2001, yep, that was prime directed DVD sequel.
+
+423
+00:27:10.000 --> 00:27:15.839
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, yeah, I don't think that went through anything, but I love that, um, that's equal.
+
+424
+00:27:15.880 --> 00:27:25.079
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: That's equal and the Lion King sequel are up there for me with matching or better than the predecessor.
+
+425
+00:27:16.000 --> 00:27:28.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: yeah no there are many good business sequels okay that that flanking is really high but
+
+426
+00:27:28.000 --> 00:27:35.039
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: anyways uh let's see what else the Aladdin sequels are pretty good uh
+
+427
+00:27:32.400 --> 00:27:36.480
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, you're right. You're right. I did watch a Prince of Thieves recently.
+
+428
+00:27:36.559 --> 00:27:47.440
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Cinderella had its big sequel somehow actually note oh I want this okay
+
+429
+00:27:40.000 --> 00:27:42.720
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: No, I'm not, I, I'm not up now. I disagree.
+
+430
+00:27:45.960 --> 00:27:59.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: But yeah, this, so this is doing to be my valley free update. The puppy love update, uh, include ads, lady and tramp and it adds like the kind of like late 1800s, like fashion.
+
+431
+00:27:59.839 --> 00:28:06.119
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: So like parasols and somewhat poopy dresses and dapper-ness. So that's real cute.
+
+432
+00:28:05.000 --> 00:28:08.160
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: somewhat poofy. Yeah, that's not really poofy at all. Come on
+
+433
+00:28:05.500 --> 00:28:07.900
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Bowder hats, I think that's what they're called.
+
+434
+00:28:10.000 --> 00:28:13.559
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: This isn't as quiet. This doesn't have like the butt part of the poopy dresses.
+
+435
+00:28:13.500 --> 00:28:21.859
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, it looks like 1950s Mary Poppins thinking advanced and style clothing. Yeah, make
+
+436
+00:28:21.200 --> 00:28:32.640
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: There's also stuff that is inspired by the great mouse detective, so that like adds in a possible thing for that.
+
+437
+00:28:27.500 --> 00:28:28.960
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's cool.
+
+438
+00:28:33.240 --> 00:28:40.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I also love that it adds the group mode so you can move more than one thing at a time because there are sometimes when I just want to like shift everything.
+
+439
+00:28:40.000 --> 00:28:51.759
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Everything a little bit if I'm like trying to move people's houses and you're right. You're right.
+
+440
+00:28:45.000 --> 00:28:50.359
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I know it's super easy to say this sort of thing, but like mad that I took them this long to do that.
+
+441
+00:28:51.400 --> 00:28:57.160
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: This is, this is, this is, this is a live service game that has been going for years
+
+442
+00:28:52.000 --> 00:28:52.839
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: - Okay.
+
+443
+00:28:54.339 --> 00:28:55.940
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: - Yeah, yeah.
+
+444
+00:28:57.160 --> 00:29:02.759
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: and is about designing your perfect town and they didn't allow you to move multiple items at once.
+
+445
+00:29:03.000 --> 00:29:05.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, yeah!
+
+446
+00:29:03.500 --> 00:29:05.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah
+
+447
+00:29:04.440 --> 00:29:07.880
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Until 20, 20, 20, six. When did this first come out? 21, I think?
+
+448
+00:29:08.000 --> 00:29:10.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, I don't know.
+
+449
+00:29:09.619 --> 00:29:12.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Probably that that's that's a long time. You're right
+
+450
+00:29:14.000 --> 00:29:17.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: And then they have a St. Patrick's Day episode,
+
+451
+00:29:17.000 --> 00:29:20.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: or sorry, event coming up March 11th to the March 17th,
+
+452
+00:29:20.000 --> 00:29:24.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: and then an Easter event from April 1st to 21st.
+
+453
+00:29:25.000 --> 00:29:28.380
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Wait, are there any Irish Disney puppies or characters?
+
+454
+00:29:28.000 --> 00:29:31.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: No, I think it, dear, there's just going to be care,
+
+455
+00:29:29.440 --> 00:29:31.519
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I guess, it's a bigger issue.
+
+456
+00:29:31.000 --> 00:29:33.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: at clovers so that you can
+
+457
+00:29:33.960 --> 00:29:41.400
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: clover themed furniture. Yeah, I don't know.
+
+458
+00:29:34.039 --> 00:29:35.039
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay.
+
+459
+00:29:36.119 --> 00:29:36.960
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay.
+
+460
+00:29:38.319 --> 00:29:41.680
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: They're not gonna count the Disney channel original movie.
+
+461
+00:29:41.680 --> 00:29:43.680
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Fuck with the Irish. I like that one.
+
+462
+00:29:43.680 --> 00:29:46.119
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughter]
+
+463
+00:29:46.119 --> 00:29:49.519
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: If you totally get it, I was big fan of those de-cons.
+
+464
+00:29:48.680 --> 00:29:57.160
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Out, out, out, out. Was that a hockey one? Basketball.
+
+465
+00:29:51.200 --> 00:29:51.700
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah.
+
+466
+00:29:52.240 --> 00:29:53.140
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh.
+
+467
+00:29:55.039 --> 00:29:56.599
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: No, that was basketball.
+
+468
+00:29:58.079 --> 00:30:00.079
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Like, I'm sure they did every sport,
+
+469
+00:30:00.079 --> 00:30:02.640
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: but that was a basketball and he has to...
+
+470
+00:30:01.400 --> 00:30:31.240
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I think the biggest hockey one
+
+471
+00:30:03.000 --> 00:30:04.960
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: was H.E. double hockey sticks.
+
+472
+00:30:04.720 --> 00:30:06.119
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah.
+
+473
+00:30:06.119 --> 00:30:08.200
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, that way I went a great name.
+
+474
+00:30:08.200 --> 00:30:09.440
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, and like play.
+
+475
+00:30:09.319 --> 00:30:11.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: What a what a time to be alive.
+
+476
+00:30:09.440 --> 00:30:11.240
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Good stuff.
+
+477
+00:30:11.240 --> 00:30:12.079
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughter]
+
+478
+00:30:12.079 --> 00:30:13.400
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: The '90s, baby.
+
+479
+00:30:14.000 --> 00:30:21.519
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So I, I googled Irish Disney characters and one of them on the list is Daredevil and I'm like that's not really what I'm going for
+
+480
+00:30:14.599 --> 00:30:15.599
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: All right, uh...
+
+481
+00:30:20.559 --> 00:30:22.559
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [groans]
+
+482
+00:30:22.500 --> 00:30:33.660
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: yeah well that's the that's Disney dream I really I'll be playing it again
+
+483
+00:30:23.200 --> 00:30:25.279
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: On two on two accounts there
+
+484
+00:30:23.880 --> 00:30:24.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Mm.
+
+485
+00:30:25.799 --> 00:30:26.319
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah.
+
+486
+00:30:26.319 --> 00:30:27.319
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughs]
+
+487
+00:30:27.319 --> 00:30:27.819
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Huh?
+
+488
+00:30:35.500 --> 00:30:42.940
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Nice. Next, we have Dollock Town have announced their third major update. Harvest Fusion is out now.
+
+489
+00:30:44.140 --> 00:30:54.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And this adds in a gene system for your, I think it's for crops. Yes.
+
+490
+00:30:53.000 --> 00:30:59.079
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: that you know what that's oh actually let me look at what this looks like but I like this
+
+491
+00:30:59.079 --> 00:31:01.480
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: on concept like certain jeans
+
+492
+00:31:00.500 --> 00:31:03.799
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Look, the more we talk about this game, the more I'm like, "Really?"
+
+493
+00:31:06.519 --> 00:31:12.200
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: yeah I feel bad because I forget about this game all I remember is that it sounds like
+
+494
+00:31:12.200 --> 00:31:19.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: do walk and trick but um uh but uh yeah I look at the game every time I see the game well yeah this
+
+495
+00:31:14.000 --> 00:31:15.599
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yep, same.
+
+496
+00:31:19.000 --> 00:31:23.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: This isn't bad actually, that's like that art style, I'm genetic.
+
+497
+00:31:23.000 --> 00:31:30.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I mean, we haven't really seen that, nobody's done that like affecting the genes for certain properties or whatever.
+
+498
+00:31:29.500 --> 00:31:34.940
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, we've had it, we've had it for animals, but I'm not aware of it happening for crops.
+
+499
+00:31:30.000 --> 00:31:35.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's a cool idea.
+
+500
+00:31:34.940 --> 00:31:38.980
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: There's been like crossbreeding and stuff, but that's quite limited.
+
+501
+00:31:35.000 --> 00:31:40.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah.
+
+502
+00:31:38.980 --> 00:31:42.480
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: This is like actual gene editing feels much more complicated.
+
+503
+00:31:40.000 --> 00:31:43.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah.
+
+504
+00:31:43.000 --> 00:31:45.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, I'm interested.
+
+505
+00:31:45.000 --> 00:31:49.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: This might be the one to get that pushed me over to.
+
+506
+00:31:49.000 --> 00:31:52.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: - And don't, don't lock to, it's a perfect place after us.
+
+507
+00:31:53.000 --> 00:31:56.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: - Yeah, yeah, I'm done.
+
+508
+00:31:56.500 --> 00:32:02.180
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: that's how you know as well and the final update in our list is little witch in the woods
+
+509
+00:32:02.579 --> 00:32:07.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: have released their gathering memories and blossom eggs, oh goodness me let me try that again
+
+510
+00:32:07.940 --> 00:32:15.299
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: gathered memories and blossoming excitement update, oh goodness, that's not a great, that's a bad name
+
+511
+00:32:12.500 --> 00:32:15.539
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's not a great name.
+
+512
+00:32:17.220 --> 00:32:24.980
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: the fact that I had to stop halfway through and start again, they've added the records archive
+
+513
+00:32:24.980 --> 00:32:28.339
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: in the village.
+
+514
+00:32:26.500 --> 00:32:50.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: We also have two new games to talk about. First up, we have farm to table, a farming
+
+515
+00:32:30.500 --> 00:32:31.339
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, okay.
+
+516
+00:32:32.400 --> 00:32:34.759
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I thought, well, I thought it was a record store.
+
+517
+00:32:35.960 --> 00:32:38.819
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I heard records and I was like, oh.
+
+518
+00:32:36.000 --> 00:32:40.079
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Let me see.
+
+519
+00:32:50.460 --> 00:32:54.099
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: and restaurant management sim where you build your own restaurant from scratch and grow
+
+520
+00:32:54.099 --> 00:32:55.940
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: food in your backyard.
+
+521
+00:32:56.500 --> 00:33:00.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Grow your organic business into a five star restaurant.
+
+522
+00:33:01.000 --> 00:33:05.240
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay, it looks, it looks okay.
+
+523
+00:33:01.500 --> 00:33:09.140
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: of it's okay so here's the thing this I love this concept I don't this
+
+524
+00:33:09.140 --> 00:33:13.940
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: particular execution I'm kind of lukewarm on because it's 3D it's the first
+
+525
+00:33:13.940 --> 00:33:19.099
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: person I'm here you're building up like the buildings like they just spring up
+
+526
+00:33:19.099 --> 00:33:24.099
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: walls and stuff the cows are very bouncy they show like a pen of animals and
+
+527
+00:33:24.099 --> 00:33:29.700
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: they're just all kind of bouncing non-stop I know I do like that no that's a good
+
+528
+00:33:26.500 --> 00:33:27.779
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: You don't like bouncy cows.
+
+529
+00:33:29.700 --> 00:33:31.539
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But I'm just kind of saying things as
+
+530
+00:33:32.500 --> 00:33:35.240
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I don't know. I think it's the first person thing that throws me off
+
+531
+00:33:35.900 --> 00:33:43.099
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But I like the idea and we get over cooked but also farming in there. That's what this should be
+
+532
+00:33:43.500 --> 00:33:53.579
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh like the same amount of like franticness. Yeah. I don't know if that's what they're going for.
+
+533
+00:33:46.259 --> 00:33:50.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, yeah, that's what I want but
+
+534
+00:33:53.940 --> 00:33:57.900
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: No, that's what it should we should go for
+
+535
+00:33:58.619 --> 00:34:01.440
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But anyways, yeah this one's alright.
+
+536
+00:34:01.500 --> 00:34:06.900
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Aside from the bouncy animals, nothing's sticking out to me, they're really bouncy.
+
+537
+00:34:06.000 --> 00:34:11.920
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah. I'm, I'm kind of enjoying the graphics. I'm not a huge fan of first person in general.
+
+538
+00:34:12.559 --> 00:34:19.199
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It almost feels like I'm watching this and thinking this feels like it's designed for VR.
+
+539
+00:34:20.000 --> 00:34:23.400
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Does spiel be a very VR. I agree. That's a good one.
+
+540
+00:34:24.559 --> 00:34:30.639
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I'm not seeing any listing of that, but it, I feel like it must be a consideration,
+
+541
+00:34:30.639 --> 00:34:33.599
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: like not just because it's first person, right? Because plenty of first person,
+
+542
+00:34:33.599 --> 00:34:35.900
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: person games aren't. But just everything.
+
+543
+00:34:36.000 --> 00:34:38.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It feels the R. S.
+
+544
+00:34:38.500 --> 00:34:45.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, like when you're booking, you're like kind of see the utensils moving in a way that feels VRS. It's like, you know, lifting it.
+
+545
+00:34:45.500 --> 00:34:48.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, and the way you build stuff, I agree.
+
+546
+00:34:49.000 --> 00:34:57.079
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: That is scheduled to release in Q2 this year, and next we have bitter harvest.
+
+547
+00:34:57.079 --> 00:35:07.679
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Cast out of your rightful farm, you'll scrape, scheme, and rebuild your way to power in this short, satirical farming sim about ambition and payback.
+
+548
+00:35:07.500 --> 00:35:11.099
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I was going to say it's not ambition, it's revenge.
+
+549
+00:35:10.639 --> 00:35:15.280
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Both, your ambition for revenge. Come on.
+
+550
+00:35:13.000 --> 00:35:18.039
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, yeah, yeah,
+
+551
+00:35:15.119 --> 00:35:18.699
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Wait, wait, do you, do you get to break someone up in this?
+
+552
+00:35:15.280 --> 00:35:19.079
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So... I...
+
+553
+00:35:18.039 --> 00:35:20.039
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh,
+
+554
+00:35:19.960 --> 00:35:23.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I mean, it sounds more like murder than...
+
+555
+00:35:20.039 --> 00:35:26.679
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Possibly, but yeah, I was about to say, but not not that the the board's like,
+
+556
+00:35:23.039 --> 00:35:25.019
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: No.
+
+557
+00:35:26.679 --> 00:35:31.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'm afraid with a relationship, unless you count them, one of them being dead, then maybe.
+
+558
+00:35:30.000 --> 00:36:00.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Well, no, right. So that at actual soul, I found another bit that might give us a clue so bitter harvest is a 2d farming simulation about ambition, reinvention, and quiet revenge Aaron money through crafting farming and odd jobs as you climb from the bottom of the social ladder build relationships with the town folks uncover their secrets and decide how far you're willing to go to take back what was stolen. I mean, I feel like. I.
+
+559
+00:35:53.000 --> 00:35:55.079
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Break up a marriage!
+
+560
+00:35:56.659 --> 00:36:01.480
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Uncover the secrets of the townspeople, one of them's unfaithful!
+
+561
+00:36:00.000 --> 00:36:30.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I feel like there needs to be something big at least like that, right? Because otherwise it's just like, Oh, no. What they stole a fiber. Like, I don't really know what we're expecting here. Like, I feel like there need to be some proper big scandals that you can uncover and decide what you're going to do.
+
+562
+00:36:08.000 --> 00:36:24.800
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I mean, sure. I mean, your blackmailing would look earlier. You know, hold the mayor with like some sort
+
+563
+00:36:24.800 --> 00:36:30.719
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: of unsaved, black male scheme or something. You're getting a cut of something and also cyaniding some
+
+564
+00:36:27.500 --> 00:36:29.340
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, yeah, for sure.
+
+565
+00:36:30.719 --> 00:36:34.320
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: livestock. So, you know, this could be the one.
+
+566
+00:36:31.500 --> 00:36:34.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: This could be it, how this could be here.
+
+567
+00:36:34.500 --> 00:36:39.139
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, well, I've added it to my wish list, especially I was in when they said short.
+
+568
+00:36:40.000 --> 00:36:43.280
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yeah, that's that's valid.
+
+569
+00:36:41.000 --> 00:36:47.360
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: sure. Okay and you know what's really funny me the art style because there's
+
+570
+00:36:47.360 --> 00:36:51.920
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: one of those games where they're like box art cover images while they differ
+
+571
+00:36:51.920 --> 00:36:56.719
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: from the the visuals and what's funny is they're both different and they're both
+
+572
+00:36:52.000 --> 00:36:53.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Oh, yeah.
+
+573
+00:36:56.719 --> 00:37:02.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: totally dissonant from the the chaotic themes going on because the visuals are
+
+574
+00:37:02.000 --> 00:37:08.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: just you know like a standard 2D Stardew-like QT pixel game and the image is this
+
+575
+00:37:08.000 --> 00:37:10.400
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: is like very serene.
+
+576
+00:37:11.000 --> 00:37:22.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'm almost painting image of just a guy farming and someone standing in the back there, so it's really funny because you cannot sell their cyanide in any of this.
+
+577
+00:37:18.000 --> 00:37:27.440
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I mean, yeah, but I think about what you know about the context here, and that is your character
+
+578
+00:37:27.440 --> 00:37:35.679
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: holding trash bags in the foreground, watching the farmer who presumably was the one that
+
+579
+00:37:35.000 --> 00:37:47.900
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Stall your land, like you're not the one in the, in the farm, who is in the trash
+
+580
+00:37:35.679 --> 00:37:40.320
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: cast you out of your farm. Like, there's a very sinister undertone to that now.
+
+581
+00:37:38.500 --> 00:37:46.599
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, yeah, yeah, you're right.
+
+582
+00:37:44.480 --> 00:37:49.679
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Who's in the trash bags? Sorry, what's in the trash bag?
+
+583
+00:37:46.599 --> 00:37:49.739
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, that's correct.
+
+584
+00:37:49.000 --> 00:37:54.400
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Look, I really want to be able to merge or someone now, right? Like it makes me want to merge or someone
+
+585
+00:37:49.739 --> 00:37:51.340
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: No, that's the question.
+
+586
+00:37:55.380 --> 00:37:58.059
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: We measured title this week.
+
+587
+00:37:55.500 --> 00:37:56.340
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: There you go.
+
+588
+00:37:56.340 --> 00:37:57.619
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: You heard it here for us kids.
+
+589
+00:38:01.420 --> 00:38:06.380
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But yeah, I look, I think there's at least a 50% chance
+
+590
+00:38:06.380 --> 00:38:08.219
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: of you getting to do with that.
+
+591
+00:38:08.900 --> 00:38:11.019
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: There are a few steps from where we are.
+
+592
+00:38:09.000 --> 00:38:10.960
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I really hope so.
+
+593
+00:38:11.019 --> 00:38:13.820
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Well, we already have access to signing somewhere.
+
+594
+00:38:15.500 --> 00:38:24.480
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Well, so when you're farming and a lot of the pesticides that you might spray could kill someone,
+
+595
+00:38:24.480 --> 00:38:31.320
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: a lot of the antibiotics that you would give your animals could really harm someone.
+
+596
+00:38:31.320 --> 00:38:40.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: So there's a lot of access to dangerous materials in fairly innocent things in your life.
+
+597
+00:38:36.500 --> 00:38:44.619
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Don't take the horse tranquilizer does not cure the COVID,
+
+598
+00:38:44.619 --> 00:38:45.019
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: guys.
+
+599
+00:38:45.019 --> 00:38:45.380
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Sorry.
+
+600
+00:38:45.500 --> 00:38:54.219
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: What about their black market peptides from China?
+
+601
+00:38:46.000 --> 00:38:49.340
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: No, does not.
+
+602
+00:38:50.420 --> 00:38:52.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: You also have farm tools.
+
+603
+00:38:52.500 --> 00:38:59.420
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, bitter harvest, indeed.
+
+604
+00:38:56.500 --> 00:39:03.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: We were the bitter harvest all along.
+
+605
+00:38:59.420 --> 00:39:02.699
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: He too of this year, and all along.
+
+606
+00:39:03.500 --> 00:39:07.019
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Okay, that's the news.
+
+607
+00:39:03.500 --> 00:39:07.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh... a woo!
+
+608
+00:39:09.260 --> 00:39:18.139
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So we are going to do our cottage core slash farming game fantasy draft for the year.
+
+609
+00:39:19.260 --> 00:39:26.699
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So just to summarize how this works, we will by the end of it, we will all of chosen five games.
+
+610
+00:39:27.900 --> 00:39:31.340
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: They have to be unique to us. We can't like all have the same game.
+
+611
+00:39:33.500 --> 00:39:40.699
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It's a snake draft, which means that the you start off with, I will roll a dice and we'll
+
+612
+00:39:40.699 --> 00:39:45.260
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: decide who goes first, who goes second, who goes last, and it starts off with the first person,
+
+613
+00:39:45.260 --> 00:39:49.659
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: they choose one game, second person chooses a game, and then the third person chooses two games
+
+614
+00:39:50.000 --> 00:39:51.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay.
+
+615
+00:39:50.219 --> 00:39:54.940
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: before it then goes back to the second person, and then the first person chooses two games,
+
+616
+00:39:54.940 --> 00:40:01.820
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: goes back to the second person. So it's like a snake, you're going up and down, and so instead of
+
+617
+00:40:00.500 --> 00:40:02.260
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay, I see, I see, cool.
+
+618
+00:40:01.820 --> 00:40:03.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: going, instead of going 1-2.
+
+619
+00:40:03.500 --> 00:40:08.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: 3-1-2-3-2-1-1-2-3.
+
+620
+00:40:06.900 --> 00:40:10.420
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: B-2-1, whoa, I never heard that, that's cool, I like that.
+
+621
+00:40:08.500 --> 00:40:17.619
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So, we cannot choose any games that are already out, except we need to have a conversation
+
+622
+00:40:17.619 --> 00:40:25.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: about Star Sand Island, has anybody looked at either the Metacurtrix critics page or any
+
+623
+00:40:25.000 --> 00:40:30.639
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Nope, I have not other than your no
+
+624
+00:40:25.500 --> 00:40:28.539
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: reviews for Star Sand Island?
+
+625
+00:40:28.000 --> 00:40:32.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Nope. Other than what you've said.
+
+626
+00:40:28.539 --> 00:40:33.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Okay, I have also not the reason the reason why we're
+
+627
+00:40:33.500 --> 00:40:36.260
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: saying this a listeners is because we were meant to do this a week ago.
+
+628
+00:40:36.260 --> 00:40:41.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Sarsa and Ireland came out between the when we were meant to record and when we're actually recording.
+
+629
+00:40:41.460 --> 00:40:45.900
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So I think we all agreed we would try and avoid that.
+
+630
+00:40:45.900 --> 00:40:48.739
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And so it sounds like we were all successful and therefore we have no
+
+631
+00:40:48.739 --> 00:40:52.940
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: information about how critically this is going.
+
+632
+00:40:52.000 --> 00:41:00.960
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: mm-hmm I think I also said that I wasn't going to choose it so it's fine
+
+633
+00:40:52.500 --> 00:40:55.719
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay, yeah, that sounds good.
+
+634
+00:40:52.940 --> 00:41:02.300
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Kevin yeah okay so that's a whole different point.
+
+635
+00:41:03.980 --> 00:41:10.139
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Okay so it is it is the only currently released game that is within the list of games that we can choose.
+
+636
+00:41:10.139 --> 00:41:15.019
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So like no choosing stardew, no choosing what else is coming what's what's come out this year.
+
+637
+00:41:15.019 --> 00:41:28.739
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: What else has come out this life's well so yeah so I I was thinking of this so we have to discuss the early access stuff.
+
+638
+00:41:17.500 --> 00:41:23.219
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Well, some of the stuff that's on this list is we're talking about 1.0, so it could have like
+
+639
+00:41:28.739 --> 00:41:33.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think that if it is out in early access, we can't choose either because
+
+640
+00:41:33.500 --> 00:41:36.039
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: OK, I need to assess my list.
+
+641
+00:41:33.500 --> 00:41:40.619
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: it will already have a Metacritic score and it will already have reviews.
+
+642
+00:41:38.719 --> 00:41:42.019
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I will, but I didn't look at the Nanocritic score.
+
+643
+00:41:40.619 --> 00:41:45.739
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I know but do we choose what score do we choose and the point is it needs to be a
+
+644
+00:41:45.739 --> 00:41:51.980
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: game that comes out this year right and so what is coming out and at what point do
+
+645
+00:41:51.980 --> 00:41:57.139
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: we choose the score we have to choose at the end of the year but then I just I
+
+646
+00:41:57.139 --> 00:42:01.780
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: don't know I mean do you two feel strongly about it I mean in that case it
+
+647
+00:42:01.780 --> 00:42:05.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: need to be if we were to let
+
+648
+00:42:03.500 --> 00:42:07.860
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: But when allowing early access games, the 1.0 would need to come out this year, which means
+
+649
+00:42:07.860 --> 00:42:12.420
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: that the tag on Steam changes from early access to not early access.
+
+650
+00:42:12.000 --> 00:42:14.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Mm-hmm
+
+651
+00:42:12.420 --> 00:42:17.699
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And it would need to be the Metacritic score at the same time as all the other ones.
+
+652
+00:42:16.679 --> 00:42:18.679
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yeah
+
+653
+00:42:17.699 --> 00:42:18.699
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And...
+
+654
+00:42:18.699 --> 00:42:19.699
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Ahhh.
+
+655
+00:42:19.099 --> 00:42:21.099
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: So and then the other
+
+656
+00:42:21.159 --> 00:42:28.400
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Thing about it, so I'm just going through and seeing if any of mine are actually on the ones that it's so that are already out
+
+657
+00:42:30.960 --> 00:42:34.360
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: What was I gonna say I don't remember Kevin. How do you feel about that?
+
+658
+00:42:35.000 --> 00:42:43.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's tricky one cuz we like even if we ignore them the meta credit like people have an idea what it's like
+
+659
+00:42:43.880 --> 00:42:47.400
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: No, not saying the three of us have an idea what a game is like, but
+
+660
+00:42:48.519 --> 00:42:50.519
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: There's familiar
+
+661
+00:42:50.519 --> 00:42:54.840
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Erity bias, but I guess you can just factor that into what you think or what the 1.0
+
+662
+00:42:57.000 --> 00:43:01.480
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think this is I think that's my problem with it, right? Like say, let's take fields of mystery
+
+663
+00:43:01.480 --> 00:43:07.800
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: or for example. We all, even if we've not looked to Metacritic, we all know that it's going down
+
+664
+00:43:07.800 --> 00:43:12.519
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: well with people, right? Like we know that the early access is popular. People like it. And so
+
+665
+00:43:09.000 --> 00:43:10.199
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It is, yup.
+
+666
+00:43:12.519 --> 00:43:16.360
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: that is an easy one to be like, Oh, I'm pretty sure. And that's going to come out this year. That's
+
+667
+00:43:16.360 --> 00:43:23.320
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: going to get me a high score. And I, I, it, that is why I want it to be only games that haven't
+
+668
+00:43:23.320 --> 00:43:28.760
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: come out at all yet, excluding demos because like demos.
+
+669
+00:43:27.000 --> 00:43:35.920
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: because otherwise that you shouldn't be able to factor in the game as
+
+670
+00:43:35.920 --> 00:43:40.360
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: already out and people like it. Does that make sense?
+
+671
+00:43:38.000 --> 00:43:43.800
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, well, yeah, okay. So are we going for like highest cumulative
+
+672
+00:43:44.679 --> 00:43:48.820
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Metacritic score kind or average? Okay. Yes
+
+673
+00:43:45.500 --> 00:44:03.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yes, so the scoring will happen on a specific date sometime early next year, probably, and I suspect that we're probably, I think we should say we take the Metacritic scores on the first of January, and I'm happy to just make sure that I write everything down and, you know, get screenshots so I can prove all that blah blah blah.
+
+674
+00:43:58.000 --> 00:43:59.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Sure.
+
+675
+00:44:01.119 --> 00:44:02.119
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay.
+
+676
+00:44:03.280 --> 00:44:04.719
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay. Okay.
+
+677
+00:44:03.500 --> 00:44:11.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And it will be the winner will be the person with the total highest total score.
+
+678
+00:44:04.000 --> 00:44:05.380
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: All right, yeah, I trust you.
+
+679
+00:44:11.000 --> 00:44:17.940
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay. All right, that makes it easy. Okay. Well, then see then. Yeah. Yeah, cuz like that makes it cuz yeah, fields of mystery is a great one, right?
+
+680
+00:44:17.940 --> 00:44:25.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: cuz that's easy pickings. Um cuz we know it's popular and it's doing well. I'm so with it, it's one point
+
+681
+00:44:25.880 --> 00:44:32.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, just you know, been I'd be doing well probably more well than other games on this list because people are already familiar with it and
+
+682
+00:44:33.280 --> 00:44:36.760
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, so I'm I'm I'm very on the fence about the
+
+683
+00:44:37.400 --> 00:44:39.400
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Metacritic
+
+684
+00:44:37.500 --> 00:44:42.619
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay, we can just do it. I checked, I only had, I actually only had fields of mystery on my list. So
+
+685
+00:44:42.000 --> 00:44:44.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: And I well
+
+686
+00:44:44.619 --> 00:44:49.659
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: all of the other, all of the other ones that are on my list are do not have a 1.0 right,
+
+687
+00:44:49.659 --> 00:44:54.219
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: or sorry, are not in early access right now. So that was the only one that would have been an issue.
+
+688
+00:44:54.500 --> 00:45:05.699
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Okay. And the ones on the list on notion, they say 1.0 TBA if they are in early access.
+
+689
+00:45:02.500 --> 00:45:04.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah
+
+690
+00:45:03.000 --> 00:45:07.340
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yes, and so and that was that was just the fields of mystery.
+
+691
+00:45:07.539 --> 00:45:12.099
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Okay. Cool. All right. So we'll just do all the games that aren't out yet. We're ignoring demos,
+
+692
+00:45:12.099 --> 00:45:16.260
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: because who wants to do the effort of looking into whether the demo is for a game?
+
+693
+00:45:13.500 --> 00:45:15.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Demos different
+
+694
+00:45:17.619 --> 00:45:24.340
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And yeah, but it means that you have to you have to assume like how good is this actually going to be?
+
+695
+00:45:24.980 --> 00:45:33.860
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: and therefore, how are people going to take it, etc.? No, go for it. If you got questions, no, no, go for it.
+
+696
+00:45:28.000 --> 00:45:31.679
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay. What if people look like to go for it?
+
+697
+00:45:31.679 --> 00:45:33.440
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: You're probably going to answer the question I'm asking.
+
+698
+00:45:34.639 --> 00:45:37.280
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: What if the game does not come out? What happens?
+
+699
+00:45:38.800 --> 00:45:46.079
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: And then what if they decide to do it in early access instead of 1.0? It's still still a zero or do
+
+700
+00:45:45.000 --> 00:45:56.239
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: No, because if it's early access, then it's then it's out right like so if we're if we're not allowing you to choose games are in early access already then we're defining early access as release
+
+701
+00:45:46.079 --> 00:45:46.719
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: or it can be.
+
+702
+00:45:56.500 --> 00:46:00.900
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay sounds good sounds good
+
+703
+00:45:56.719 --> 00:45:59.760
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Right, so you get them at whatever Metacritic score they have
+
+704
+00:46:00.920 --> 00:46:07.579
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: The other thing to bear in mind. So so this is obviously Metacritic scores. Metacritic takes critic review scores and
+
+705
+00:46:08.639 --> 00:46:15.039
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It tries to get one number out of that so they do stuff to the bunch of reviews
+
+706
+00:46:15.000 --> 00:46:21.599
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And they I don't know whatever the point is we are farming this out to Metacritic who take in reviews and
+
+707
+00:46:22.079 --> 00:46:27.800
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Givers are number and so we will just use the critic number that Metacritic give us for example
+
+708
+00:46:28.119 --> 00:46:31.920
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Stardew Valley has a Metacritic score of 89. These are all out of a hundred
+
+709
+00:46:32.920 --> 00:46:37.519
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Sugardew Island on the other hand has a score of 55 which I think is way too high for that game
+
+710
+00:46:38.480 --> 00:46:44.159
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Tamagotchi Plaza has a score of 43 and just to clarify these are the the Metas score
+
+711
+00:46:45.000 --> 00:46:53.260
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Because user scores are about users individually scoring them the Metas score is about critic reviews, which is what we're using for them and
+
+712
+00:46:51.500 --> 00:46:53.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Right right
+
+713
+00:46:54.159 --> 00:46:59.840
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Animal Crossing new horizons has 90 it is possible for games not to have a Metacritic score
+
+714
+00:46:56.199 --> 00:46:58.199
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay
+
+715
+00:47:00.460 --> 00:47:02.460
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: When does that happen?
+
+716
+00:47:00.599 --> 00:47:03.900
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: If the if they have fewer than four critic reviews
+
+717
+00:47:04.599 --> 00:47:07.760
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: They do not get a score and we will be doing this
+
+718
+00:47:08.039 --> 00:47:11.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So obviously when a game right comes out
+
+719
+00:47:11.000 --> 00:47:14.840
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: they will not have a score initially some will get it very quickly some
+
+720
+00:47:15.000 --> 00:47:32.519
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: will take ages to get it and some will never get it because they just don't have enough people doing that, right? So that's something you need to bear in mind as well. If on the first of January when I look up the games, if they have a TBD, they get that's a zero. Any other questions?
+
+721
+00:47:30.000 --> 00:47:40.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay. For good.
+
+722
+00:47:33.000 --> 00:47:38.039
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Ah, yes. Um, no, no, no, no, I just answered my question. No, man. Okay.
+
+723
+00:47:38.500 --> 00:47:51.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So to decide the order, I have a dice app on my phone, which I tested before this call and the others could hear it.
+
+724
+00:47:51.500 --> 00:47:58.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So I have a d6 because it doesn't have a d3. I have a d6 with each of our names on it twice.
+
+725
+00:47:52.500 --> 00:47:54.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughter]
+
+726
+00:47:58.500 --> 00:48:02.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And I will roll the dice.
+
+727
+00:48:02.500 --> 00:48:05.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: The first name that appears will be going first.
+
+728
+00:48:05.500 --> 00:48:08.480
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: The second name will be going second and the name
+
+729
+00:48:08.500 --> 00:48:13.960
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: does not happen will be going 3rd so that was Cody Cody is first
+
+730
+00:48:11.000 --> 00:48:11.840
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - Okay.
+
+731
+00:48:13.960 --> 00:48:22.239
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: and I'll was the second one so Cody will be going first I will be going second
+
+732
+00:48:15.000 --> 00:48:17.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, dang it, hahaha
+
+733
+00:48:15.079 --> 00:48:16.400
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - Okay.
+
+734
+00:48:16.400 --> 00:48:17.239
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - Oh, dang.
+
+735
+00:48:20.039 --> 00:48:22.039
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Ah
+
+736
+00:48:21.300 --> 00:48:22.139
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - Okay.
+
+737
+00:48:22.239 --> 00:48:23.940
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Kevin will be going 3rd
+
+738
+00:48:24.199 --> 00:48:27.639
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, I said to do my, I'm the person to do a double, okay, let me do it
+
+739
+00:48:24.440 --> 00:48:25.280
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - Okay.
+
+740
+00:48:27.940 --> 00:48:31.579
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Cody what is your first game?
+
+741
+00:48:30.280 --> 00:48:31.119
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - Bookopia.
+
+742
+00:48:32.599 --> 00:48:35.719
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Right, it's not fair
+
+743
+00:48:34.800 --> 00:48:36.800
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: All right.
+
+744
+00:48:37.880 --> 00:48:39.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: We already lost out
+
+745
+00:48:38.159 --> 00:48:40.800
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Do I have to explain why?
+
+746
+00:48:41.000 --> 00:48:48.739
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: No, no, that's, I mean, I think we, I think we know why.
+
+747
+00:48:41.500 --> 00:48:46.300
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I mean, we can talk about it if you want, but I think just Kevin is very upset with you.
+
+748
+00:48:49.500 --> 00:48:53.219
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'm going to ensure that Cody wins, but just on that alone.
+
+749
+00:48:55.980 --> 00:49:02.300
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Okay, uh, I will, I think I will choose Star Sand Island.
+
+750
+00:48:56.500 --> 00:49:05.940
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay. Oh, wow. Reasons.
+
+751
+00:49:06.139 --> 00:49:10.619
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think it is good, and I think people will like it.
+
+752
+00:49:12.059 --> 00:49:17.099
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: You know, it feels quite as, quite as, like, I think it's one of those.
+
+753
+00:49:18.380 --> 00:49:27.900
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think it could go either way, right? It could either be like, this is a great game, and people really like it, or it feels like people just go, oh, it's just another, you know,
+
+754
+00:49:28.860 --> 00:49:37.900
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: churned out farming game. And, you know, it could go either way, but I think I'm leaning towards, I think people will actually like this game.
+
+755
+00:49:38.619 --> 00:49:41.420
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It looks quite generic, but I think eventually it.
+
+756
+00:49:41.500 --> 00:49:56.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: You know, it's coming out early enough in the year that I think there's enough time to for words of most to get out and people to actually start liking the game and then critics actually go, "Oh, maybe I should do a review on this." And then I think they will I think it will do well.
+
+757
+00:49:56.000 --> 00:50:01.940
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, yeah, I think the challenge here is getting the word out right because I think people are playing and are enjoying it
+
+758
+00:50:01.940 --> 00:50:05.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: So that's that's a kicker right if you just get enough people eyeballs on it
+
+759
+00:50:05.880 --> 00:50:09.280
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: You'll get that score but it'll be high in that group. Yeah
+
+760
+00:50:07.500 --> 00:50:21.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, and I think that the announced a few weeks ago that they were doing like a crossover with my time at games, and I think that will help with their word of mouth quite well.
+
+761
+00:50:18.000 --> 00:50:29.199
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah. Yeah, well. Okay. All right. You know what? Um, both of these. I'm all right. You know,
+
+762
+00:50:21.500 --> 00:50:22.780
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yeah.
+
+763
+00:50:21.500 --> 00:50:26.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Alright, Kevin, your first game.
+
+764
+00:50:29.199 --> 00:50:34.800
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'm already going high stakes because I'm actually going both my first two are going to be
+
+765
+00:50:34.800 --> 00:50:40.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: to our both on the TVA list. Actually, you're not confirmed for this year. So, so I'm going for
+
+766
+00:50:37.500 --> 00:50:43.980
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Oh, okay. Okay, go for it. Go for it. Oh, I think I know what you're gonna do.
+
+767
+00:50:40.880 --> 00:50:47.920
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: the first one. No, I'm not doing. We don't know what I'm doing.
+
+768
+00:50:43.500 --> 00:50:45.900
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Don't do it don't do it don't do it
+
+769
+00:50:48.079 --> 00:50:54.800
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: thinking, but no, I'm not actually going with that one. I'm going with a real wild card. Um, and that is
+
+770
+00:50:50.000 --> 00:50:58.880
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I actually knew you were gonna say, I knew you were gonna say that. I wasn't thinking
+
+771
+00:50:52.539 --> 00:50:54.539
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay
+
+772
+00:50:54.800 --> 00:51:04.480
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: powerful. Um, oh, oh, I thought you I thought everyone was just assuming I was going to say wild
+
+773
+00:50:58.880 --> 00:51:07.760
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: on to chocolate here, I was thinking Balfaum. Nope. No, no, no, I wasn't even thinking that.
+
+774
+00:51:04.480 --> 00:51:13.840
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: society, but um, okay. All right. Well, you know me well. Oh, that our month of podcasting nonstop
+
+775
+00:51:07.760 --> 00:51:11.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: No, I was thinking Balfaum, I saw it and I was like, he's gonna go for it.
+
+776
+00:51:13.840 --> 00:51:16.840
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: as you were synced. (laughs)
+
+777
+00:51:14.500 --> 00:51:18.480
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: You guys are on a, on a, you, you understand each other.
+
+778
+00:51:18.500 --> 00:51:20.920
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [laughs]
+
+779
+00:51:19.000 --> 00:51:21.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: We'll finish each others.
+
+780
+00:51:20.920 --> 00:51:21.920
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Time which is...
+
+781
+00:51:21.000 --> 00:51:23.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, finish it, the sentence.
+
+782
+00:51:22.860 --> 00:51:24.019
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Sandwiches.
+
+783
+00:51:23.000 --> 00:51:25.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: There you go. (laughs)
+
+784
+00:51:25.000 --> 00:51:27.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'll finish, I'll send it just.
+
+785
+00:51:27.000 --> 00:51:29.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay, but anyways, power farm.
+
+786
+00:51:29.000 --> 00:51:31.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: So here's the thing.
+
+787
+00:51:31.000 --> 00:51:36.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Power world for all the nonsense and questionable things involved.
+
+788
+00:51:36.000 --> 00:51:39.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: The game itself technically was competent.
+
+789
+00:51:39.000 --> 00:51:43.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I have faith that our farm will come out similarly.
+
+790
+00:51:43.000 --> 00:51:45.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Again, they're clearly ripping off a lot,
+
+791
+00:51:45.000 --> 00:51:47.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: but is the world of the game be fun?
+
+792
+00:51:48.000 --> 00:51:49.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I think.
+
+793
+00:51:49.000 --> 00:51:52.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: And obviously it's gotten enough, you know,
+
+794
+00:51:52.000 --> 00:51:55.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: then it's got brand recognition of some kind.
+
+795
+00:51:55.000 --> 00:51:59.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Everyone knows power world for better or for worse, how do you feel?
+
+796
+00:51:58.500 --> 00:52:04.940
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So, it will be interesting to see.
+
+797
+00:51:59.000 --> 00:52:02.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: So I think it's hot people's attention.
+
+798
+00:52:02.000 --> 00:52:04.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I think it's gonna get up there.
+
+799
+00:52:04.940 --> 00:52:11.380
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Do you know the interesting thing is, they don't have a metacritic score for Power World.
+
+800
+00:52:06.000 --> 00:52:07.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: What?
+
+801
+00:52:10.000 --> 00:52:11.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Really?
+
+802
+00:52:10.000 --> 00:52:12.460
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Ooooooohhhh!
+
+803
+00:52:11.000 --> 00:52:15.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Well, I mean, it's weird.
+
+804
+00:52:11.380 --> 00:52:13.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah.
+
+805
+00:52:13.500 --> 00:52:16.019
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Which is surprising?
+
+806
+00:52:15.000 --> 00:52:17.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's very weird.
+
+807
+00:52:16.019 --> 00:52:18.940
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I don't understand why.
+
+808
+00:52:18.940 --> 00:52:24.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: They have a bunch of critic reviews, but none of them seem to have scores.
+
+809
+00:52:22.500 --> 00:52:25.179
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's strange. Well, okay
+
+810
+00:52:24.460 --> 00:52:25.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: That is weird.
+
+811
+00:52:25.460 --> 00:52:28.659
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I wonder if it's like a bug specific to this one page?
+
+812
+00:52:28.500 --> 00:52:35.400
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Or something and it's not it's not it's not it's not early access thing because plenty of early access games. I'm pretty sure have
+
+813
+00:52:29.340 --> 00:52:31.860
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Hmm what well, I mean
+
+814
+00:52:35.460 --> 00:52:37.460
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Do they
+
+815
+00:52:36.500 --> 00:52:41.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Hmm. Field's a nice route.
+
+816
+00:52:37.340 --> 00:52:40.420
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Give me a give me a game as an early access just now a big one
+
+817
+00:52:41.860 --> 00:52:45.079
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: There you go bigger one
+
+818
+00:52:42.179 --> 00:52:49.139
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Well, and I'm pretty sure I'm pretty sure fields of mystery a dozen but oh it does say
+
+819
+00:52:49.780 --> 00:52:51.179
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: TBA
+
+820
+00:52:51.179 --> 00:52:55.980
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Early access so maybe it is maybe you don't get a metric or score when you're in early access
+
+821
+00:52:56.500 --> 00:53:03.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Well, brought myself in the put, 'cause I believe the game would come out, but not out of early access.
+
+822
+00:52:57.500 --> 00:52:58.340
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yikes.
+
+823
+00:52:58.340 --> 00:52:59.159
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yikes.
+
+824
+00:53:03.000 --> 00:53:09.800
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Okay, I mean, so, okay, so I guess we need to change our rule then and just go well. It's gonna be
+
+825
+00:53:07.000 --> 00:53:09.199
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah.
+
+826
+00:53:10.679 --> 00:53:18.519
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Like guess you yeah, I guess you can have our games are in LA access. So Kevin, I'm gonna let you change if you want to change
+
+827
+00:53:18.500 --> 00:53:24.659
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: all right well dang my second one is also well okay okay all right you know what I will change it
+
+828
+00:53:24.659 --> 00:53:28.980
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: i'm gonna wipe that one because yeah all right i'm gonna be having a second one
+
+829
+00:53:26.000 --> 00:53:28.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Okay
+
+830
+00:53:27.500 --> 00:53:32.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay, so wait, so the update you're saying is we can, yes.
+
+831
+00:53:29.920 --> 00:53:33.400
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So we're changing the rules we're changing the rules you can choose games
+
+832
+00:53:33.559 --> 00:53:39.840
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: There are in early access and are not in 1.0 yet because I feel I feel like we have to have one or the other, right?
+
+833
+00:53:36.000 --> 00:53:49.239
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: go to 1.0. Yeah. Okay. Yeah. Yeah. Yeah. That invalidates the thing. Yeah. Okay. All right. Well,
+
+834
+00:53:40.880 --> 00:53:45.139
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And I think if they if they don't have a score then I guess that's something
+
+835
+00:53:49.239 --> 00:53:54.039
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: you know, I'm changing the fields of mystery. I probably already stole Pupopia. I'm not just
+
+836
+00:53:51.500 --> 00:53:54.380
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [laughing]
+
+837
+00:53:54.039 --> 00:54:04.199
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: not in it. Just swiping it right now. Yeah. Yeah. Yeah. All right. All right. So
+
+838
+00:53:54.380 --> 00:53:58.860
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: - Well, I mean, fair dies a great choice
+
+839
+00:53:58.860 --> 00:54:01.059
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: that is, I think, gonna do very well.
+
+840
+00:54:03.219 --> 00:54:06.340
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I, in fact, I would go so far as to say,
+
+841
+00:54:06.340 --> 00:54:10.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: excluding, I think that's the GTA 6 of farming games
+
+842
+00:54:10.500 --> 00:54:12.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yeah
+
+843
+00:54:10.500 --> 00:54:13.739
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: in terms of like, you know it's gonna have a good high score
+
+844
+00:54:12.000 --> 00:54:24.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: No, yeah, I'd say haunted chocolate tears are GTA 6, but anyways, but yes, yeah, you get your interest. It's in the same vein
+
+845
+00:54:13.739 --> 00:54:14.820
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: 'cause people like it,
+
+846
+00:54:14.820 --> 00:54:17.219
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: but who knows if it's actually gonna happen this year.
+
+847
+00:54:15.980 --> 00:54:18.300
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: When is it gonna come out? Yeah
+
+848
+00:54:17.219 --> 00:54:18.940
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [laughing]
+
+849
+00:54:22.500 --> 00:54:25.139
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: No, because there's no one even,
+
+850
+00:54:25.139 --> 00:54:27.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: no one's even trying to pretend that's coming out this year.
+
+851
+00:54:27.500 --> 00:54:29.739
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [laughing]
+
+852
+00:54:27.679 --> 00:54:31.599
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Well, some would say GTA 6 isn't the same boat
+
+853
+00:54:31.900 --> 00:54:33.820
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: No, they're definitely pretending that.
+
+854
+00:54:33.500 --> 00:54:35.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: They're pretending.
+
+855
+00:54:33.820 --> 00:54:36.179
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [laughing]
+
+856
+00:54:34.960 --> 00:54:41.440
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's true, um, that's true. Okay, all right, okay, you know what I'm still gonna be bold
+
+857
+00:54:36.179 --> 00:54:37.980
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: All right, what's your second one then?
+
+858
+00:54:42.000 --> 00:54:49.280
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Also TVA, but if I'm if it does come out, it's not I don't think it'll be early access and that is a key planet
+
+859
+00:54:50.079 --> 00:54:51.280
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: um
+
+860
+00:54:51.280 --> 00:54:55.199
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That is the hover's animal crossing type game
+
+861
+00:54:56.400 --> 00:54:59.280
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Um, the hover's is big enough that they're
+
+862
+00:55:00.000 --> 00:55:05.840
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: They've done enough games like I know their consistency and if that gate the question is does the game come out this year?
+
+863
+00:55:05.840 --> 00:55:07.840
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I do believe they will
+
+864
+00:55:08.400 --> 00:55:12.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: As of yet they haven't had any like huge delays on any other game.
+
+865
+00:55:12.000 --> 00:55:19.079
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: They run a tight ship production-wise so I believe it will come out and it's a
+
+866
+00:55:19.079 --> 00:55:24.440
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: hoyover scheme their games are polished enough. I think it will do well. So there you go.
+
+867
+00:55:24.440 --> 00:55:31.719
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Fields of Mystery and Petite Planet. Those are my two. Yeah and I mean it's a huge like
+
+868
+00:55:31.719 --> 00:55:38.639
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: already player base right of people playing hoyover so I think that anyways that's me.
+
+869
+00:55:36.000 --> 00:55:41.119
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yep. Nope. I think that's a good, good option as well. Um, I need to decide whether I'm keeping
+
+870
+00:55:41.119 --> 00:55:47.360
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Star Sand Island. Cause of course that's an early access. Uh, well, yeah, obviously.
+
+871
+00:55:44.500 --> 00:55:45.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Mmm.
+
+872
+00:55:45.000 --> 00:55:46.579
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I'm keeping, I'm keeping Jacobia.
+
+873
+00:55:47.500 --> 00:55:51.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's, that's, that's a yeah. You, yeah, cuz you win.
+
+874
+00:55:51.519 --> 00:55:57.119
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think I, I think I will keep Star Sand Island because I feel like if there's any game that might
+
+875
+00:55:57.119 --> 00:56:03.280
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: release an, it like, it's come out so early in the year that I, and I feel, so they say on
+
+876
+00:56:03.280 --> 00:56:06.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: steam that expecting it to be an early access for us.
+
+877
+00:56:06.000 --> 00:56:35.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And obviously it's not going to be in 1.0 in 4 months, but could it be by the end of the year based on what they're saying, I feel like it could, and also it feels quite like they're just like they're going to have a couple of months I think of making, adding all the things that people expected there to be, right, and then adding, and then a few months of adding in all the content they want, it doesn't feel like it's a super early access game in my experience.
+
+878
+00:56:07.500 --> 00:56:09.099
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, that's not, yeah.
+
+879
+00:56:36.000 --> 00:56:43.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It might happen, we'll see, so I'm going to keep it, I'm going to keep it.
+
+880
+00:56:37.500 --> 00:56:38.340
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - Mm-hmm.
+
+881
+00:56:39.000 --> 00:56:42.920
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Well, hey, gotta risk it for the biscuits sometimes.
+
+882
+00:56:43.000 --> 00:56:56.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Absolutely, absolutely. Okay, so I need to decide on my second one then. I am going to go with Tomodatche life.
+
+883
+00:56:52.500 --> 00:56:58.340
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, that's a good one. Yeah, that's going to crush it. Oh, it will.
+
+884
+00:56:56.000 --> 00:57:03.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Maybe we'll see. Cody, you're second and third, please.
+
+885
+00:57:00.000 --> 00:57:06.320
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: my second is haunted chocolate tier. I'm gonna go big and go home.
+
+886
+00:57:03.000 --> 00:57:05.239
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [laughing]
+
+887
+00:57:06.000 --> 00:57:16.320
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Oh my word, Cody! Oh, I can't believe you've wasted the Pocopia score by going with something that's gonna give you zero, my word.
+
+888
+00:57:07.219 --> 00:57:09.780
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's, that's the game full.
+
+889
+00:57:10.960 --> 00:57:11.679
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Dude, if I,
+
+890
+00:57:16.000 --> 00:57:19.159
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Well, that's it's a safety net. Gee, can afford it
+
+891
+00:57:16.960 --> 00:57:20.079
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: what, but if it, but if it comes,
+
+892
+00:57:20.079 --> 00:57:26.639
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: exactly I can afford it. Y'all are gonna have mid scores and I'm gonna have at least one big one.
+
+893
+00:57:24.360 --> 00:57:26.360
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah
+
+894
+00:57:25.500 --> 00:57:28.739
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I don't know about that.
+
+895
+00:57:27.800 --> 00:57:29.800
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, she's right
+
+896
+00:57:28.739 --> 00:57:30.980
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Like, I suspect that hunter geography
+
+897
+00:57:30.980 --> 00:57:34.179
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: might have the problem that it's not stargy.
+
+898
+00:57:34.000 --> 00:57:37.599
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I think he'll have enough.
+
+899
+00:57:34.179 --> 00:57:36.260
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And people won't like it as much because of that.
+
+900
+00:57:35.500 --> 00:57:47.480
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: the question, that's the thing. That's the one. That's the gamble. Yeah, I'm not questioning
+
+901
+00:57:37.599 --> 00:57:38.659
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: It'll be fine.
+
+902
+00:57:38.380 --> 00:57:39.980
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It's also not coming out this year.
+
+903
+00:57:40.280 --> 00:57:43.079
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Well, you well, that's, that's a,
+
+904
+00:57:43.079 --> 00:57:48.079
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: you don't know that, you don't know that, it's cool.
+
+905
+00:57:47.480 --> 00:57:54.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: the quality. The score once it exists, but be when that's the gamble. And, but I believe
+
+906
+00:57:50.239 --> 00:57:51.079
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yeah.
+
+907
+00:57:52.920 --> 00:57:53.840
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yeah.
+
+908
+00:57:53.840 --> 00:57:56.920
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: So I'm gonna, I'm gonna risk it for the biscuit for that.
+
+909
+00:57:54.500 --> 00:57:56.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Cody can afford it.
+
+910
+00:57:56.920 --> 00:58:01.880
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: And then my second one will be my time at Evershine.
+
+911
+00:58:01.500 --> 00:58:03.980
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Ooh, okay, okay.
+
+912
+00:58:04.000 --> 00:58:07.559
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: My time game, it's an active dev team.
+
+913
+00:58:07.559 --> 00:58:11.159
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: They already have a controller update, like,
+
+914
+00:58:11.159 --> 00:58:13.920
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: said that they're going, that that's gonna be part of it.
+
+915
+00:58:15.599 --> 00:58:17.880
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: There's also possibility that it gets pushed back.
+
+916
+00:58:17.880 --> 00:58:20.519
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: So, (laughs)
+
+917
+00:58:22.000 --> 00:58:28.480
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: interesting. Yeah, just to give you some context, my time at Porsche got 73 and my time at
+
+918
+00:58:28.480 --> 00:58:35.679
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Sandrock got 80. So not bad, not bad at all. So yeah, we interesting to see because I don't
+
+919
+00:58:30.000 --> 00:58:32.679
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Dang, it was a good one.
+
+920
+00:58:35.679 --> 00:58:42.559
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: think they're doing an early access. But and originally they were planning to release this year,
+
+921
+00:58:42.559 --> 00:58:51.760
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: spring this year. Interesting. Yeah. Okay. We'll see. We'll see. Okay. So my third one. Oh, goodness.
+
+922
+00:58:52.320 --> 00:58:56.719
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: The problem is with all that with the rule change that like that's just mucking up my brain.
+
+923
+00:58:52.500 --> 00:58:59.739
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Let's see, we got, we got, we're, yeah, yep, we're all changing it on the fly.
+
+924
+00:59:00.000 --> 00:59:08.559
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I am going to choose which brick, which brick is my number three. I think 2D pixel art games always do well.
+
+925
+00:59:08.559 --> 00:59:16.719
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think which games can do well. I think this one has enough buzz behind it that it won't just
+
+926
+00:59:16.719 --> 00:59:19.960
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: be snapped up as our just another release sort of.
+
+927
+00:59:21.500 --> 00:59:31.820
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, I think the risk and that one and there's a lot of games on sale on this list that I think had the risk. I think what if it just drops his early access like that's the kicker, but
+
+928
+00:59:27.000 --> 00:59:35.960
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Oh, yeah. Yeah. I don't think which brick is going to. I don't think which brick is going to. It strikes me as our 1.0.
+
+929
+00:59:33.260 --> 00:59:35.260
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay, all right
+
+930
+00:59:36.780 --> 00:59:42.460
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, okay. That's fair. I was I was considering it for but I was unsure about the early access thing. So
+
+931
+00:59:43.019 --> 00:59:49.420
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Um, okay fair enough. Oh, that's yes. That's just on contender to I'd say. I think the game will be quality just
+
+932
+00:59:51.500 --> 00:59:55.179
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay, uh, is it my turn again then?
+
+933
+00:59:55.500 --> 00:59:57.420
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yes, this will be your third and fourth.
+
+934
+00:59:58.619 --> 01:00:05.659
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, gosh. Um, oh, it's hot. I'll only pick two. So we're gonna finish up before I was that right?
+
+935
+01:00:05.500 --> 01:00:07.659
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yeah. I'll do you want to pick two this time?
+
+936
+01:00:07.900 --> 01:00:11.420
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, I just go pick go and pick two. Let's let's mix it up a little just
+
+937
+01:00:10.500 --> 01:00:16.340
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: No, we're doing it the way it goes because you do your third and fourth and then I do my fourth
+
+938
+01:00:13.820 --> 01:00:17.739
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay, all right, okay
+
+939
+01:00:16.579 --> 01:00:21.820
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Then Cody does their fourth and fifth and then no, I've done my third adjusted my third
+
+940
+01:00:17.500 --> 01:00:19.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: No, then you do your third
+
+941
+01:00:21.780 --> 01:00:23.780
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, okay
+
+942
+01:00:21.980 --> 01:00:29.820
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Then okay, whatever. Yeah, okay, okay, okay, okay. Um, all right
+
+943
+01:00:22.340 --> 01:00:26.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: But I'm literally writing it down in the show notes if you want to have a look at what we are
+
+944
+01:00:25.739 --> 01:00:30.940
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay, okay, I was thinking to say if I was like this isn't there
+
+945
+01:00:31.059 --> 01:00:34.039
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Nope, it is perfect. It's exactly fair. That's why we're doing it
+
+946
+01:00:31.340 --> 01:00:36.860
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, okay, I missed one. I thought you were two nevermind it. Okay. Um,
+
+947
+01:00:37.179 --> 01:00:40.539
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: No, I've got Starstand Island Tomadaccia Life in Witchbrick, three games.
+
+948
+01:00:38.300 --> 01:00:40.300
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay
+
+949
+01:00:40.619 --> 01:00:46.139
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: All right, um, oh, this may be this is a little risky because
+
+950
+01:00:46.500 --> 01:00:47.940
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: We love a risk sometimes.
+
+951
+01:00:48.000 --> 01:00:52.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Where I'm all, I'm risking so much over here.
+
+952
+01:00:48.139 --> 01:00:50.139
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah
+
+953
+01:00:52.219 --> 01:00:55.260
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Uh, okay, right me down for go-go town
+
+954
+01:00:56.059 --> 01:01:04.619
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Um, because yeah, because like obviously I don't have any doubt about the quality. The question will that game ever leave early access
+
+955
+01:01:05.500 --> 01:01:08.900
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think it's, I think that's a pretty safe bet, personally.
+
+956
+01:01:08.940 --> 01:01:13.579
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think it's, I think it's happening because they, the, they announced last
+
+957
+01:01:13.579 --> 01:01:18.380
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: week that they were 1.0 and switch release were coming Q2.
+
+958
+01:01:18.820 --> 01:01:22.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think that I think I think it's almost there.
+
+959
+01:01:21.500 --> 01:01:27.099
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay. All right. Well, then let's go for it. I think it's like I am plenty about everything
+
+960
+01:01:27.099 --> 01:01:38.300
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I've seen people seem to like it. So yeah, go for it. All right. Okay. Oh, um, I need
+
+961
+01:01:29.500 --> 01:01:37.900
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Think that's a good choice. And you're a fourth one as well.
+
+962
+01:01:39.179 --> 01:01:44.699
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Sorry, it is some of my list changing. Um, I Oh, I know it's really feel like that was going to be
+
+963
+01:01:44.699 --> 01:01:51.579
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: an early access game. Um, but I'm running out of options. I feel confident in. So I'm
+
+964
+01:01:51.500 --> 01:02:04.539
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: going to have to go for it. I think anyways, oh, put me down for super zoos. Yeah. Yeah. I'm, I'm,
+
+965
+01:01:58.500 --> 01:02:05.619
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, that's yeah, that's that's definitely gonna be early access this year. I don't think I don't think that's coming at one point
+
+966
+01:02:05.619 --> 01:02:07.619
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Oh, and this year
+
+967
+01:02:05.900 --> 01:02:13.420
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: no, I don't either. I'm not a certain about the quality of these other. Like, I'm that
+
+968
+01:02:13.420 --> 01:02:19.900
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: when I feel we'll do a score wise, but it's probably not getting the score this year. Oh, but that's
+
+969
+01:02:19.900 --> 01:02:21.519
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Let's say that's what this is all about.
+
+970
+01:02:21.500 --> 01:02:28.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I risk high rewards, but also probably just shooting myself in the foot here.
+
+971
+01:02:24.000 --> 01:02:36.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, okay. My, my fourth one, I am going to choose door look tone currently in early access.
+
+972
+01:02:28.500 --> 01:02:30.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: All right, Al.
+
+973
+01:02:36.719 --> 01:02:42.960
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: They initially said about a year for early access and that was in May of last year. So I've got
+
+974
+01:02:42.960 --> 01:02:50.800
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: half a year for them to delays and they are consistently putting out good updates and every time
+
+975
+01:02:50.800 --> 01:02:54.800
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: we look at it we go yeah that looks good
+
+976
+01:02:54.000 --> 01:02:59.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I just I feel like it's gonna happen this year and I think that it's gonna be good
+
+977
+01:02:59.000 --> 01:03:01.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think people are gonna like it
+
+978
+01:03:00.500 --> 01:03:03.059
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, I can see it. Go for it.
+
+979
+01:03:04.000 --> 01:03:06.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Cody your fourth and fifth please
+
+980
+01:03:06.500 --> 01:03:13.139
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay, so my fourth one is outbound so that
+
+981
+01:03:12.000 --> 01:03:15.880
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Oh, I wasn't even thinking about that game. Oh, that is a good one
+
+982
+01:03:17.699 --> 01:03:20.019
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: So outbound is the like van life one
+
+983
+01:03:20.000 --> 01:03:23.119
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, that's a bad one. I forgot the name. Wow. That's a great pig.
+
+984
+01:03:22.099 --> 01:03:27.300
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yep, and so that it already has pre-orders available
+
+985
+01:03:27.500 --> 01:03:31.300
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah. Yeah.
+
+986
+01:03:28.260 --> 01:03:33.460
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: It has a really cute dog with a backpack van life is a really big thing right now
+
+987
+01:03:30.199 --> 01:03:31.760
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It doesn't have.
+
+988
+01:03:33.460 --> 01:03:36.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: So that's why I'm going with that
+
+989
+01:03:33.679 --> 01:03:36.400
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, that's a good one.
+
+990
+01:03:36.500 --> 01:03:46.820
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: And then, yeah, y'all thought that I was just going from the
+
+991
+01:03:38.280 --> 01:03:40.480
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: He's making up for the haunted chocolate here.
+
+992
+01:03:46.820 --> 01:03:53.019
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: student from the hip, but I did research. My last one is
+
+993
+01:03:49.000 --> 01:03:51.420
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [groans]
+
+994
+01:03:53.019 --> 01:04:04.139
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Autonomica, which has had alpha updates recently and still on track to be done by the end of the year.
+
+995
+01:04:04.500 --> 01:04:05.960
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think that's
+
+996
+01:04:07.000 --> 01:04:14.079
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I also do like I was considering on and on the cup, but I don't think it's gonna leave early access this year
+
+997
+01:04:14.000 --> 01:04:15.239
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - Mm-hmm.
+
+998
+01:04:14.079 --> 01:04:16.320
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: If or alpha whatever that's
+
+999
+01:04:16.960 --> 01:04:20.719
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: See risky for me. I say this as a guy big super zoo story
+
+1000
+01:04:18.639 --> 01:04:19.480
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - Yep.
+
+1001
+01:04:20.500 --> 01:04:22.579
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [laughing]
+
+1002
+01:04:21.340 --> 01:04:24.380
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - Yeah, I literally, like, in my list,
+
+1003
+01:04:24.380 --> 01:04:28.119
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: in my list, in case we had to, like, panic pick things
+
+1004
+01:04:28.119 --> 01:04:30.119
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah
+
+1005
+01:04:28.119 --> 01:04:31.300
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: that weren't on my list, I wrote not super zoos story.
+
+1006
+01:04:31.000 --> 01:04:33.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [laughter]
+
+1007
+01:04:33.159 --> 01:04:35.519
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: My notes were a small team a few months
+
+1008
+01:04:35.519 --> 01:04:39.559
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: behind the schedule as is expecting it to be pushed to 2020.
+
+1009
+01:04:37.000 --> 01:04:39.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah
+
+1010
+01:04:41.000 --> 01:04:50.880
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Okay, my fifth one and this is my crazy one. I'm gonna go with a new story of seasons game
+
+1011
+01:04:51.500 --> 01:04:53.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: What?
+
+1012
+01:04:51.500 --> 01:04:56.539
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: What?! What?! An unannounced!
+
+1013
+01:04:52.480 --> 01:04:59.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: and as and as of right now on announced story of seasons game
+
+1014
+01:04:53.500 --> 01:04:55.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Mmm, mmm, mmm.
+
+1015
+01:04:59.360 --> 01:05:03.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Wow! You know what? Good for you!
+
+1016
+01:05:01.500 --> 01:05:03.699
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Is it is it an anniversary for them?
+
+1017
+01:05:02.519 --> 01:05:06.840
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And and just and just to clarify that is not a remake and
+
+1018
+01:05:07.139 --> 01:05:09.139
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, Brad knew
+
+1019
+01:05:08.320 --> 01:05:10.880
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: a brand new story of seasons.
+
+1020
+01:05:11.000 --> 01:05:13.960
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: game comes out this year. That's what I see.
+
+1021
+01:05:14.000 --> 01:05:18.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay.
+
+1022
+01:05:14.139 --> 01:05:20.179
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Not just not just shooting yourself in in the foot with like high caliber now. It just
+
+1023
+01:05:20.000 --> 01:05:24.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: What are some of the more recent scores?
+
+1024
+01:05:22.500 --> 01:05:26.579
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So the last - well, that's a good question.
+
+1025
+01:05:26.500 --> 01:05:28.760
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughing]
+
+1026
+01:05:29.380 --> 01:05:32.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Let's have a look, shall we? Let's go into Metacritic.
+
+1027
+01:05:32.500 --> 01:05:35.699
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So the reason why I'm certain that a new one is coming out this year is because
+
+1028
+01:05:36.980 --> 01:05:44.179
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: pioneers of all of town came out in 2021. So we're five years
+
+1029
+01:05:44.980 --> 01:05:50.340
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: from a new study of seasons game. And we are consistently getting one game a year.
+
+1030
+01:05:51.300 --> 01:05:53.300
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: it's just all of the ones
+
+1031
+01:06:13.000 --> 01:06:18.219
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It is their 30th anniversary, if I recall.
+
+1032
+01:06:18.219 --> 01:06:23.579
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, you might, you might not be as insane as you sound.
+
+1033
+01:06:21.500 --> 01:06:25.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: That's, uh, yeah. That's, uh, he's, he's trust in the process.
+
+1034
+01:06:22.500 --> 01:06:30.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: it's also just to point out like three years ago the announce that two games were in development
+
+1035
+01:06:23.579 --> 01:06:24.579
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Ooh.
+
+1036
+01:06:24.579 --> 01:06:26.760
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughs]
+
+1037
+01:06:31.000 --> 01:06:32.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: And okay.
+
+1038
+01:06:31.059 --> 01:06:32.659
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, I don't remember that.
+
+1039
+01:06:32.500 --> 01:06:37.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I don't think both of those will come out this year. I think it would just be one.
+
+1040
+01:06:32.659 --> 01:06:33.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Turn it out.
+
+1041
+01:06:36.000 --> 01:06:37.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: All right.
+
+1042
+01:06:38.000 --> 01:06:42.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: So what, okay, what happens if both come out this year, which?
+
+1043
+01:06:41.500 --> 01:06:44.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: That is a good question. So I probably need to.
+
+1044
+01:06:46.000 --> 01:06:51.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Do you want to pick like the first one that comes out or you know what?
+
+1045
+01:06:51.000 --> 01:06:54.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: This is such a bold statement.
+
+1046
+01:06:54.000 --> 01:06:58.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I am going to give you the ability to pick.
+
+1047
+01:06:58.000 --> 01:07:00.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Kevin, how do you feel about that?
+
+1048
+01:06:59.500 --> 01:07:07.019
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'll find fine weather ever he's a lunatic for doing it sure why not and you know what
+
+1049
+01:07:02.000 --> 01:07:05.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: He's a lunatic.
+
+1050
+01:07:02.500 --> 01:07:11.139
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I'm sorry, I'm sorry the person who chose haunted chocolate ear thinks that I am the
+
+1051
+01:07:05.000 --> 01:07:08.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: This is so unlikely to happen.
+
+1052
+01:07:07.980 --> 01:07:09.980
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: No matter
+
+1053
+01:07:11.139 --> 01:07:11.940
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: crazy one.
+
+1054
+01:07:13.000 --> 01:07:14.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yep.
+
+1055
+01:07:14.000 --> 01:07:16.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I have a doctorate.
+
+1056
+01:07:16.000 --> 01:07:17.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I know what I'm talking to.
+
+1057
+01:07:17.500 --> 01:07:25.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: How to chocolates here is releasing 2026, quote, "Dr. Vethas."
+
+1058
+01:07:22.000 --> 01:07:28.300
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [laughter]
+
+1059
+01:07:25.500 --> 01:07:29.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Expert on the field of field.
+
+1060
+01:07:28.300 --> 01:07:30.519
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: OK, I-- I think--
+
+1061
+01:07:29.500 --> 01:07:32.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, here's one.
+
+1062
+01:07:32.500 --> 01:07:38.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: If we get this more than one score, why don't we average them?
+
+1063
+01:07:37.000 --> 01:07:41.400
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: No, I think I just get I think I just I think I just get the first one that comes out
+
+1064
+01:07:38.500 --> 01:07:39.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay, fine.
+
+1065
+01:07:39.500 --> 01:07:40.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Pick the one.
+
+1066
+01:07:40.500 --> 01:07:41.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Pick the one.
+
+1067
+01:07:42.440 --> 01:07:44.119
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I don't think both of them come out this year
+
+1068
+01:07:44.920 --> 01:07:52.679
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So they announced that they were making a standard new story of seasons game and also that they were making a new multiplayer one
+
+1069
+01:07:53.719 --> 01:07:58.119
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I don't really want to narrow it down just in case. It's the multiplayer one that comes out
+
+1070
+01:07:58.920 --> 01:08:06.199
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And I want if either of them come out I kind of want like the fact that I'm saying story seasons. I want either of them to count
+
+1071
+01:08:07.960 --> 01:08:15.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: But yeah, I'm happy to just take the first one. I'm not too fast about that because I don't think it will be I don't think it'll be an issue
+
+1072
+01:08:13.000 --> 01:08:27.319
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'm in panic, dick mode because there's many options for my retakenness.
+
+1073
+01:08:17.720 --> 01:08:22.039
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Okay, Kevin what's your final one your fifth and final one?
+
+1074
+01:08:24.000 --> 01:08:26.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: [laughs]
+
+1075
+01:08:27.319 --> 01:08:34.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'm basically looking at two and they're kind of in reverse problems.
+
+1076
+01:08:34.880 --> 01:08:41.180
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: One, I believe we'll be quality, but we'll not feel confident we'll come out this year.
+
+1077
+01:08:41.180 --> 01:08:43.020
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: The other one I do believe will come out.
+
+1078
+01:08:43.000 --> 01:08:51.359
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But I am questioning its overall quality and and so the the ones I'm waffling here between yeah
+
+1079
+01:08:43.500 --> 01:08:46.439
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: [whooshing]
+
+1080
+01:08:46.000 --> 01:08:56.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: You get well, so, so just just to say you can say wherever you want now because we've already chosen so walk us through your thought process if you
+
+1081
+01:08:46.439 --> 01:08:47.279
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Okay.
+
+1082
+01:08:54.239 --> 01:08:57.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, yeah, yeah, yeah, no, no, okay
+
+1083
+01:08:54.500 --> 01:08:56.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yeah
+
+1084
+01:08:57.880 --> 01:09:00.260
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Starbirds, I believe will hit 1.0 this year
+
+1085
+01:09:00.760 --> 01:09:07.199
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: And it has a lot going for it, but I don't know if it's gonna solve the ultimate problem. Oh, and I can't with it
+
+1086
+01:09:08.000 --> 01:09:10.960
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: But will that but will that matter to other people that's the
+
+1087
+01:09:08.640 --> 01:09:10.640
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I don't know if it's
+
+1088
+01:09:11.880 --> 01:09:13.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Well, maybe
+
+1089
+01:09:13.000 --> 01:09:28.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: because it was like, I don't know. That's a good question. I don't know. I felt a little, I think about, I look back to and I enjoyed the time, but it still felt like I just lost interest quickly, but with people still give it a high mark marks with that.
+
+1090
+01:09:28.000 --> 01:09:38.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I don't know, hard to say. And it has so much going on for it, right? It has the art and the charm and everything, like I can't deny that. I might, maybe I'm being too harsh on it.
+
+1091
+01:09:38.000 --> 01:09:40.220
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: And it's also going through the whole, you know,
+
+1092
+01:09:40.220 --> 01:09:42.880
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: early access process, so maybe it's going to.
+
+1093
+01:09:43.000 --> 01:09:50.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: to fix itself, I could be Ross the other one, which we all know me,
+
+1094
+01:09:50.000 --> 01:09:54.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: but like I have faith in wild society, I think it's going to be well done.
+
+1095
+01:09:53.000 --> 01:09:54.039
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: [laughs]
+
+1096
+01:09:54.000 --> 01:09:59.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I don't, it's not going to be early access, but by that same token,
+
+1097
+01:09:59.000 --> 01:10:03.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I don't know if it's going to drop this year because we've got a trailer,
+
+1098
+01:10:03.000 --> 01:10:06.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: but we haven't heard a peep out of it otherwise.
+
+1099
+01:10:06.000 --> 01:10:12.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: So that is a big question mark to me as if it'll actually hit 2027 or 2066.
+
+1100
+01:10:13.000 --> 01:10:18.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Excuse me. So these are, yeah, you know, it's outfield.
+
+1101
+01:10:18.000 --> 01:10:22.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: We're going to come. I just want to say that it's not feel a bit waiting so long.
+
+1102
+01:10:22.000 --> 01:10:31.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But anyways, I think I'm just going to go with the like,
+
+1103
+01:10:31.000 --> 01:10:34.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'm think I'm by decision. I'm just going to go with what's more concrete,
+
+1104
+01:10:34.000 --> 01:10:38.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: what I actually can see and get a better feeling for.
+
+1105
+01:10:38.000 --> 01:10:42.939
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Right, let me down for Starbucks because I believe that's gonna drop this year
+
+1106
+01:10:43.000 --> 01:10:51.279
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It does have good things going for it. Maybe not everything, but it does have good stuff going
+
+1107
+01:10:49.500 --> 01:10:55.739
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah. I think it's a good choice. I think the thing is that yeah, we weren't huge fans of it,
+
+1108
+01:10:55.739 --> 01:11:02.539
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: but I would not be surprised if it still does well because you know, some people are looking for that.
+
+1109
+01:11:03.000 --> 01:11:08.619
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, and it can't course correct right like it wasn't an unsolvable situation
+
+1110
+01:11:09.920 --> 01:11:11.920
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But and maybe they'll get there
+
+1111
+01:11:12.640 --> 01:11:19.039
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Right the question is with me a reason to play that was like the big one right? I like playing it just it'd be more reason to play more
+
+1112
+01:11:20.399 --> 01:11:26.600
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: But and you know what better critics scores our review stuff right for someone reviewing it
+
+1113
+01:11:25.000 --> 01:11:37.079
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah, well, that's well, and that's the thing. And if a reviewer goes in expecting,
+
+1114
+01:11:26.760 --> 01:11:31.600
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Maybe that's enough to get a good score like you know, they don't have to put in
+
+1115
+01:11:30.000 --> 01:11:32.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: [laughter]
+
+1116
+01:11:33.000 --> 01:11:35.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Starbirds, right like they're there
+
+1117
+01:11:37.079 --> 01:11:41.479
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: they're not to be like a greater purpose for it, then they're not, they're not going to score it
+
+1118
+01:11:41.479 --> 01:11:42.680
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: negatively because of that.
+
+1119
+01:11:43.000 --> 01:11:43.840
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's true.
+
+1120
+01:11:43.840 --> 01:11:46.239
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: All right, yeah, I feel better about the Starbirds.
+
+1121
+01:11:46.239 --> 01:11:49.920
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Save me, save me from the fact that I put super zoos story
+
+1122
+01:11:49.920 --> 01:11:51.439
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: on the stupid list.
+
+1123
+01:11:52.039 --> 01:11:54.920
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: All right. Well, that's our draft. I'm just going to go through these
+
+1124
+01:11:55.000 --> 01:12:02.600
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: lists just to do them as a whole. So Cody's five are Pocopia, haunted chocolate here,
+
+1125
+01:12:02.600 --> 01:12:07.880
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: my time and ever shine outbound an autonomica. My games.
+
+1126
+01:12:06.500 --> 01:12:08.560
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Mm-hmm, walk it in.
+
+1127
+01:12:07.500 --> 01:12:10.300
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: - Really out of five of those, strong ones.
+
+1128
+01:12:11.640 --> 01:12:15.560
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: My games are Starstand Island, Tomad actually life living the dream,
+
+1129
+01:12:15.560 --> 01:12:23.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Witchbrook, Dolaktown, and an as of now unannounced new story of seasons game that is not a remake.
+
+1130
+01:12:23.000 --> 01:12:25.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: and
+
+1131
+01:12:25.000 --> 01:12:31.039
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I'm not sure if this is the first one released and Kevin's list is Fields of
+
+1132
+01:12:31.039 --> 01:12:36.399
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Austria, Petite Planet, Google Town, SuperZoo Story and Starbirds.
+
+1133
+01:12:36.399 --> 01:12:41.760
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And at this point, I really, yeah, I have no idea who's wearing this, this is exciting.
+
+1134
+01:12:37.500 --> 01:12:39.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh
+
+1135
+01:12:41.760 --> 01:12:44.399
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think this is a great, fun list.
+
+1136
+01:12:42.619 --> 01:12:44.619
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, this is great
+
+1137
+01:12:45.060 --> 01:12:50.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I love the different strategies. Oh, yeah, because like I like you feel like you have some
+
+1138
+01:12:50.779 --> 01:12:55.659
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Sure-fire hits, you know, like some you know, maybe not the highest high-risk ones, but
+
+1139
+01:12:56.500 --> 01:12:58.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Mm-hmm.
+
+1140
+01:12:56.819 --> 01:12:59.859
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I like your your list. Oh, how do you?
+
+1141
+01:13:00.899 --> 01:13:05.300
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It's a haunted chocolate here like she she built in safety factor for that like
+
+1142
+01:13:06.020 --> 01:13:08.020
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: You're welcome. Some of all.
+
+1143
+01:13:07.500 --> 01:13:09.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: All stars, so she could take the insane.
+
+1144
+01:13:10.000 --> 01:13:15.600
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I mean, but like, how epic is it gonna be, though, if that thumbs up?
+
+1145
+01:13:13.500 --> 01:13:16.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, yeah, and herb stuff us.
+
+1146
+01:13:14.500 --> 01:13:26.319
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Well, I will. Yeah, sure. If you're going purely around the most insane when possible, then yes. Yes, of course. If Haunted Jokele Fear comes out, you deserve the win.
+
+1147
+01:13:23.000 --> 01:13:27.520
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, um.
+
+1148
+01:13:26.500 --> 01:13:31.939
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I'm going to be foaming at the mouth of it. It's really, really sincere.
+
+1149
+01:13:31.399 --> 01:13:33.159
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Well, you got it.
+
+1150
+01:13:33.159 --> 01:13:37.359
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I mean, you're not going to be able to save the news for the podcast,
+
+1151
+01:13:37.359 --> 01:13:39.399
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: but we're going to be screaming in the slack.
+
+1152
+01:13:39.399 --> 01:13:42.560
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: How cold you want when when concerned about announces.
+
+1153
+01:13:40.500 --> 01:13:51.539
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Yeah. Yeah. Well, it's all right, because it's not going to come out this year. So we don't have to worry about
+
+1154
+01:13:42.560 --> 01:13:44.479
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It drops in one week.
+
+1155
+01:13:46.500 --> 01:13:57.460
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Christmas 2020, 2020, 2020. I'm confident. I believe in my boy, Monica.
+
+1156
+01:13:53.880 --> 01:13:59.399
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: What did? Oh.
+
+1157
+01:13:58.000 --> 01:14:03.760
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: All right. Oh, that was the other thing I didn't talk about in the while we went up to. I went to the the starchy concert
+
+1158
+01:14:04.000 --> 01:14:05.640
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - Oh, how was it?
+
+1159
+01:14:06.640 --> 01:14:08.640
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It was good. I enjoyed it
+
+1160
+01:14:07.560 --> 01:14:08.720
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Where was this one?
+
+1161
+01:14:08.920 --> 01:14:13.279
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: This this was in the Glasgow Royal concert hall
+
+1162
+01:14:14.560 --> 01:14:17.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So a bit of a step up from the last one they had
+
+1163
+01:14:17.500 --> 01:14:27.340
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: hmm I'm at y'all be honest I don't even remember started music that much and I'm not saying it was mark against it I just it's been that long since I played it um
+
+1164
+01:14:26.500 --> 01:14:28.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I turn music off in games.
+
+1165
+01:14:26.500 --> 01:14:34.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Trust me trust me Kevin when you're sitting in that hole and the music comes on. You're like, oh my word
+
+1166
+01:14:35.380 --> 01:14:41.899
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Transported back to playing this game. It's it's so recognizable just cuz you can't sing it
+
+1167
+01:14:39.500 --> 01:14:41.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah
+
+1168
+01:14:41.000 --> 01:14:43.939
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: How many people in the audience are playing?
+
+1169
+01:14:44.000 --> 01:14:46.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Wait
+
+1170
+01:14:45.300 --> 01:14:47.300
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Their games they're switched
+
+1171
+01:14:46.439 --> 01:14:47.100
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yeah.
+
+1172
+01:14:47.199 --> 01:14:49.199
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Oh, no, no
+
+1173
+01:14:49.439 --> 01:14:54.439
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Just boot up your switch and just mute it and you're still just playing.
+
+1174
+01:14:50.760 --> 01:14:55.140
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: No, no no definitely not
+
+1175
+01:14:55.000 --> 01:14:57.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: [laughs]
+
+1176
+01:14:56.899 --> 01:15:00.340
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Ruined it take it take you out. It's like being on your phone at the center mark
+
+1177
+01:15:01.500 --> 01:15:06.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: that you've clearly not been to American theaters.
+
+1178
+01:15:02.039 --> 01:15:05.199
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: No, but it enhances the game!
+
+1179
+01:15:05.199 --> 01:15:05.699
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah.
+
+1180
+01:15:06.500 --> 01:15:10.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And I am thankful every day.
+
+1181
+01:15:09.819 --> 01:15:14.659
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yeah, yeah, save me.
+
+1182
+01:15:10.100 --> 01:15:13.199
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, yeah, yeah, yeah, yeah.
+
+1183
+01:15:10.500 --> 01:15:11.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: We-
+
+1184
+01:15:11.500 --> 01:15:16.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [laughs]
+
+1185
+01:15:13.199 --> 01:15:15.680
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, you're not wrong.
+
+1186
+01:15:15.680 --> 01:15:20.359
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Did Lady Gaga and Ricky Martin show up unexpectedly?
+
+1187
+01:15:16.500 --> 01:15:20.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: All right, well.
+
+1188
+01:15:20.500 --> 01:15:24.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: No, thank you, Cody and Kevin for joining me for this experiment.
+
+1189
+01:15:24.500 --> 01:15:26.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: We will see how it goes.
+
+1190
+01:15:26.000 --> 01:15:28.840
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It's exciting. It doesn't be great. This came out great.
+
+1191
+01:15:26.500 --> 01:15:29.319
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Thank you, this is fun.
+
+1192
+01:15:29.319 --> 01:15:32.119
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I've never done like a draft or anything before,
+
+1193
+01:15:32.119 --> 01:15:35.800
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: so this is like really fun for me to like,
+
+1194
+01:15:35.800 --> 01:15:40.439
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: like now I'm like, oh, I get the appeal, I get it,
+
+1195
+01:15:39.000 --> 01:15:46.640
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, what's yeah, yeah, yeah, exactly what's interesting is that
+
+1196
+01:15:39.500 --> 01:15:42.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: You get it when it's about something that you actually care about.
+
+1197
+01:15:40.439 --> 01:15:41.359
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I get it.
+
+1198
+01:15:47.159 --> 01:15:53.279
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Most drafts are are you know like a month or maybe a month or whatever right like the March Madness thing, right?
+
+1199
+01:15:53.520 --> 01:15:55.520
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: This is a year. It's gonna be us
+
+1200
+01:15:54.000 --> 01:15:59.720
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Now we're in it for the long haul, we're in it for the long haul.
+
+1201
+01:15:55.680 --> 01:15:58.960
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: This is a slow burn right like we don't know when that
+
+1202
+01:15:59.640 --> 01:16:06.920
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: When that haunted chocolate's here that story of seasons announced it's gonna drop and when it does just gonna ruin our day out of nowhere
+
+1203
+01:16:04.000 --> 01:16:13.760
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Well, that's the thing. I mean, we won't even have a clue how it's going until, you know,
+
+1204
+01:16:09.520 --> 01:16:19.279
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, uh, uh, uh, uh, uh, calendars now in minefield
+
+1205
+01:16:13.760 --> 01:16:18.239
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: December, because any of them could still be releasing. And even then, it's like, you know,
+
+1206
+01:16:22.000 --> 01:16:45.199
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, Spain neuter your pets, Spain neuter your kids. No. You know what? Spain neuter your
+
+1207
+01:16:22.319 --> 01:16:24.800
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: all right, Cody, is there anything you would like to share with the audience?
+
+1208
+01:16:29.920 --> 01:16:31.920
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I have no bets.
+
+1209
+01:16:30.000 --> 01:16:45.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I would have gone for, I would have gone for Spain put new to your neighbor's pets in that case, but, you know, that works too. Like, yes.
+
+1210
+01:16:35.000 --> 01:16:37.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Pretty sure that's illegal
+
+1211
+01:16:45.000 --> 01:16:50.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, yeah.
+
+1212
+01:16:45.199 --> 01:16:46.800
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: president, so everyone.
+
+1213
+01:16:48.000 --> 01:16:50.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I think it's a bit late for that
+
+1214
+01:16:50.000 --> 01:16:53.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Well, it's not a bad rule to start with.
+
+1215
+01:16:53.000 --> 01:16:55.399
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Wait, do you still have the same Prime Minister?
+
+1216
+01:16:55.500 --> 01:16:59.819
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Oh, yeah, still somewhere around. I don't know how we survived last week
+
+1217
+01:16:57.479 --> 01:17:00.840
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: You still there? Okay, cool. Good for him.
+
+1218
+01:16:59.000 --> 01:17:03.479
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: What? Well, how we can relate to that a little bit now
+
+1219
+01:17:04.520 --> 01:17:07.399
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Good for him. That's what I got to share.
+
+1220
+01:17:06.500 --> 01:17:08.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: [imitates noise]
+
+1221
+01:17:08.359 --> 01:17:11.039
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Not maybe good for him, but
+
+1222
+01:17:16.500 --> 01:17:18.899
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Kevin, what would you is anything you would like to share with the audio?
+
+1223
+01:17:19.500 --> 01:17:26.539
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Uh, no, I've got I've got I'm going to play pick before spoilish from X. He can probably play pick before that's all I got
+
+1224
+01:17:27.739 --> 01:17:31.899
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, my prepare for my Dan Dory battles. Um, that's all I've got
+
+1225
+01:17:31.000 --> 01:17:33.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I love how Kevin is just assuming
+
+1226
+01:17:33.500 --> 01:17:35.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I know, I thought that too.
+
+1227
+01:17:38.500 --> 01:17:40.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: We haven't even discussed the next episode yet.
+
+1228
+01:17:41.659 --> 01:17:47.739
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Well, you know how that goes last minute. Somebody want to do it episode. I've got nothing going on sure
+
+1229
+01:17:47.500 --> 01:17:54.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Kevin talks about Pikmin.
+
+1230
+01:17:48.500 --> 01:17:56.220
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: last minute, I get, uh, I have issues, I whatever, out of
+
+1231
+01:17:49.500 --> 01:17:51.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah
+
+1232
+01:17:56.220 --> 01:18:02.300
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Adderall, that was the most recent issue. I was like, oh, it'll
+
+1233
+01:17:59.000 --> 01:18:06.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: and then it pushed this recording.
+
+1234
+01:18:02.300 --> 01:18:07.939
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: be fine. And then not fine. It was not fine.
+
+1235
+01:18:06.000 --> 01:18:14.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, that's all I've got. I'll tell people we're to find a good thing.
+
+1236
+01:18:14.000 --> 01:18:20.479
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: you can find the podcast on tumblr and on blue sky at ths pod. You can send us feedback
+
+1237
+01:18:20.479 --> 01:18:25.680
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: from our website harvest season.club. What do we want to hear from them this episode?
+
+1238
+01:18:22.000 --> 01:18:25.199
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: do it. I like that.
+
+1239
+01:18:25.680 --> 01:18:36.079
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Wait, who do you think is going to win the draft?
+
+1240
+01:18:28.000 --> 01:18:31.960
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - Who do you think's gonna win and who do you hope it would win?
+
+1241
+01:18:28.079 --> 01:18:37.680
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, my suggestion. Who made the most insane call on this show?
+
+1242
+01:18:37.680 --> 01:18:38.720
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: I mean, it's Cody.
+
+1243
+01:18:38.000 --> 01:18:45.359
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Are there any games that we, yeah, are there any games that we like really missed that you're like, I can't believe you didn't pick
+
+1244
+01:18:39.600 --> 01:18:41.920
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, it's cori.
+
+1245
+01:18:47.119 --> 01:18:53.199
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Solarpunk that was my next one. What do you guys think? Let us know.
+
+1246
+01:18:53.500 --> 01:18:55.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Ah
+
+1247
+01:18:53.500 --> 01:18:58.539
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Tune in next week when we do the reverse span of the draft, which ones are going to do the worst
+
+1248
+01:19:01.340 --> 01:19:03.340
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Let your frontiers on that
+
+1249
+01:19:06.000 --> 01:19:19.000
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: You also on our website, you can find links to everything to do with the podcast including a link to our Patreon where you can support the podcast and get access to our Slack, where you can see all of the random things that these people post, for some reason.
+
+1250
+01:19:20.500 --> 01:19:27.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, I'll also post the picture of my new tattoos.
+
+1251
+01:19:25.500 --> 01:19:27.500
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, I didn't wait, I didn't know.
+
+1252
+01:19:27.500 --> 01:19:38.180
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Um, I got a violet green swallow and a tree swallow on my chest as a congratulations to myself
+
+1253
+01:19:38.180 --> 01:19:40.420
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: for defending.
+
+1254
+01:19:39.000 --> 01:19:56.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I see the scorpion fly. Okay, you know, question live on air. I don't know if that's just an image thing, but what if it was like white of the lines that I'm seeing.
+
+1255
+01:19:40.420 --> 01:19:43.500
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: I will put them with the scorpion fly which I have posted.
+
+1256
+01:19:54.000 --> 01:20:06.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Those are that's just an image thing. So the, the scorpion flies in ethanol. And so that is the reflection of the thing. And then there's my tattoos.
+
+1257
+01:19:56.000 --> 01:20:01.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Okay.
+
+1258
+01:20:01.000 --> 01:20:09.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Oh, wow, cool. All those are really cool.
+
+1259
+01:20:03.500 --> 01:20:10.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Ah yes I see. So my...
+
+1260
+01:20:09.000 --> 01:20:12.000
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Yep. Yep. I could probably crop that.
+
+1261
+01:20:10.000 --> 01:20:13.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: We're ahead.
+
+1262
+01:20:13.000 --> 01:20:19.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: The twos are cool. I will say this. Okay, scorpion fly. There you go.
+
+1263
+01:20:19.000 --> 01:20:25.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Whoa, don't join the slack people. That's true. Yeah, good. Come join the slack. It's cool.
+
+1264
+01:20:25.000 --> 01:20:29.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: And noticeable. Hey.
+
+1265
+01:20:25.000 --> 01:20:29.699
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: You get to see the video of the absolute insanity
+
+1266
+01:20:29.000 --> 01:20:39.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: They're singing. That too. Yeah. And hey, you know what? Well, I guess.
+
+1267
+01:20:29.699 --> 01:20:31.300
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: that my game was doing.
+
+1268
+01:20:31.300 --> 01:20:33.619
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Oh, and yeah, the singing Yoshi Plus, I guess.
+
+1269
+01:20:39.000 --> 01:20:50.000
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It's not even ours, but as of right now you don't require a photo. I hate to join. Isn't that wonderful people?
+
+1270
+01:20:45.000 --> 01:20:49.159
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: - Oh gosh, yep.
+
+1271
+01:20:49.000 --> 01:20:53.859
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: And you also get access to our bonus episodes of the podcast.
+
+1272
+01:20:53.859 --> 01:20:56.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: We just released one as hinted to by Cody.
+
+1273
+01:20:56.500 --> 01:21:03.500
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: We just released one, me and Kevin talking about our predictions for Pokémon Day.
+
+1274
+01:21:03.500 --> 01:21:06.739
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Some of those predictions have already been like
+
+1275
+01:21:07.699 --> 01:21:10.659
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: There's rumors going around already confirming and or
+
+1276
+01:21:11.779 --> 01:21:13.779
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Telling us we're wrong about things
+
+1277
+01:21:14.000 --> 01:21:16.239
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: [laughs]
+
+1278
+01:21:16.500 --> 01:21:21.100
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: That's fun. Yeah, I'm excited. I'm a PCopy. That's all
+
+1279
+01:21:23.500 --> 01:21:28.859
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: All right, I think that's everything. Thank you, Kevin and Cody again for joining me.
+
+1280
+01:21:29.000 --> 01:21:31.199
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Thank you for having me on
+
+1281
+01:21:30.000 --> 01:21:37.359
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Thank you, have a good harvest.
+
+1282
+01:21:31.899 --> 01:21:37.420
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Thank you listeners for listening and until next time. Have a good harvest.
+
+1283
+01:21:35.239 --> 01:21:37.239
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Good harvest
+
+1284
+01:21:38.500 --> 01:21:49.739
+<v DC299739-8FE3-449A-84CD-70C1B0263E53>Theme Tune: The Harvest season is created by Alma Henry with support from our patrons, including our
+
+1285
+01:21:49.739 --> 01:21:53.579
+<v DC299739-8FE3-449A-84CD-70C1B0263E53>Theme Tune: pro-farmers, Kevin Stewart and Alisa.
+
+1286
+01:21:53.579 --> 01:21:58.180
+<v DC299739-8FE3-449A-84CD-70C1B0263E53>Theme Tune: Our art is done by Micah the Brave and our music is done by Nick Burgess.
+
+1287
+01:21:58.180 --> 01:22:04.020
+<v DC299739-8FE3-449A-84CD-70C1B0263E53>Theme Tune: Feel free to visit our website, harvestseason.club for show notes and links to things we discussed
+
+1288
+01:22:04.020 --> 01:22:04.579
+<v DC299739-8FE3-449A-84CD-70C1B0263E53>Theme Tune: in this episode.
+
+1289
+01:22:14.000 --> 01:22:17.960
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Just before I want to just test this, can you hear this?
+
+1290
+01:22:21.500 --> 01:22:22.659
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: at the Space Jam theme.
+
+1291
+01:22:22.659 --> 01:22:25.659
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: I'm assuming that's the opening for this episode.
+
+1292
+01:22:26.000 --> 01:22:27.460
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Let me make it, let me make it later.
+
+1293
+01:22:27.460 --> 01:22:28.840
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: Let me, let me try again.
+
+1294
+01:22:28.840 --> 01:22:30.239
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: - Oh.
+
+1295
+01:22:29.000 --> 01:22:31.260
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: [laughing]
+
+1296
+01:22:30.140 --> 01:22:37.140
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Ooh, is that the IBM machine talking to us?
+
+1297
+01:22:30.239 --> 01:22:31.159
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: - Did you hear that?
+
+1298
+01:22:31.260 --> 01:22:32.600
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Oh, what's that?
+
+1299
+01:22:33.779 --> 01:22:34.619
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: - Oh.
+
+1300
+01:22:35.960 --> 01:22:36.800
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: - Okay.
+
+1301
+01:22:37.520 --> 01:22:39.479
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: It sounds like one of those frogs.
+
+1302
+01:22:39.600 --> 01:22:40.439
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: - Okay.
+
+1303
+01:22:39.939 --> 01:22:41.899
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: It sounds like the robot voice.
+
+1304
+01:22:41.899 --> 01:22:42.899
+<v 2B2C33F9-2724-41DD-B2A4-7F87B468965C>Kevin: Yeah, I hear it.
+
+1305
+01:22:41.960 --> 01:22:44.239
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: - It's a, it's, it's, it's a DICE app.
+
+1306
+01:22:44.239 --> 01:22:47.119
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: So I've got it set up with our names to decide the order.
+
+1307
+01:22:47.000 --> 01:22:49.340
+<v 3C461FF5-95CA-408A-BDD0-C38ACAFAE5A9>Codey: Wait, my name sounded really weird.
+
+1308
+01:22:49.439 --> 01:22:51.960
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: - Yeah, let's not, let, let's just deal with that.
+
+1309
+01:22:51.960 --> 01:22:52.800
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: We'll deal with it.
+
+1310
+01:22:52.800 --> 01:22:54.039
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It's like an automated thing.
+
+1311
+01:22:54.039 --> 01:22:55.840
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: It didn't let me record, anyway, whatever.
+
+1312
+01:22:56.000 --> 01:22:57.840
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: All farmers, and welcome to another episode
+
+1313
+01:22:57.840 --> 01:22:59.319
+<v 6FC7A04C-0374-44F9-84C8-092F01B5A366>Al: of the Harvest season.
