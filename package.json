@@ -4,8 +4,14 @@
   "description": "Website for Rants With Al",
   "main": "package.json",
   "scripts": {
+    "prebuild": "npm run stats:generate",
     "build": "rimraf public/ && hugo",
-    "dev": "rimraf public/ && hugo server --bind 0.0.0.0"
+    "predev": "npm run stats:generate",
+    "dev": "rimraf public/ && hugo server --bind 0.0.0.0",
+    "top-durations": "node scripts/top-durations.js",
+    "host-counts": "node scripts/host-counts.js",
+    "stats:generate": "node scripts/generate-episode-stats.js",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -20,5 +26,8 @@
   "dependencies": {
     "hugo-bin": "0.149.2",
     "rimraf": "6.1.2"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
   }
 }
