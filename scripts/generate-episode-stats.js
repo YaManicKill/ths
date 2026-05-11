@@ -7,7 +7,9 @@ const {
   projectRoot,
   formatSeconds,
   getEpisodeData,
-  getHostCounts,
+  getHostStats,
+  getHostPairStats,
+  getReleaseGapStats,
 } = require("./lib/episode-data");
 
 let episodes;
@@ -18,12 +20,16 @@ try {
   process.exit(1);
 }
 
-const hostCounts = getHostCounts(episodes);
+const hostStats = getHostStats(episodes);
+const hostPairs = getHostPairStats(episodes);
+const releaseGaps = getReleaseGapStats(episodes);
 
 const output = {
   generatedAt: new Date().toISOString(),
   totalEpisodes: episodes.length,
-  hosts: hostCounts,
+  hosts: hostStats,
+  hostPairs,
+  releaseGaps,
   topDurations: episodes.slice(0, 25).map((episode) => ({
     title: episode.title,
     duration: episode.durationText,

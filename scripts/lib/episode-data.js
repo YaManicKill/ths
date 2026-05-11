@@ -3,6 +3,7 @@ const path = require("node:path");
 
 const projectRoot = path.join(__dirname, "..", "..");
 const episodesRoot = path.join(projectRoot, "content", "episode");
+const hostOverridesPath = path.join(projectRoot, "data", "host-overrides.json");
 
 const acronymMap = {
   sos: "SoS",
@@ -13,10 +14,46 @@ const acronymMap = {
   poot: "PoOT",
 };
 
-const hostAliases = {
+const defaultHostAliases = {
   "Al McKinlay": "Al",
   "Raschelle Dellaney": "Raschelle",
+  Kevin: "Kev",
+  Keving: "Kev",
+  Britney: "Bev",
 };
+
+const defaultIgnoredHostNames = ["We", "The", "An", "A"];
+
+function loadHostOverrides() {
+  if (!fs.existsSync(hostOverridesPath)) {
+    return { aliases: {}, ignoreNames: [] };
+  }
+
+  try {
+    const raw = fs.readFileSync(hostOverridesPath, "utf8");
+    const parsed = JSON.parse(raw);
+
+    return {
+      aliases:
+        parsed.aliases && typeof parsed.aliases === "object"
+          ? parsed.aliases
+          : {},
+      ignoreNames: Array.isArray(parsed.ignoreNames) ? parsed.ignoreNames : [],
+    };
+  } catch {
+    return { aliases: {}, ignoreNames: [] };
+  }
+}
+
+const hostOverrides = loadHostOverrides();
+const hostAliases = {
+  ...defaultHostAliases,
+  ...hostOverrides.aliases,
+};
+const ignoredHostNames = new Set([
+  ...defaultIgnoredHostNames,
+  ...hostOverrides.ignoreNames,
+]);
 
 function walkMarkdownFiles(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -108,13 +145,6 @@ function extractHostsFromDescription(description) {
   }
 
   const words = description.trim().split(/\s+/);
-  const andIndex = words.findIndex((word) =>
-    /^and$/i.test(word.replace(/[^a-z]/gi, "")),
-  );
-
-  if (andIndex >= 0 && andIndex + 1 < words.length) {
-    return words.slice(0, andIndex + 2).join(" ");
-  }
 
   const hostBoundaryWords = new Set([
     "talk",
@@ -138,6 +168,14 @@ function extractHostsFromDescription(description) {
 
   if (boundaryIndex > 0) {
     return words.slice(0, boundaryIndex).join(" ");
+  }
+
+  const andIndex = words.findIndex((word) =>
+    /^and$/i.test(word.replace(/[^a-z]/gi, "")),
+  );
+
+  if (andIndex >= 0 && andIndex + 1 < words.length) {
+    return words.slice(0, andIndex + 2).join(" ");
   }
 
   return null;
@@ -169,7 +207,7 @@ function parseHostNames(text) {
     .filter(Boolean)
     .filter(isValidHostName)
     .map(canonicalizeHostName)
-    .filter((name) => !["We", "The", "An", "A"].includes(name));
+    .filter((name) => !ignoredHostNames.has(name));
 }
 
 function formatHostList(names) {
@@ -186,6 +224,30 @@ function formatHostList(names) {
   }
 
   return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+}
+
+function toValidDate(dateText) {
+  if (!dateText) {
+    return null;
+  }
+
+  const parsed = new Date(dateText);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function median(values) {
+  if (values.length === 0) {
+    return null;
+  }
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+
+  if (sorted.length % 2 === 0) {
+    return Math.round((sorted[middle - 1] + sorted[middle]) / 2);
+  }
+
+  return sorted[middle];
 }
 
 function getEpisodeData() {
@@ -245,26 +307,225 @@ function getEpisodeData() {
   return episodes;
 }
 
-function getHostCounts(episodes) {
-  const counts = new Map();
+function getHostStats(episodes) {
+  const stats = new Map();
 
   for (const episode of episodes) {
     const uniqueNames = new Set(episode.hostNames);
     for (const name of uniqueNames) {
-      counts.set(name, (counts.get(name) || 0) + 1);
+      if (!stats.has(name)) {
+        stats.set(name, {
+          name,
+          episodeCount: 0,
+          totalDurationSeconds: 0,
+          durations: [],
+          longestEpisode: null,
+          shortestEpisode: null,
+        });
+      }
+
+      const host = stats.get(name);
+      host.episodeCount += 1;
+      host.totalDurationSeconds += episode.seconds;
+      host.durations.push(episode.seconds);
+
+      if (
+        !host.longestEpisode ||
+        episode.seconds > host.longestEpisode.seconds
+      ) {
+        host.longestEpisode = {
+          title: episode.title,
+          duration: episode.durationText,
+          date: episode.formattedDate,
+          path: episode.relativePath,
+          seconds: episode.seconds,
+        };
+      }
+
+      if (
+        !host.shortestEpisode ||
+        episode.seconds < host.shortestEpisode.seconds
+      ) {
+        host.shortestEpisode = {
+          title: episode.title,
+          duration: episode.durationText,
+          date: episode.formattedDate,
+          path: episode.relativePath,
+          seconds: episode.seconds,
+        };
+      }
     }
   }
 
-  return [...counts.entries()]
-    .map(([name, episodeCount]) => ({ name, episodeCount }))
+  return [...stats.values()]
+    .map((host) => {
+      const averageDurationSeconds = Math.round(
+        host.totalDurationSeconds / host.episodeCount,
+      );
+      const medianDurationSeconds = median(host.durations);
+
+      return {
+        name: host.name,
+        episodeCount: host.episodeCount,
+        totalDuration: formatSeconds(host.totalDurationSeconds),
+        averageDuration: formatSeconds(averageDurationSeconds),
+        medianDuration:
+          medianDurationSeconds === null
+            ? "00:00:00"
+            : formatSeconds(medianDurationSeconds),
+        longestEpisode: host.longestEpisode
+          ? {
+              title: host.longestEpisode.title,
+              duration: host.longestEpisode.duration,
+              date: host.longestEpisode.date,
+              path: host.longestEpisode.path,
+            }
+          : null,
+        shortestEpisode: host.shortestEpisode
+          ? {
+              title: host.shortestEpisode.title,
+              duration: host.shortestEpisode.duration,
+              date: host.shortestEpisode.date,
+              path: host.shortestEpisode.path,
+            }
+          : null,
+      };
+    })
     .sort(
       (a, b) => b.episodeCount - a.episodeCount || a.name.localeCompare(b.name),
     );
+}
+
+function getHostPairStats(episodes) {
+  const pairCounts = new Map();
+
+  for (const episode of episodes) {
+    const hosts = [...new Set(episode.hostNames)].sort((a, b) =>
+      a.localeCompare(b),
+    );
+    if (hosts.length < 2) {
+      continue;
+    }
+
+    for (let i = 0; i < hosts.length - 1; i += 1) {
+      for (let j = i + 1; j < hosts.length; j += 1) {
+        const a = hosts[i];
+        const b = hosts[j];
+        const key = `${a}|${b}`;
+        pairCounts.set(key, (pairCounts.get(key) || 0) + 1);
+      }
+    }
+  }
+
+  return [...pairCounts.entries()]
+    .map(([key, episodeCount]) => {
+      const [hostA, hostB] = key.split("|");
+      return {
+        hosts: [hostA, hostB],
+        pair: `${hostA} and ${hostB}`,
+        episodeCount,
+      };
+    })
+    .sort(
+      (a, b) => b.episodeCount - a.episodeCount || a.pair.localeCompare(b.pair),
+    );
+}
+
+function getReleaseGapStats(episodes) {
+  const datedEpisodes = episodes
+    .map((episode) => ({
+      ...episode,
+      parsedDate: toValidDate(episode.dateText),
+    }))
+    .filter((episode) => episode.parsedDate !== null)
+    .sort((a, b) => a.parsedDate - b.parsedDate);
+
+  if (datedEpisodes.length < 2) {
+    return {
+      episodesWithDate: datedEpisodes.length,
+      gapCount: 0,
+      averageGapDays: 0,
+      medianGapDays: 0,
+      shortestGap: null,
+      longestGap: null,
+    };
+  }
+
+  const gaps = [];
+
+  for (let index = 1; index < datedEpisodes.length; index += 1) {
+    const previous = datedEpisodes[index - 1];
+    const current = datedEpisodes[index];
+    const days = Number(
+      (
+        (current.parsedDate - previous.parsedDate) /
+        (1000 * 60 * 60 * 24)
+      ).toFixed(2),
+    );
+    gaps.push({
+      days,
+      from: {
+        title: previous.title,
+        date: previous.formattedDate,
+        path: previous.relativePath,
+      },
+      to: {
+        title: current.title,
+        date: current.formattedDate,
+        path: current.relativePath,
+      },
+    });
+  }
+
+  const gapValues = gaps.map((gap) => gap.days);
+  const averageGapDays = Number(
+    (
+      gapValues.reduce((sum, value) => sum + value, 0) / gapValues.length
+    ).toFixed(2),
+  );
+  const sortedGapValues = [...gapValues].sort((a, b) => a - b);
+  const mid = Math.floor(sortedGapValues.length / 2);
+  const medianGapDays =
+    sortedGapValues.length % 2 === 0
+      ? Number(
+          ((sortedGapValues[mid - 1] + sortedGapValues[mid]) / 2).toFixed(2),
+        )
+      : sortedGapValues[mid];
+
+  const shortestGap = gaps.reduce(
+    (best, current) =>
+      best === null || current.days < best.days ? current : best,
+    null,
+  );
+  const longestGap = gaps.reduce(
+    (best, current) =>
+      best === null || current.days > best.days ? current : best,
+    null,
+  );
+
+  return {
+    episodesWithDate: datedEpisodes.length,
+    gapCount: gaps.length,
+    averageGapDays,
+    medianGapDays,
+    shortestGap,
+    longestGap,
+  };
+}
+
+function getHostCounts(episodes) {
+  return getHostStats(episodes).map(({ name, episodeCount }) => ({
+    name,
+    episodeCount,
+  }));
 }
 
 module.exports = {
   projectRoot,
   formatSeconds,
   getEpisodeData,
+  getHostStats,
   getHostCounts,
+  getHostPairStats,
+  getReleaseGapStats,
 };

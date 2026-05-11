@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { getEpisodeData, getHostCounts } = require("./lib/episode-data");
+const { getEpisodeData, getHostStats } = require("./lib/episode-data");
 
 let episodes;
 try {
@@ -10,15 +10,17 @@ try {
   process.exit(1);
 }
 
-const hostCounts = getHostCounts(episodes);
+const hostStats = getHostStats(episodes);
 
-if (hostCounts.length === 0) {
+if (hostStats.length === 0) {
   console.log("No hosts found.");
   process.exit(0);
 }
 
-console.log(`Hosts by episode count (${hostCounts.length} total):`);
-for (const [index, host] of hostCounts.entries()) {
+console.log(`Hosts by episode count (${hostStats.length} total):`);
+for (const [index, host] of hostStats.entries()) {
   const rank = String(index + 1).padStart(2, " ");
-  console.log(`${rank}. ${host.name} | ${host.episodeCount}`);
+  console.log(
+    `${rank}. ${host.name} | episodes: ${host.episodeCount} | avg: ${host.averageDuration}`,
+  );
 }
