@@ -10,7 +10,8 @@
     "dev": "rimraf public/ && hugo server --bind 0.0.0.0",
     "top-durations": "node scripts/top-durations.js",
     "host-counts": "node scripts/host-counts.js",
-    "stats:generate": "node scripts/generate-episode-stats.js"
+    "stats:generate": "node scripts/generate-episode-stats.js",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -25,5 +26,8 @@
   "dependencies": {
     "hugo-bin": "0.149.2",
     "rimraf": "6.1.2"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
   }
 }
