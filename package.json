@@ -8,6 +8,8 @@
     "build": "rimraf public/ && hugo",
     "predev": "npm run stats:generate",
     "dev": "rimraf public/ && hugo server --bind 0.0.0.0",
+    "postprocess": "node scripts/postprocess/cli.js episode",
+    "postprocess:dry": "node scripts/postprocess/cli.js episode --dry-run",
     "top-durations": "node scripts/top-durations.js",
     "host-counts": "node scripts/host-counts.js",
     "stats:generate": "node scripts/generate-episode-stats.js",
