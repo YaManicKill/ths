@@ -1,0 +1,26 @@
+{
+  "defaultAuthor": "Al McKinlay",
+  "defaultSeasonNumber": "11",
+  "releaseTimeLocal": "19:00:00",
+  "timezoneOffset": "+01:00",
+  "outputRoot": "content/episode",
+  "videoOutputRoot": "content/episode-videos",
+  "episodesRoot": "~/Google Drive/My Drive/Projects/ths/Episodes",
+  "seasonMap": {
+    "11": {
+      "year": "3",
+      "seasonName": "Autumn",
+      "folder": "autumn"
+    }
+  },
+  "imageOverridesFile": "data/chapter-image-overrides.json",
+  "profanityWords": [
+    "fuck",
+    "fucking",
+    "shit",
+    "bitch",
+    "cunt",
+    "asshole",
+    "motherfucker"
+  ]
+}
