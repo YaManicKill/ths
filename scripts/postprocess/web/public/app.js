@@ -660,40 +660,32 @@ approveButton.addEventListener("click", async () => {
 
     const result = await response.json();
 
-    // Display progress and summary
     const lines = [];
-
-    if (result.progress && Array.isArray(result.progress)) {
-      lines.push("=== Generation Progress ===");
-      for (const msg of result.progress) {
-        lines.push(`✓ ${msg}`);
-      }
-      lines.push("");
-    }
 
     if (result.error) {
       lines.push(`❌ Error: ${result.error}`);
+    } else if (result.dryRun) {
+      lines.push(`Title: ${result.episode.title}`);
+      lines.push(`Episode: ${result.episode.guid}`);
+      lines.push(`Chapters: ${result.chapterCount}`);
+      lines.push("");
+      lines.push("Dry run — no files written.");
     } else {
-      lines.push("=== Episode Summary ===");
-      if (result.episode) {
-        lines.push(`Title: ${result.episode.title}`);
-        lines.push(`Episode: ${result.episode.guid}`);
-        lines.push(`Chapters: ${result.chapterCount}`);
+      lines.push(`Title: ${result.episode.title}`);
+      lines.push(`Episode: ${result.episode.guid}`);
+      lines.push(`Chapters: ${result.chapterCount}`);
+      lines.push("");
+      if (result.gitBranch) {
+        const verb = result.gitBranch.created ? "Created" : "Checked out";
+        lines.push(`✓ ${verb} branch: ${result.gitBranch.name}`);
       }
-      if (result.dryRun) {
-        lines.push("(Dry run - no files written)");
+      lines.push(`✓ Episode files written`);
+      if (result.mp3ChapterImages && result.mp3ChapterImages.completed) {
         lines.push(
-          "(MP3 chapter images were not embedded because dry run is on)",
+          `✓ MP3 chapter images embedded (${result.mp3ChapterImages.chaptersEmbedded} chapters)`,
         );
-      } else {
-        lines.push("✓ Files written successfully");
-        if (result.mp3ChapterImages && result.mp3ChapterImages.completed) {
-          lines.push(
-            `✓ Embedded chapter images into MP3 (${result.mp3ChapterImages.chaptersEmbedded} chapters)`,
-          );
-        }
-        lines.push("✓ MP4 generation started in background");
       }
+      lines.push(`✓ MP4 generation started in background`);
     }
 
     showResults(lines.join("\n"));

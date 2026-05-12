@@ -419,7 +419,11 @@ function episodeTitleFromInputs({ explicitTitle, transcriptMdPath, mp3Path }) {
   return "Untitled Episode";
 }
 
-function extractSpeakerNames(transcriptMdText, maxNames = 2) {
+function extractSpeakerNames(
+  transcriptMdText,
+  maxNames = 2,
+  excludeTitles = new Set(),
+) {
   const names = [];
   const seen = new Set();
   const regex = /\*\*([^:*]+):\*\*/g;
@@ -427,10 +431,14 @@ function extractSpeakerNames(transcriptMdText, maxNames = 2) {
 
   while ((match = regex.exec(transcriptMdText)) !== null) {
     const name = match[1].trim();
-    if (!name || seen.has(name.toLowerCase())) {
+    const normalized = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (!name || seen.has(normalized) || excludeTitles.has(normalized)) {
       continue;
     }
-    seen.add(name.toLowerCase());
+    seen.add(normalized);
     names.push(name);
     if (names.length >= maxNames) {
       break;

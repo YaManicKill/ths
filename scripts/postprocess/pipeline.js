@@ -326,7 +326,8 @@ async function discoverEpisodeData(inputOptions = {}) {
     mp3Path: inputOptions.mp3Path,
   });
   const mainTopic = pickMainTopic(chapters);
-  const speakers = extractSpeakerNames(transcriptMdText, 2);
+  const chapterTitles = new Set(chapters.map((c) => normalizeTitle(c.title)));
+  const speakers = extractSpeakerNames(transcriptMdText, 2, chapterTitles);
   const description = buildDescription({
     explicitDescription: inputOptions.description,
     speakers,
