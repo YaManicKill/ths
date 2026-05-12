@@ -14,6 +14,7 @@ const { findWordMatches } = require("./transcript-check");
 const { generateVideoFromChapters } = require("./video");
 const {
   assertToolAvailable,
+  createOrCheckoutEpisodeBranch,
   ensureDir,
   fileExists,
   getUpcomingWednesdayDateString,
@@ -510,6 +511,19 @@ async function runPipeline(inputOptions = {}) {
   };
 
   if (!inputOptions.dryRun) {
+    onProgress("Creating git branch...");
+
+    const branchResult = createOrCheckoutEpisodeBranch(
+      repoRoot,
+      episodeMeta.seasonCode,
+      episodeMeta.episodeCode,
+    );
+
+    report.gitBranch = {
+      name: branchResult.branchName,
+      created: branchResult.created,
+    };
+
     onProgress("Creating episode directory...");
 
     ensureDir(episodeDir);

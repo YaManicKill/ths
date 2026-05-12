@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>THS Post-Process Runner</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header>
+        <h1>THS Post-Process Runner</h1>
+        <p>Run dry-runs or full output generation for a podcast episode.</p>
+      </header>
+
+      <form id="run-form">
+        <label>
+          MP3 path
+          <input
+            name="mp3Path"
+            required
+            placeholder="/absolute/path/to/ths-11-18.mp3"
+          />
+        </label>
+
+        <label>
+          Transcript MD path
+          <input
+            name="transcriptMdPath"
+            required
+            placeholder="/absolute/path/to/Episode Name.md"
+          />
+        </label>
+
+        <label>
+          Transcript VTT path
+          <input
+            name="transcriptVttPath"
+            required
+            placeholder="/absolute/path/to/Episode Name.vtt"
+          />
+        </label>
+
+        <label>
+          Episode title override (optional)
+          <input name="episodeTitle" placeholder="Custom episode title" />
+        </label>
+
+        <label>
+          Description override (optional)
+          <input
+            name="description"
+            placeholder="Custom frontmatter description"
+          />
+        </label>
+
+        <label>
+          Publish date override (optional)
+          <input name="publishDate" placeholder="2026-05-13T19:00:00+01:00" />
+        </label>
+
+        <label class="checkbox">
+          <input type="checkbox" name="dryRun" checked />
+          Dry run (no files written)
+        </label>
+
+        <button type="submit" id="submit-discover">
+          Discover & Preview Images
+        </button>
+      </form>
+
+      <section id="discovery-summary" style="display: none">
+        <h2>Discovered Episode Data</h2>
+        <pre id="discovery-summary-content"></pre>
+      </section>
+
+      <section id="image-preview-section" style="display: none">
+        <h2>Chapter Images Preview</h2>
+        <div id="chapters-grid"></div>
+        <button
+          id="approve-button"
+          style="margin-top: 20px; padding: 10px 20px; font-size: 1em"
+        >
+          ✓ Approve & Generate Files
+        </button>
+        <button
+          id="cancel-button"
+          style="margin-top: 10px; padding: 10px 20px; margin-left: 10px"
+        >
+          Cancel
+        </button>
+      </section>
+
+      <section>
+        <h2>Status</h2>
+        <pre id="result"></pre>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
