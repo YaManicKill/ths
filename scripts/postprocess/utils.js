@@ -107,8 +107,46 @@ function getUpcomingWednesdayDateString({
   return `${year}-${month}-${date}T${hh}:${mm}:${ss}${timezoneOffset}`;
 }
 
+function createOrCheckoutEpisodeBranch(repoRoot, seasonCode, episodeCode) {
+  const branchName = `ep-${seasonCode}-${episodeCode}`;
+
+  // Check if branch exists
+  const checkResult = runCommand("git", ["rev-parse", "--verify", branchName], {
+    cwd: repoRoot,
+  });
+
+  if (checkResult.status !== 0) {
+    // Branch doesn't exist, create it
+    const createResult = runCommand("git", ["checkout", "-b", branchName], {
+      cwd: repoRoot,
+    });
+
+    if (createResult.status !== 0) {
+      throw new Error(
+        `Failed to create git branch "${branchName}": ${createResult.stderr || createResult.stdout}`,
+      );
+    }
+
+    return { created: true, branchName };
+  } else {
+    // Branch exists, checkout to it
+    const checkoutResult = runCommand("git", ["checkout", branchName], {
+      cwd: repoRoot,
+    });
+
+    if (checkoutResult.status !== 0) {
+      throw new Error(
+        `Failed to checkout git branch "${branchName}": ${checkoutResult.stderr || checkoutResult.stdout}`,
+      );
+    }
+
+    return { created: false, branchName };
+  }
+}
+
 module.exports = {
   assertToolAvailable,
+  createOrCheckoutEpisodeBranch,
   ensureDir,
   fileExists,
   getUpcomingWednesdayDateString,

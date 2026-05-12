@@ -14,6 +14,7 @@ const { findWordMatches } = require("./transcript-check");
 const { generateVideoFromChapters } = require("./video");
 const {
   assertToolAvailable,
+  createOrCheckoutEpisodeBranch,
   ensureDir,
   fileExists,
   getUpcomingWednesdayDateString,
@@ -325,7 +326,8 @@ async function discoverEpisodeData(inputOptions = {}) {
     mp3Path: inputOptions.mp3Path,
   });
   const mainTopic = pickMainTopic(chapters);
-  const speakers = extractSpeakerNames(transcriptMdText, 2);
+  const chapterTitles = new Set(chapters.map((c) => normalizeTitle(c.title)));
+  const speakers = extractSpeakerNames(transcriptMdText, 2, chapterTitles);
   const description = buildDescription({
     explicitDescription: inputOptions.description,
     speakers,
@@ -510,6 +512,19 @@ async function runPipeline(inputOptions = {}) {
   };
 
   if (!inputOptions.dryRun) {
+    onProgress("Creating git branch...");
+
+    const branchResult = createOrCheckoutEpisodeBranch(
+      repoRoot,
+      episodeMeta.seasonCode,
+      episodeMeta.episodeCode,
+    );
+
+    report.gitBranch = {
+      name: branchResult.branchName,
+      created: branchResult.created,
+    };
+
     onProgress("Creating episode directory...");
 
     ensureDir(episodeDir);
