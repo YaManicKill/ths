@@ -4,7 +4,6 @@ const {
   attachChapterDurations,
   episodeTitleFromInputs,
   extractSpeakerNames,
-  extractUrls,
   formatSecondsToHhmmss,
   parseChaptersFromMp3,
   parseEpisodeFromMp3Path,
@@ -188,7 +187,6 @@ function buildIndexMarkdown({
   podcastBytes,
   podcastDuration,
   dateString,
-  links,
   chapters,
   author,
 }) {
@@ -225,11 +223,15 @@ function buildIndexMarkdown({
   lines.push("## Links");
   lines.push("");
 
-  if (links.length === 0) {
+  const hiddenLinkTitles = chapters
+    .filter((chapter) => chapter.toc === false)
+    .map((chapter) => chapter.title);
+
+  if (hiddenLinkTitles.length === 0) {
     lines.push("[]()");
   } else {
-    for (const url of links) {
-      lines.push(`[${url}](${url})`);
+    for (const title of hiddenLinkTitles) {
+      lines.push(title);
     }
   }
 
@@ -334,7 +336,9 @@ async function discoverEpisodeData(inputOptions = {}) {
     mainTopic,
   });
 
-  const links = extractUrls(transcriptMdText, transcriptVttText);
+  const hiddenLinkTitles = chapters
+    .filter((chapter) => chapter.toc === false)
+    .map((chapter) => chapter.title);
 
   const stat = fs.statSync(inputOptions.mp3Path);
   const podcastBytes = stat.size;
@@ -390,7 +394,7 @@ async function discoverEpisodeData(inputOptions = {}) {
     mainTopic,
     speakers,
     description,
-    links,
+    hiddenLinkTitles,
     podcastBytes,
     podcastDuration,
     dateString,
@@ -423,7 +427,6 @@ async function runPipeline(inputOptions = {}) {
     seasonInfo,
     episodeTitle,
     description,
-    links,
     podcastBytes: discoveredPodcastBytes,
     podcastDuration,
     dateString,
@@ -554,7 +557,6 @@ async function runPipeline(inputOptions = {}) {
     podcastBytes: effectivePodcastBytes,
     podcastDuration,
     dateString,
-    links,
     chapters: chaptersWithImages,
     author: config.defaultAuthor,
   });
@@ -567,17 +569,22 @@ async function runPipeline(inputOptions = {}) {
     writeJson(path.join(episodeDir, "postprocess-report.json"), report);
   }
 
-  onProgress("Generating MP4 video...");
+  if (!inputOptions.dryRun && inputOptions.skipVideo) {
+    onProgress("Skipping MP4 generation (requested)");
+    report.videoStatus = { skipped: true };
+  }
 
-  // Start video generation in background (don't await) so response can be sent immediately
-  if (!inputOptions.dryRun) {
+  if (!inputOptions.dryRun && !inputOptions.skipVideo) {
+    onProgress("Generating MP4 video...");
     const videoStatusPath = path.join(episodeDir, "video-status.json");
+    const startedAt = new Date().toISOString();
 
     // Use setImmediate to start the task asynchronously without blocking
     setImmediate(() => {
       writeJson(videoStatusPath, {
         status: "started",
-        startedAt: new Date().toISOString(),
+        startedAt,
+        percent: 0,
       });
       try {
         generateVideoFromChapters({
@@ -585,11 +592,19 @@ async function runPipeline(inputOptions = {}) {
           mp3Path: inputOptions.mp3Path,
           outputPath: videoPath,
           workDir: path.join(workDir, "video"),
+          onProgress: (progress) => {
+            writeJson(videoStatusPath, {
+              status: "started",
+              startedAt,
+              ...progress,
+            });
+          },
         });
         writeJson(videoStatusPath, {
           status: "completed",
           completedAt: new Date().toISOString(),
           videoPath,
+          percent: 100,
         });
       } catch (error) {
         // Log error but don't throw since we're background
@@ -605,7 +620,11 @@ async function runPipeline(inputOptions = {}) {
     report.videoStatus = { statusFile: videoStatusPath };
   }
 
-  onProgress("Pipeline complete. Video generation running in background...");
+  if (!inputOptions.dryRun && !inputOptions.skipVideo) {
+    onProgress("Pipeline complete. Video generation running in background...");
+  } else {
+    onProgress("Pipeline complete.");
+  }
 
   return {
     report,

@@ -28,13 +28,22 @@ function createSegmentVideo({ imagePath, durationSeconds, outputPath }) {
   }
 }
 
-function generateVideoFromChapters({ chapters, mp3Path, outputPath, workDir }) {
+function generateVideoFromChapters({
+  chapters,
+  mp3Path,
+  outputPath,
+  workDir,
+  onProgress = () => {},
+}) {
   ensureDir(workDir);
   ensureDir(path.dirname(outputPath));
 
   const segmentPaths = [];
+  const totalSteps = Math.max(1, chapters.length + 2); // segments + concat + mux
+  let completedSteps = 0;
 
-  chapters.forEach((chapter, index) => {
+  for (let index = 0; index < chapters.length; index += 1) {
+    const chapter = chapters[index];
     const segmentPath = path.join(
       workDir,
       `segment-${String(index + 1).padStart(3, "0")}.mp4`,
@@ -45,7 +54,14 @@ function generateVideoFromChapters({ chapters, mp3Path, outputPath, workDir }) {
       outputPath: segmentPath,
     });
     segmentPaths.push(segmentPath);
-  });
+    completedSteps += 1;
+    onProgress({
+      phase: "segments",
+      current: index + 1,
+      total: chapters.length,
+      percent: Math.round((completedSteps / totalSteps) * 100),
+    });
+  }
 
   const concatListPath = path.join(workDir, "segments.txt");
   const concatText = segmentPaths
@@ -73,6 +89,12 @@ function generateVideoFromChapters({ chapters, mp3Path, outputPath, workDir }) {
     );
   }
 
+  completedSteps += 1;
+  onProgress({
+    phase: "concat",
+    percent: Math.round((completedSteps / totalSteps) * 100),
+  });
+
   const muxResult = runCommand("ffmpeg", [
     "-y",
     "-i",
@@ -92,6 +114,12 @@ function generateVideoFromChapters({ chapters, mp3Path, outputPath, workDir }) {
       `ffmpeg failed while combining video and audio: ${muxResult.stderr || muxResult.stdout}`,
     );
   }
+
+  completedSteps += 1;
+  onProgress({
+    phase: "mux",
+    percent: Math.round((completedSteps / totalSteps) * 100),
+  });
 
   return outputPath;
 }
