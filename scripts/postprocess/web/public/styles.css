@@ -1,10 +1,15 @@
 :root {
-  color-scheme: light;
-  --bg: #f6f5f1;
-  --panel: #fffdf8;
-  --ink: #221f1a;
-  --accent: #0f766e;
-  --line: #ddd6c9;
+  color-scheme: dark;
+  --bg: #0b1020;
+  --bg-elevated: #111827;
+  --panel: #131b2d;
+  --panel-alt: #0f1728;
+  --ink: #e5e7eb;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent-strong: #0ea5e9;
+  --line: #273449;
+  --line-strong: #3b4d68;
 }
 
 * {
@@ -15,7 +20,18 @@ body {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
   color: var(--ink);
-  background: radial-gradient(circle at top right, #fef6d8 0, var(--bg) 40%);
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(56, 189, 248, 0.16) 0,
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at bottom left,
+      rgba(14, 165, 233, 0.12) 0,
+      transparent 35%
+    ),
+    linear-gradient(180deg, #08101f 0%, var(--bg) 100%);
 }
 
 .page {
@@ -26,6 +42,10 @@ body {
 
 h1 {
   margin-bottom: 0.25rem;
+}
+
+p {
+  color: var(--muted);
 }
 
 form {
@@ -50,6 +70,25 @@ button {
   padding: 0.6rem 0.7rem;
   border: 1px solid var(--line);
   border-radius: 8px;
+  color: var(--ink);
+}
+
+input,
+textarea {
+  background: var(--panel-alt);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #64748b;
+}
+
+input:focus,
+textarea:focus,
+button:focus {
+  outline: 2px solid rgba(56, 189, 248, 0.6);
+  outline-offset: 2px;
+  border-color: var(--accent);
 }
 
 textarea {
@@ -65,24 +104,30 @@ textarea {
 
 button {
   width: fit-content;
-  border: 0;
-  background: var(--accent);
-  color: #fff;
+  border: 1px solid var(--line-strong);
+  background: linear-gradient(180deg, var(--accent-strong), #0284c7);
+  color: #f8fafc;
   cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset;
 }
 
 button:hover {
-  filter: brightness(0.95);
+  filter: brightness(1.04);
 }
 
 pre {
-  background: #171717;
-  color: #f5f5f5;
+  background: #0f172a;
+  color: #e2e8f0;
   padding: 1rem;
   border-radius: 10px;
-  border: 1px solid #3a3a3a;
+  border: 1px solid var(--line);
   overflow-x: auto;
   min-height: 180px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+}
+
+section {
+  margin-top: 1rem;
 }
 
 @media (max-width: 720px) {
