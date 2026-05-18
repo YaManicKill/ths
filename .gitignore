@@ -10,3 +10,4 @@ node_modules/
 
 data/
 content/**/postprocess-report.json
+content/**/video-status.json

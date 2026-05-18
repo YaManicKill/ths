@@ -401,6 +401,7 @@ function startServer({ port = 4173 } = {}) {
             episodeMeta: discovered.episodeMeta,
             seasonInfo: discovered.seasonInfo,
             description: discovered.description,
+            dateString: discovered.dateString,
             chapters: discovered.chapters.map((ch) => ({
               timeLabel: ch.timeLabel,
               title: ch.title,
@@ -476,6 +477,23 @@ function startServer({ port = 4173 } = {}) {
         sendJson(res, 200, { success: true, cleared });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/video-status") {
+      const statusFile = parsedUrl.searchParams.get("statusFile");
+      if (!statusFile || !path.isAbsolute(statusFile)) {
+        sendJson(res, 400, {
+          error: "Missing or invalid statusFile parameter",
+        });
+        return;
+      }
+      try {
+        const raw = fs.readFileSync(statusFile, "utf8");
+        sendJson(res, 200, JSON.parse(raw));
+      } catch {
+        sendJson(res, 200, { status: "pending" });
       }
       return;
     }
