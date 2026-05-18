@@ -49,8 +49,6 @@ function prefillFromQuery() {
       setInputValue(key, value);
     }
   });
-
-  return params.get("autoRun") === "1";
 }
 
 function resolvePossibleImageUrl(rawValue) {
@@ -219,11 +217,12 @@ function renderChapterPreviews(discovered) {
     const chapterDiv = document.createElement("div");
     chapterDiv.className = "chapter-preview";
     chapterDiv.style.cssText = `
-      border: 1px solid #ccc;
+      border: 1px solid var(--line);
       border-radius: 8px;
       padding: 15px;
       margin-bottom: 15px;
-      background: #f9f9f9;
+      background: linear-gradient(180deg, var(--panel), var(--panel-alt));
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
     `;
 
     const titleEl = document.createElement("h3");
@@ -250,7 +249,7 @@ function renderChapterPreviews(discovered) {
       width: 150px;
       height: 150px;
       border-radius: 4px;
-      border: 2px solid #007bff;
+      border: 2px solid var(--accent-strong);
       object-fit: cover;
       cursor: pointer;
     `;
@@ -291,7 +290,7 @@ function renderChapterPreviews(discovered) {
     controls.style.cssText = "display:flex; flex-direction:column; gap:8px;";
 
     const dropHint = document.createElement("div");
-    dropHint.style.cssText = "font-size: 0.9em; color: #666;";
+    dropHint.style.cssText = "font-size: 0.9em; color: var(--muted);";
     dropHint.textContent =
       "Drop image on the preview, or click the image to choose";
 
@@ -306,8 +305,8 @@ function renderChapterPreviews(discovered) {
     clearBtn.style.cssText = `
       padding: 8px 10px;
       cursor: pointer;
-      background: #f0f0f0;
-      border: 1px solid #ccc;
+      background: var(--panel-alt);
+      border: 1px solid var(--line);
       border-radius: 4px;
     `;
     clearBtn.disabled = !chapter.imageSource.startsWith("override:");
@@ -318,8 +317,8 @@ function renderChapterPreviews(discovered) {
     pasteBtn.style.cssText = `
       padding: 8px 10px;
       cursor: pointer;
-      background: #f5f8ff;
-      border: 1px solid #99b7ff;
+      background: #17233a;
+      border: 1px solid var(--accent);
       border-radius: 4px;
     `;
 
@@ -342,8 +341,8 @@ function renderChapterPreviews(discovered) {
       currentImg.src = `/api/image?path=${encodeURIComponent(body.imagePath)}`;
       activePasteChapterIndex = null;
       pasteBtn.textContent = "Paste image (Cmd+V)";
-      pasteBtn.style.background = "#f5f8ff";
-      pasteBtn.style.borderColor = "#99b7ff";
+      pasteBtn.style.background = "#17233a";
+      pasteBtn.style.borderColor = "var(--accent)";
       clearBtn.disabled = false;
       addStatus(`✓ Uploaded replacement for chapter: ${chapter.title}`);
     }
@@ -409,18 +408,18 @@ function renderChapterPreviews(discovered) {
 
     currentImg.addEventListener("dragover", (event) => {
       event.preventDefault();
-      currentImg.style.borderColor = "#007bff";
-      currentImg.style.boxShadow = "0 0 0 4px rgba(0, 123, 255, 0.2)";
+      currentImg.style.borderColor = "var(--accent)";
+      currentImg.style.boxShadow = "0 0 0 4px rgba(56, 189, 248, 0.15)";
     });
 
     currentImg.addEventListener("dragleave", () => {
-      currentImg.style.borderColor = "#007bff";
+      currentImg.style.borderColor = "var(--accent-strong)";
       currentImg.style.boxShadow = "none";
     });
 
     currentImg.addEventListener("drop", async (event) => {
       event.preventDefault();
-      currentImg.style.borderColor = "#007bff";
+      currentImg.style.borderColor = "var(--accent-strong)";
       currentImg.style.boxShadow = "none";
 
       const file =
@@ -484,20 +483,20 @@ function renderChapterPreviews(discovered) {
         activePasteChapterIndex = null;
         activePasteBtn = null;
         pasteBtn.textContent = "Paste image (Cmd+V)";
-        pasteBtn.style.background = "#f5f8ff";
-        pasteBtn.style.borderColor = "#99b7ff";
+        pasteBtn.style.background = "#17233a";
+        pasteBtn.style.borderColor = "var(--accent)";
         return;
       }
       if (activePasteBtn) {
         activePasteBtn.textContent = "Paste image (Cmd+V)";
-        activePasteBtn.style.background = "#f5f8ff";
-        activePasteBtn.style.borderColor = "#99b7ff";
+        activePasteBtn.style.background = "#17233a";
+        activePasteBtn.style.borderColor = "var(--accent)";
       }
       activePasteChapterIndex = idx;
       activePasteBtn = pasteBtn;
       pasteBtn.textContent = "▶ Paste mode active — press Cmd+V";
-      pasteBtn.style.background = "#dceeff";
-      pasteBtn.style.borderColor = "#007bff";
+      pasteBtn.style.background = "#20324f";
+      pasteBtn.style.borderColor = "var(--accent-strong)";
       addStatus(
         `Paste mode active for: ${chapter.title}. Press Cmd+V to paste. Click the button again to cancel.`,
       );
@@ -599,6 +598,7 @@ async function runDiscovery() {
     !payload.transcriptMdPath ||
     !payload.transcriptVttPath
   ) {
+    toggleOverridesButton.style.display = "none";
     addStatus(
       "Fill in MP3 + transcript paths. Discovery will run automatically.",
     );
@@ -611,6 +611,7 @@ async function runDiscovery() {
   }
 
   isDiscovering = true;
+  toggleOverridesButton.style.display = "none";
 
   const stopDiscoverSpinner = startStatusSpinner("Discovering episode data...");
   previewSection.style.display = "none";
@@ -629,6 +630,7 @@ async function runDiscovery() {
     stopDiscoverSpinner("✓ Discovery complete");
 
     if (!result.success) {
+      toggleOverridesButton.style.display = "none";
       addStatus(`❌ Discovery failed: ${result.error}`);
       return;
     }
@@ -648,6 +650,8 @@ async function runDiscovery() {
     currentDiscoveryData = {
       discoveryData: result.discoveryData,
     };
+
+    toggleOverridesButton.style.display = "inline-block";
 
     renderDiscoverySummary(result.discovered);
     discoverySummarySection.style.display = "block";
@@ -756,6 +760,7 @@ approveButton.addEventListener("click", async () => {
   }
 
   approveButton.disabled = true;
+  toggleOverridesButton.style.display = "none";
   const runFormData = new FormData(form);
   const runPayload = {
     mp3Path: String(runFormData.get("mp3Path") || "").trim(),
@@ -769,7 +774,6 @@ approveButton.addEventListener("click", async () => {
       String(runFormData.get("description") || "").trim() || undefined,
     publishDate:
       String(runFormData.get("publishDate") || "").trim() || undefined,
-    dryRun: false,
     skipVideo: Boolean(skipVideoCheckbox && skipVideoCheckbox.checked),
   };
 
