@@ -521,6 +521,18 @@ function showResults(text) {
   resultBox.textContent = text;
 }
 
+function startStatusSpinner(prefix) {
+  const frames = ["|", "/", "-", "\\"];
+  let index = 0;
+  showResults(`${prefix} ${frames[index]}`);
+  const timer = setInterval(() => {
+    index = (index + 1) % frames.length;
+    showResults(`${prefix} ${frames[index]}`);
+  }, 200);
+
+  return () => clearInterval(timer);
+}
+
 function renderDiscoverySummary(discovered) {
   const lines = [];
   lines.push(`Episode: ${discovered.episodeTitle}`);
@@ -532,6 +544,9 @@ function renderDiscoverySummary(discovered) {
   );
   lines.push(`Chapters discovered: ${discovered.chapters.length}`);
   lines.push(`Links discovered: ${discovered.links.length}`);
+  if (discovered.dateString) {
+    lines.push(`Publish date: ${discovered.dateString}`);
+  }
   if (discovered.description) {
     lines.push("");
     lines.push(`Description: ${discovered.description}`);
@@ -540,11 +555,9 @@ function renderDiscoverySummary(discovered) {
   discoverySummaryContent.textContent = lines.join("\n");
 }
 
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
+function buildDiscoverPayload() {
   const formData = new FormData(form);
-  const payload = {
+  return {
     mp3Path: String(formData.get("mp3Path") || "").trim(),
     transcriptMdPath: String(formData.get("transcriptMdPath") || "").trim(),
     transcriptVttPath: String(formData.get("transcriptVttPath") || "").trim(),
@@ -552,10 +565,37 @@ form.addEventListener("submit", async (event) => {
       String(formData.get("episodeTitle") || "").trim() || undefined,
     description: String(formData.get("description") || "").trim() || undefined,
     publishDate: String(formData.get("publishDate") || "").trim() || undefined,
-    dryRun: Boolean(formData.get("dryRun")),
   };
+}
 
-  showResults("Discovering episode data...");
+let isDiscovering = false;
+let pendingDiscovery = false;
+let autoDiscoverTimer = null;
+
+async function runDiscovery() {
+  const payload = buildDiscoverPayload();
+
+  if (
+    !payload.mp3Path ||
+    !payload.transcriptMdPath ||
+    !payload.transcriptVttPath
+  ) {
+    form.style.display = "block";
+    showResults(
+      "Fill in MP3 + transcript paths. Discovery will run automatically.",
+    );
+    return;
+  }
+
+  if (isDiscovering) {
+    pendingDiscovery = true;
+    return;
+  }
+
+  isDiscovering = true;
+
+  const stopDiscoverSpinner = startStatusSpinner("Discovering episode data...");
+  form.style.display = "none";
   previewSection.style.display = "none";
 
   try {
@@ -569,10 +609,16 @@ form.addEventListener("submit", async (event) => {
 
     const result = await response.json();
 
+    stopDiscoverSpinner();
+
     if (!result.success) {
       showResults(`❌ Discovery failed: ${result.error}`);
       return;
     }
+
+    setInputValue("description", result.discovered.description || "");
+    setInputValue("publishDate", result.discovered.dateString || "");
+    setInputValue("episodeTitle", result.discovered.episodeTitle || "");
 
     // Show progress
     const lines = ["=== Discovery Progress ==="];
@@ -593,19 +639,97 @@ form.addEventListener("submit", async (event) => {
 
     // Store discovery data and render previews
     currentDiscoveryData = {
-      ...payload,
       discoveryData: result.discoveryData,
     };
 
     renderDiscoverySummary(result.discovered);
-    form.style.display = "none";
     discoverySummarySection.style.display = "block";
     renderChapterPreviews(result.discovered);
     previewSection.style.display = "block";
   } catch (error) {
+    stopDiscoverSpinner();
     showResults(`Request failed: ${error.message}`);
+  } finally {
+    form.style.display = "block";
+    isDiscovering = false;
+    if (pendingDiscovery) {
+      pendingDiscovery = false;
+      runDiscovery();
+    }
   }
+}
+
+function scheduleDiscovery() {
+  if (autoDiscoverTimer) {
+    clearTimeout(autoDiscoverTimer);
+  }
+  autoDiscoverTimer = setTimeout(() => {
+    runDiscovery();
+  }, 400);
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  runDiscovery();
 });
+
+["mp3Path", "transcriptMdPath", "transcriptVttPath", "episodeTitle"].forEach(
+  (name) => {
+    const input = form.elements.namedItem(name);
+    if (input) {
+      input.addEventListener("input", scheduleDiscovery);
+    }
+  },
+);
+
+async function pollVideoStatus(statusFile, lines) {
+  let videoLineIndex = lines.findIndex((l) => l.includes("MP4 generation"));
+  if (videoLineIndex === -1) {
+    lines.push("| MP4 generation in progress...");
+    videoLineIndex = lines.length - 1;
+  }
+
+  const frames = ["|", "/", "-", "\\"];
+  let frameIndex = 0;
+  const spinner = setInterval(() => {
+    lines[videoLineIndex] =
+      `${frames[frameIndex % frames.length]} MP4 generation in progress...`;
+    frameIndex += 1;
+    showResults(lines.join("\n"));
+  }, 250);
+
+  for (let attempt = 0; attempt < 120; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    try {
+      const res = await fetch(
+        `/api/video-status?statusFile=${encodeURIComponent(statusFile)}`,
+      );
+      const data = await res.json();
+
+      if (data.status === "completed") {
+        clearInterval(spinner);
+        lines[videoLineIndex] = `✓ MP4 generation complete`;
+        showResults(lines.join("\n"));
+        return;
+      } else if (data.status === "failed") {
+        clearInterval(spinner);
+        lines[videoLineIndex] = `❌ MP4 generation failed: ${data.error}`;
+        showResults(lines.join("\n"));
+        return;
+      }
+      // still "started" or "pending" — keep polling
+    } catch {
+      // network error — keep polling
+    }
+  }
+
+  // Timed out after 10 minutes
+  clearInterval(spinner);
+  lines[videoLineIndex] =
+    `⚠ MP4 generation timed out — check terminal for errors`;
+  showResults(lines.join("\n"));
+}
 
 approveButton.addEventListener("click", async () => {
   if (!currentDiscoveryData) {
@@ -615,35 +739,55 @@ approveButton.addEventListener("click", async () => {
 
   approveButton.disabled = true;
   cancelButton.disabled = true;
-  const dryRunSelected = Boolean(
-    currentDiscoveryData && currentDiscoveryData.dryRun,
-  );
-  if (dryRunSelected) {
-    showResults(
-      "Generating dry-run preview...\n\nDry-run does NOT update MP3 metadata, so chapter images will not be embedded into the MP3.",
-    );
-  } else {
-    showResults(
-      "Generating files and video...\n\nPlease wait, this may take a while for the MP4...",
-    );
-  }
+  const runFormData = new FormData(form);
+  const runPayload = {
+    mp3Path: String(runFormData.get("mp3Path") || "").trim(),
+    transcriptMdPath: String(runFormData.get("transcriptMdPath") || "").trim(),
+    transcriptVttPath: String(
+      runFormData.get("transcriptVttPath") || "",
+    ).trim(),
+    episodeTitle:
+      String(runFormData.get("episodeTitle") || "").trim() || undefined,
+    description:
+      String(runFormData.get("description") || "").trim() || undefined,
+    publishDate:
+      String(runFormData.get("publishDate") || "").trim() || undefined,
+    dryRun: false,
+  };
+
+  let stopRunSpinner;
+  stopRunSpinner = startStatusSpinner("Generating files and video...");
   previewSection.style.display = "none";
 
   try {
     let discoveryData = currentDiscoveryData.discoveryData;
-    if (Object.keys(chapterImageOverrides).length > 0) {
+    if (discoveryData) {
       const parsed = JSON.parse(discoveryData);
-      parsed.chapters = parsed.chapters.map((chapter, idx) => {
-        const override = chapterImageOverrides[idx];
-        if (!override) {
-          return chapter;
-        }
-        return {
-          ...chapter,
-          imagePath: override.imagePath,
-          imageSource: override.imageSource,
-        };
-      });
+
+      if (Object.keys(chapterImageOverrides).length > 0) {
+        parsed.chapters = parsed.chapters.map((chapter, idx) => {
+          const override = chapterImageOverrides[idx];
+          if (!override) {
+            return chapter;
+          }
+          return {
+            ...chapter,
+            imagePath: override.imagePath,
+            imageSource: override.imageSource,
+          };
+        });
+      }
+
+      if (runPayload.episodeTitle) {
+        parsed.episodeTitle = runPayload.episodeTitle;
+      }
+      if (runPayload.description) {
+        parsed.description = runPayload.description;
+      }
+      if (runPayload.publishDate) {
+        parsed.dateString = runPayload.publishDate;
+      }
+
       discoveryData = JSON.stringify(parsed);
     }
 
@@ -653,12 +797,13 @@ approveButton.addEventListener("click", async () => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        ...currentDiscoveryData,
+        ...runPayload,
         discoveryData,
       }),
     });
 
     const result = await response.json();
+    stopRunSpinner();
 
     const lines = [];
 
@@ -685,11 +830,23 @@ approveButton.addEventListener("click", async () => {
           `✓ MP3 chapter images embedded (${result.mp3ChapterImages.chaptersEmbedded} chapters)`,
         );
       }
-      lines.push(`✓ MP4 generation started in background`);
+      lines.push(`⏳ MP4 generation in progress...`);
     }
 
     showResults(lines.join("\n"));
+
+    if (
+      !result.dryRun &&
+      !result.error &&
+      result.videoStatus &&
+      result.videoStatus.statusFile
+    ) {
+      pollVideoStatus(result.videoStatus.statusFile, lines);
+    }
   } catch (error) {
+    if (stopRunSpinner) {
+      stopRunSpinner();
+    }
     showResults(`Request failed: ${error.message}`);
   } finally {
     approveButton.disabled = false;
@@ -707,7 +864,5 @@ cancelButton.addEventListener("click", () => {
   form.reset();
 });
 
-const shouldAutoRun = prefillFromQuery();
-if (shouldAutoRun) {
-  form.requestSubmit();
-}
+prefillFromQuery();
+runDiscovery();

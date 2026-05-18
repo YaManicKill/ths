@@ -424,7 +424,7 @@ async function runPipeline(inputOptions = {}) {
     episodeTitle,
     description,
     links,
-    podcastBytes,
+    podcastBytes: discoveredPodcastBytes,
     podcastDuration,
     dateString,
     chapters: chaptersWithImages,
@@ -442,19 +442,8 @@ async function runPipeline(inputOptions = {}) {
   );
 
   const podcastPath = `ths/year${seasonInfo.year}/${seasonInfo.folder}/ths-${episodeMeta.seasonCode}-${episodeMeta.episodeCode}.mp3`;
-  const indexMarkdown = buildIndexMarkdown({
-    episodeTitle,
-    episodeMeta,
-    seasonInfo,
-    description,
-    podcastPath,
-    podcastBytes,
-    podcastDuration,
-    dateString,
-    links,
-    chapters: chaptersWithImages,
-    author: config.defaultAuthor,
-  });
+  let effectivePodcastBytes = discoveredPodcastBytes;
+  let indexMarkdown = "";
 
   // Determine video output path - use discovered episode folder or derive from mp3
   let videoPath;
@@ -529,10 +518,6 @@ async function runPipeline(inputOptions = {}) {
 
     ensureDir(episodeDir);
 
-    onProgress("Writing shownotes...");
-
-    fs.writeFileSync(path.join(episodeDir, "index.md"), indexMarkdown, "utf8");
-
     onProgress("Copying transcripts...");
 
     fs.copyFileSync(
@@ -556,6 +541,29 @@ async function runPipeline(inputOptions = {}) {
     report.mp3ChapterImages.chaptersEmbedded = chaptersWithImages.length;
     report.mp3ChapterImages.backupPath = backupPath;
 
+    // MP3 was just modified by embed; use final file size for frontmatter bytes.
+    effectivePodcastBytes = fs.statSync(inputOptions.mp3Path).size;
+  }
+
+  indexMarkdown = buildIndexMarkdown({
+    episodeTitle,
+    episodeMeta,
+    seasonInfo,
+    description,
+    podcastPath,
+    podcastBytes: effectivePodcastBytes,
+    podcastDuration,
+    dateString,
+    links,
+    chapters: chaptersWithImages,
+    author: config.defaultAuthor,
+  });
+
+  if (!inputOptions.dryRun) {
+    onProgress("Writing shownotes...");
+
+    fs.writeFileSync(path.join(episodeDir, "index.md"), indexMarkdown, "utf8");
+
     writeJson(path.join(episodeDir, "postprocess-report.json"), report);
   }
 
@@ -563,8 +571,14 @@ async function runPipeline(inputOptions = {}) {
 
   // Start video generation in background (don't await) so response can be sent immediately
   if (!inputOptions.dryRun) {
+    const videoStatusPath = path.join(episodeDir, "video-status.json");
+
     // Use setImmediate to start the task asynchronously without blocking
     setImmediate(() => {
+      writeJson(videoStatusPath, {
+        status: "started",
+        startedAt: new Date().toISOString(),
+      });
       try {
         generateVideoFromChapters({
           chapters: chaptersWithImages,
@@ -572,11 +586,23 @@ async function runPipeline(inputOptions = {}) {
           outputPath: videoPath,
           workDir: path.join(workDir, "video"),
         });
+        writeJson(videoStatusPath, {
+          status: "completed",
+          completedAt: new Date().toISOString(),
+          videoPath,
+        });
       } catch (error) {
         // Log error but don't throw since we're background
         console.error("Video generation error:", error.message);
+        writeJson(videoStatusPath, {
+          status: "failed",
+          failedAt: new Date().toISOString(),
+          error: error.message,
+        });
       }
     });
+
+    report.videoStatus = { statusFile: videoStatusPath };
   }
 
   onProgress("Pipeline complete. Video generation running in background...");
