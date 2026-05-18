@@ -3,7 +3,8 @@ const resultBox = document.getElementById("result");
 const previewSection = document.getElementById("image-preview-section");
 const chaptersGrid = document.getElementById("chapters-grid");
 const approveButton = document.getElementById("approve-button");
-const cancelButton = document.getElementById("cancel-button");
+const toggleOverridesButton = document.getElementById("toggle-overrides");
+const skipVideoCheckbox = document.getElementById("skip-video");
 const discoverySummarySection = document.getElementById("discovery-summary");
 const discoverySummaryContent = document.getElementById(
   "discovery-summary-content",
@@ -15,6 +16,7 @@ let chapterPasteHandlers = {};
 let activePasteChapterIndex = null;
 let activePasteBtn = null;
 let pasteListenerInstalled = false;
+const statusLines = [];
 
 function setInputValue(name, value) {
   const element = form.elements.namedItem(name);
@@ -47,11 +49,6 @@ function prefillFromQuery() {
       setInputValue(key, value);
     }
   });
-
-  const dryRun = params.get("dryRun");
-  if (dryRun !== null) {
-    setInputValue("dryRun", dryRun);
-  }
 
   return params.get("autoRun") === "1";
 }
@@ -197,12 +194,12 @@ function installPasteListener() {
     try {
       const handled = await handler(event.clipboardData);
       if (!handled) {
-        showResults(
+        addStatus(
           "❌ Clipboard did not contain an image. Copy the image itself and paste again.",
         );
       }
     } catch (error) {
-      showResults(`❌ Paste failed: ${error.message}`);
+      addStatus(`❌ Paste failed: ${error.message}`);
     }
   });
 
@@ -348,12 +345,12 @@ function renderChapterPreviews(discovered) {
       pasteBtn.style.background = "#f5f8ff";
       pasteBtn.style.borderColor = "#99b7ff";
       clearBtn.disabled = false;
-      showResults(`✓ Uploaded replacement for chapter: ${chapter.title}`);
+      addStatus(`✓ Uploaded replacement for chapter: ${chapter.title}`);
     }
 
     async function uploadFile(file) {
       if (!file || !file.type.startsWith("image/")) {
-        showResults("❌ Please choose an image file (png/jpg/webp).");
+        addStatus("❌ Please choose an image file (png/jpg/webp).");
         return;
       }
       const dataUrl = await new Promise((resolve, reject) => {
@@ -404,7 +401,7 @@ function renderChapterPreviews(discovered) {
       try {
         await uploadFile(file);
       } catch (error) {
-        showResults(`❌ Upload failed: ${error.message}`);
+        addStatus(`❌ Upload failed: ${error.message}`);
       } finally {
         fileInput.value = "";
       }
@@ -445,11 +442,11 @@ function renderChapterPreviews(discovered) {
           await doUpload({ imageUrl: dropped.imageUrl });
           return;
         }
-        showResults(
+        addStatus(
           `❌ Drop payload did not include an image file or usable image URL. Debug: ${dropped.debug}`,
         );
       } catch (error) {
-        showResults(
+        addStatus(
           `❌ Upload failed: ${error.message}. Debug: ${dropped.debug}`,
         );
       }
@@ -471,7 +468,7 @@ function renderChapterPreviews(discovered) {
           throw new Error(body.error || "Failed to clear chapter override");
         }
       } catch (error) {
-        showResults(`❌ Failed to clear cached override: ${error.message}`);
+        addStatus(`❌ Failed to clear cached override: ${error.message}`);
         return;
       }
 
@@ -479,7 +476,7 @@ function renderChapterPreviews(discovered) {
       currentImg.src = `/api/image?path=${encodeURIComponent(chapter.imagePath)}`;
       currentImg.style.boxShadow = "none";
       clearBtn.disabled = true;
-      showResults(`Cleared replacement for chapter: ${chapter.title}`);
+      addStatus(`✓ Cleared replacement for chapter: ${chapter.title}`);
     });
 
     pasteBtn.addEventListener("click", () => {
@@ -489,7 +486,6 @@ function renderChapterPreviews(discovered) {
         pasteBtn.textContent = "Paste image (Cmd+V)";
         pasteBtn.style.background = "#f5f8ff";
         pasteBtn.style.borderColor = "#99b7ff";
-        showResults("");
         return;
       }
       if (activePasteBtn) {
@@ -502,7 +498,7 @@ function renderChapterPreviews(discovered) {
       pasteBtn.textContent = "▶ Paste mode active — press Cmd+V";
       pasteBtn.style.background = "#dceeff";
       pasteBtn.style.borderColor = "#007bff";
-      showResults(
+      addStatus(
         `Paste mode active for: ${chapter.title}. Press Cmd+V to paste. Click the button again to cancel.`,
       );
     });
@@ -517,20 +513,43 @@ function renderChapterPreviews(discovered) {
   });
 }
 
-function showResults(text) {
-  resultBox.textContent = text;
+function renderStatus() {
+  resultBox.textContent = statusLines.join("\n");
 }
 
-function startStatusSpinner(prefix) {
+function addStatus(text) {
+  if (!text) {
+    return -1;
+  }
+  statusLines.push(String(text));
+  renderStatus();
+  return statusLines.length - 1;
+}
+
+function setStatusLine(index, text) {
+  if (index < 0 || index >= statusLines.length) {
+    return;
+  }
+  statusLines[index] = String(text);
+  renderStatus();
+}
+
+function startStatusSpinner(prefix, suffix = "") {
   const frames = ["|", "/", "-", "\\"];
-  let index = 0;
-  showResults(`${prefix} ${frames[index]}`);
+  let frame = 0;
+  const lineIndex = addStatus(`${prefix} ${frames[0]}${suffix}`);
   const timer = setInterval(() => {
-    index = (index + 1) % frames.length;
-    showResults(`${prefix} ${frames[index]}`);
+    frame = (frame + 1) % frames.length;
+    setStatusLine(lineIndex, `${prefix} ${frames[frame]}${suffix}`);
   }, 200);
 
-  return () => clearInterval(timer);
+  return (finalText) => {
+    clearInterval(timer);
+    if (finalText) {
+      setStatusLine(lineIndex, finalText);
+    }
+    return lineIndex;
+  };
 }
 
 function renderDiscoverySummary(discovered) {
@@ -543,7 +562,7 @@ function renderDiscoverySummary(discovered) {
     `Season: ${discovered.seasonInfo.seasonName} (Year ${discovered.seasonInfo.year})`,
   );
   lines.push(`Chapters discovered: ${discovered.chapters.length}`);
-  lines.push(`Links discovered: ${discovered.links.length}`);
+  lines.push(`Links placeholders: ${discovered.hiddenLinkTitles.length}`);
   if (discovered.dateString) {
     lines.push(`Publish date: ${discovered.dateString}`);
   }
@@ -580,8 +599,7 @@ async function runDiscovery() {
     !payload.transcriptMdPath ||
     !payload.transcriptVttPath
   ) {
-    form.style.display = "block";
-    showResults(
+    addStatus(
       "Fill in MP3 + transcript paths. Discovery will run automatically.",
     );
     return;
@@ -595,7 +613,6 @@ async function runDiscovery() {
   isDiscovering = true;
 
   const stopDiscoverSpinner = startStatusSpinner("Discovering episode data...");
-  form.style.display = "none";
   previewSection.style.display = "none";
 
   try {
@@ -609,10 +626,10 @@ async function runDiscovery() {
 
     const result = await response.json();
 
-    stopDiscoverSpinner();
+    stopDiscoverSpinner("✓ Discovery complete");
 
     if (!result.success) {
-      showResults(`❌ Discovery failed: ${result.error}`);
+      addStatus(`❌ Discovery failed: ${result.error}`);
       return;
     }
 
@@ -620,22 +637,12 @@ async function runDiscovery() {
     setInputValue("publishDate", result.discovered.dateString || "");
     setInputValue("episodeTitle", result.discovered.episodeTitle || "");
 
-    // Show progress
-    const lines = ["=== Discovery Progress ==="];
     if (result.progress && Array.isArray(result.progress)) {
       for (const msg of result.progress) {
-        lines.push(`✓ ${msg}`);
+        addStatus(`• ${msg}`);
       }
     }
-    lines.push("");
-    lines.push(`Episode: ${result.discovered.episodeTitle}`);
-    lines.push(`Chapters: ${result.discovered.chapters.length}`);
-    lines.push("");
-    lines.push(
-      "Review chapter images below and click 'Approve & Generate Files'",
-    );
-
-    showResults(lines.join("\n"));
+    addStatus("✓ Chapter images ready for review");
 
     // Store discovery data and render previews
     currentDiscoveryData = {
@@ -648,9 +655,8 @@ async function runDiscovery() {
     previewSection.style.display = "block";
   } catch (error) {
     stopDiscoverSpinner();
-    showResults(`Request failed: ${error.message}`);
+    addStatus(`❌ Request failed: ${error.message}`);
   } finally {
-    form.style.display = "block";
     isDiscovering = false;
     if (pendingDiscovery) {
       pendingDiscovery = false;
@@ -683,9 +689,15 @@ form.addEventListener("submit", async (event) => {
 );
 
 async function pollVideoStatus(statusFile, lines) {
-  let videoLineIndex = lines.findIndex((l) => l.includes("MP4 generation"));
+  let videoLineIndex = -1;
+  for (let i = lines.length - 1; i >= 0; i -= 1) {
+    if (String(lines[i]).includes("MP4 generation")) {
+      videoLineIndex = i;
+      break;
+    }
+  }
   if (videoLineIndex === -1) {
-    lines.push("| MP4 generation in progress...");
+    lines.push("| MP4 generation in progress... (0%)");
     videoLineIndex = lines.length - 1;
   }
 
@@ -695,7 +707,7 @@ async function pollVideoStatus(statusFile, lines) {
     lines[videoLineIndex] =
       `${frames[frameIndex % frames.length]} MP4 generation in progress...`;
     frameIndex += 1;
-    showResults(lines.join("\n"));
+    setStatusLine(videoLineIndex, lines[videoLineIndex]);
   }, 250);
 
   for (let attempt = 0; attempt < 120; attempt++) {
@@ -706,17 +718,23 @@ async function pollVideoStatus(statusFile, lines) {
         `/api/video-status?statusFile=${encodeURIComponent(statusFile)}`,
       );
       const data = await res.json();
+      const percentSuffix =
+        typeof data.percent === "number" ? ` (${data.percent}%)` : "";
 
       if (data.status === "completed") {
         clearInterval(spinner);
         lines[videoLineIndex] = `✓ MP4 generation complete`;
-        showResults(lines.join("\n"));
+        setStatusLine(videoLineIndex, lines[videoLineIndex]);
         return;
       } else if (data.status === "failed") {
         clearInterval(spinner);
         lines[videoLineIndex] = `❌ MP4 generation failed: ${data.error}`;
-        showResults(lines.join("\n"));
+        setStatusLine(videoLineIndex, lines[videoLineIndex]);
         return;
+      } else {
+        lines[videoLineIndex] =
+          `${frames[frameIndex % frames.length]} MP4 generation in progress...${percentSuffix}`;
+        setStatusLine(videoLineIndex, lines[videoLineIndex]);
       }
       // still "started" or "pending" — keep polling
     } catch {
@@ -728,17 +746,16 @@ async function pollVideoStatus(statusFile, lines) {
   clearInterval(spinner);
   lines[videoLineIndex] =
     `⚠ MP4 generation timed out — check terminal for errors`;
-  showResults(lines.join("\n"));
+  setStatusLine(videoLineIndex, lines[videoLineIndex]);
 }
 
 approveButton.addEventListener("click", async () => {
   if (!currentDiscoveryData) {
-    showResults("❌ No discovery data available");
+    addStatus("❌ No discovery data available");
     return;
   }
 
   approveButton.disabled = true;
-  cancelButton.disabled = true;
   const runFormData = new FormData(form);
   const runPayload = {
     mp3Path: String(runFormData.get("mp3Path") || "").trim(),
@@ -753,10 +770,11 @@ approveButton.addEventListener("click", async () => {
     publishDate:
       String(runFormData.get("publishDate") || "").trim() || undefined,
     dryRun: false,
+    skipVideo: Boolean(skipVideoCheckbox && skipVideoCheckbox.checked),
   };
 
   let stopRunSpinner;
-  stopRunSpinner = startStatusSpinner("Generating files and video...");
+  stopRunSpinner = startStatusSpinner("Generating files and outputs...");
   previewSection.style.display = "none";
 
   try {
@@ -803,65 +821,44 @@ approveButton.addEventListener("click", async () => {
     });
 
     const result = await response.json();
-    stopRunSpinner();
-
-    const lines = [];
+    stopRunSpinner("✓ Generation completed");
 
     if (result.error) {
-      lines.push(`❌ Error: ${result.error}`);
-    } else if (result.dryRun) {
-      lines.push(`Title: ${result.episode.title}`);
-      lines.push(`Episode: ${result.episode.guid}`);
-      lines.push(`Chapters: ${result.chapterCount}`);
-      lines.push("");
-      lines.push("Dry run — no files written.");
+      addStatus(`❌ Error: ${result.error}`);
     } else {
-      lines.push(`Title: ${result.episode.title}`);
-      lines.push(`Episode: ${result.episode.guid}`);
-      lines.push(`Chapters: ${result.chapterCount}`);
-      lines.push("");
       if (result.gitBranch) {
         const verb = result.gitBranch.created ? "Created" : "Checked out";
-        lines.push(`✓ ${verb} branch: ${result.gitBranch.name}`);
+        addStatus(`✓ ${verb} branch: ${result.gitBranch.name}`);
       }
-      lines.push(`✓ Episode files written`);
+      addStatus("✓ Episode files written");
       if (result.mp3ChapterImages && result.mp3ChapterImages.completed) {
-        lines.push(
+        addStatus(
           `✓ MP3 chapter images embedded (${result.mp3ChapterImages.chaptersEmbedded} chapters)`,
         );
       }
-      lines.push(`⏳ MP4 generation in progress...`);
-    }
-
-    showResults(lines.join("\n"));
-
-    if (
-      !result.dryRun &&
-      !result.error &&
-      result.videoStatus &&
-      result.videoStatus.statusFile
-    ) {
-      pollVideoStatus(result.videoStatus.statusFile, lines);
+      if (result.videoStatus && result.videoStatus.skipped) {
+        addStatus("✓ MP4 generation skipped");
+      } else if (result.videoStatus && result.videoStatus.statusFile) {
+        addStatus("⏳ MP4 generation in progress... (0%)");
+        pollVideoStatus(result.videoStatus.statusFile, statusLines);
+      }
     }
   } catch (error) {
     if (stopRunSpinner) {
       stopRunSpinner();
     }
-    showResults(`Request failed: ${error.message}`);
+    addStatus(`❌ Request failed: ${error.message}`);
   } finally {
     approveButton.disabled = false;
-    cancelButton.disabled = false;
   }
 });
 
-cancelButton.addEventListener("click", () => {
-  currentDiscoveryData = null;
-  chapterImageOverrides = {};
-  previewSection.style.display = "none";
-  discoverySummarySection.style.display = "none";
-  form.style.display = "block";
-  showResults("");
-  form.reset();
+toggleOverridesButton.addEventListener("click", () => {
+  const showing = form.style.display !== "none";
+  form.style.display = showing ? "none" : "block";
+  toggleOverridesButton.textContent = showing
+    ? "Show Overrides"
+    : "Hide Overrides";
 });
 
 prefillFromQuery();

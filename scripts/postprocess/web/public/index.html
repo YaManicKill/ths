@@ -13,7 +13,21 @@
         <p>Run dry-runs or full output generation for a podcast episode.</p>
       </header>
 
-      <form id="run-form">
+      <section id="discovery-summary" style="display: none">
+        <h2>Discovered Episode Data</h2>
+        <pre id="discovery-summary-content"></pre>
+      </section>
+
+      <section>
+        <h2>Status</h2>
+        <pre id="result"></pre>
+      </section>
+
+      <section>
+        <button type="button" id="toggle-overrides">Show Overrides</button>
+      </section>
+
+      <form id="run-form" style="display: none">
         <label>
           MP3 path
           <input
@@ -60,30 +74,18 @@
         </label>
       </form>
 
-      <section>
-        <h2>Status</h2>
-        <pre id="result"></pre>
-      </section>
-
-      <section id="discovery-summary" style="display: none">
-        <h2>Discovered Episode Data</h2>
-        <pre id="discovery-summary-content"></pre>
-      </section>
-
       <section id="image-preview-section" style="display: none">
         <h2>Chapter Images Preview</h2>
         <div id="chapters-grid"></div>
+        <label class="checkbox" style="margin-top: 12px">
+          <input type="checkbox" id="skip-video" name="skipVideo" />
+          Skip MP4 generation for this run
+        </label>
         <button
           id="approve-button"
           style="margin-top: 20px; padding: 10px 20px; font-size: 1em"
         >
           ✓ Approve & Generate Files
-        </button>
-        <button
-          id="cancel-button"
-          style="margin-top: 10px; padding: 10px 20px; margin-left: 10px"
-        >
-          Cancel
         </button>
       </section>
     </main>

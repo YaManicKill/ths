@@ -409,7 +409,7 @@ function startServer({ port = 4173 } = {}) {
               imageSource: ch.imageSource,
               imagePath: ch.imagePath,
             })),
-            links: discovered.links,
+            hiddenLinkTitles: discovered.hiddenLinkTitles,
           },
           // Store serialized data for later generation
           discoveryData: JSON.stringify(discovered),
@@ -517,6 +517,7 @@ function startServer({ port = 4173 } = {}) {
           description: payload.description,
           publishDate: payload.publishDate,
           dryRun: Boolean(payload.dryRun),
+          skipVideo: Boolean(payload.skipVideo),
           episodeFolderPath: payload.episodeFolderPath,
           onProgress,
         };
