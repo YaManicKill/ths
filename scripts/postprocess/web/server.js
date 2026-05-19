@@ -408,6 +408,7 @@ function startServer({ port = 4173 } = {}) {
               durationSeconds: ch.durationSeconds,
               imageSource: ch.imageSource,
               imagePath: ch.imagePath,
+              defaultImagePath: ch.defaultImagePath,
             })),
             hiddenLinkTitles: discovered.hiddenLinkTitles,
           },
