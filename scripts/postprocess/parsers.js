@@ -448,30 +448,11 @@ function extractSpeakerNames(
   return names;
 }
 
-function extractUrls(...blocks) {
-  const urlRegex = /https?:\/\/[^\s)\]>"']+/gi;
-  const urls = new Set();
-
-  for (const block of blocks) {
-    const text = String(block || "");
-    const found = text.match(urlRegex) || [];
-    for (let url of found) {
-      while (/[.,;!?]$/.test(url)) {
-        url = url.slice(0, -1);
-      }
-      urls.add(url);
-    }
-  }
-
-  return Array.from(urls);
-}
-
 module.exports = {
   attachChapterDurations,
   episodeTitleFromInputs,
   episodeTitleFromChapterFilename,
   extractSpeakerNames,
-  extractUrls,
   formatSecondsToHhmmss,
   parseChaptersFromMp3,
   parseChapterFile,

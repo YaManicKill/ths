@@ -185,7 +185,6 @@ async function main() {
     transcriptVttPath: discovered.transcriptVttPath,
     episodeTitle: discovered.episodeTitle,
     dryRun: args["dry-run"] ? "1" : "0",
-    autoRun: "0",
   };
 
   const serverPath = path.join(__dirname, "web", "server.js");

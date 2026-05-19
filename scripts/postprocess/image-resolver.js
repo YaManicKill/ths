@@ -106,6 +106,7 @@ async function resolveChapterImages(chapters, options) {
       results.push({
         ...chapter,
         imagePath: fallbackImagePath,
+        defaultImagePath: fallbackImagePath,
         imageSource: "fallback:skipped-theme-tune-intro-outro",
       });
       continue;
@@ -120,6 +121,7 @@ async function resolveChapterImages(chapters, options) {
           results.push({
             ...chapter,
             imagePath: resolved.value,
+            defaultImagePath: fallbackImagePath,
             imageSource: "override:file",
           });
           continue;
@@ -135,6 +137,7 @@ async function resolveChapterImages(chapters, options) {
             results.push({
               ...chapter,
               imagePath,
+              defaultImagePath: fallbackImagePath,
               imageSource: "override:url",
             });
             continue;
@@ -148,6 +151,7 @@ async function resolveChapterImages(chapters, options) {
     results.push({
       ...chapter,
       imagePath: fallbackImagePath,
+      defaultImagePath: fallbackImagePath,
       imageSource: "fallback:mp3-cover",
     });
   }
