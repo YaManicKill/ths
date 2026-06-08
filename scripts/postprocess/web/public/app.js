@@ -14,6 +14,10 @@ let currentDiscoveryData = null;
 let chapterImageOverrides = {}; // Track uploaded replacement images by chapter index
 const statusLines = [];
 
+function imageApiUrl(imagePath) {
+  return `/api/image?path=${encodeURIComponent(imagePath)}&v=${Date.now()}`;
+}
+
 function setInputValue(name, value) {
   const element = form.elements.namedItem(name);
   if (!element) {
@@ -170,6 +174,68 @@ async function uploadFromSystemClipboard(uploadHandler) {
   return false;
 }
 
+function extractPastedImageFile(clipboardData) {
+  if (!clipboardData) {
+    return null;
+  }
+
+  const items = Array.from(clipboardData.items || []);
+  for (const item of items) {
+    if (item.kind === "file" && item.type && item.type.startsWith("image/")) {
+      const file = item.getAsFile();
+      if (file) {
+        return file;
+      }
+    }
+  }
+
+  const files = Array.from(clipboardData.files || []);
+  for (const file of files) {
+    if (file && file.type && file.type.startsWith("image/")) {
+      return file;
+    }
+  }
+
+  return null;
+}
+
+function waitForNextPastedImageDataUrl({ timeoutMs = 15000 } = {}) {
+  return new Promise((resolve) => {
+    let settled = false;
+
+    const cleanup = () => {
+      window.removeEventListener("paste", onPaste, true);
+      clearTimeout(timer);
+    };
+
+    const finish = (value) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      resolve(value);
+    };
+
+    const onPaste = (event) => {
+      const file = extractPastedImageFile(event.clipboardData);
+      if (!file) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const reader = new FileReader();
+      reader.onload = () => finish(String(reader.result || ""));
+      reader.onerror = () => finish(null);
+      reader.readAsDataURL(file);
+    };
+
+    const timer = setTimeout(() => finish(null), timeoutMs);
+    window.addEventListener("paste", onPaste, true);
+  });
+}
+
 function renderChapterPreviews(discovered) {
   chaptersGrid.innerHTML = "";
   chapterImageOverrides = {};
@@ -205,7 +271,7 @@ function renderChapterPreviews(discovered) {
       "position: relative; width: 150px; height: 150px;";
 
     const currentImg = document.createElement("img");
-    currentImg.src = `/api/image?path=${encodeURIComponent(chapter.imagePath)}`;
+    currentImg.src = imageApiUrl(chapter.imagePath);
     currentImg.style.cssText = `
       width: 150px;
       height: 150px;
@@ -301,7 +367,7 @@ function renderChapterPreviews(discovered) {
         imagePath: body.imagePath,
         imageSource: "manual-upload",
       };
-      currentImg.src = `/api/image?path=${encodeURIComponent(body.imagePath)}`;
+      currentImg.src = imageApiUrl(body.imagePath);
       clearBtn.disabled = false;
       addStatus(`✓ Uploaded replacement for chapter: ${chapter.title}`);
     }
@@ -386,7 +452,7 @@ function renderChapterPreviews(discovered) {
     clearBtn.addEventListener("click", async () => {
       const previousOverride = chapterImageOverrides[idx];
       delete chapterImageOverrides[idx];
-      currentImg.src = `/api/image?path=${encodeURIComponent(clearTargetImagePath)}`;
+      currentImg.src = imageApiUrl(clearTargetImagePath);
       currentImg.style.boxShadow = "none";
       clearBtn.disabled = true;
 
@@ -407,7 +473,7 @@ function renderChapterPreviews(discovered) {
       } catch (error) {
         if (previousOverride) {
           chapterImageOverrides[idx] = previousOverride;
-          currentImg.src = `/api/image?path=${encodeURIComponent(previousOverride.imagePath)}`;
+          currentImg.src = imageApiUrl(previousOverride.imagePath);
           clearBtn.disabled = false;
         }
         addStatus(`❌ Failed to clear cached override: ${error.message}`);
@@ -420,14 +486,22 @@ function renderChapterPreviews(discovered) {
     pasteBtn.addEventListener("click", () => {
       (async () => {
         try {
-          const handled = await uploadFromSystemClipboard(doUpload);
-          if (!handled) {
-            addStatus(
-              `❌ Clipboard does not contain an image for: ${chapter.title}`,
-            );
-          } else {
+          const handled = await uploadFromSystemClipboard(doUpload).catch(
+            () => false,
+          );
+          if (handled) {
             addStatus(`✓ Pasted clipboard image for: ${chapter.title}`);
+            return;
           }
+
+          addStatus(`Paste now (Cmd+V) for chapter: ${chapter.title}`);
+          const dataUrl = await waitForNextPastedImageDataUrl();
+          if (!dataUrl) {
+            addStatus(`❌ No pasted image received for: ${chapter.title}`);
+            return;
+          }
+          await doUpload({ dataUrl });
+          addStatus(`✓ Pasted clipboard image for: ${chapter.title}`);
         } catch (error) {
           addStatus(`❌ Clipboard paste failed: ${error.message}`);
         }

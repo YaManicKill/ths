@@ -1,8 +1,10 @@
 const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
 const http = require("node:http");
+const crypto = require("node:crypto");
 const { runPipeline, discoverEpisodeData } = require("../pipeline");
-const { normalizeTitle, readJson, writeJson } = require("../utils");
+const { normalizeTitle, readJson, runCommand, writeJson } = require("../utils");
 
 function slugify(input) {
   return String(input || "")
@@ -67,6 +69,40 @@ function extensionFromUrl(imageUrl) {
     return ".jpg";
   }
   return ".jpg";
+}
+
+function letterboxImageBufferToSquare(buffer, extension = ".png") {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "ths-postprocess-"));
+  const inputPath = path.join(tempDir, `input${extension || ".png"}`);
+  const outputPath = path.join(tempDir, "output.png");
+
+  try {
+    fs.writeFileSync(inputPath, buffer);
+
+    const result = runCommand("ffmpeg", [
+      "-y",
+      "-i",
+      inputPath,
+      "-vf",
+      "pad=max(iw\\,ih):max(iw\\,ih):(ow-iw)/2:(oh-ih)/2:color=black",
+      "-frames:v",
+      "1",
+      outputPath,
+    ]);
+
+    if (result.status !== 0) {
+      throw new Error(
+        result.stderr || result.stdout || "Failed to letterbox image",
+      );
+    }
+
+    return {
+      buffer: fs.readFileSync(outputPath),
+      extension: ".png",
+    };
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
 }
 
 function resolveUrlMaybeRelative(baseUrl, value) {
@@ -365,6 +401,7 @@ function startServer({ port = 4173 } = {}) {
 
         res.statusCode = 200;
         res.setHeader("Content-Type", contentTypeForImage(imagePath));
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
         fs.createReadStream(imagePath).pipe(res);
       } catch {
         res.statusCode = 404;
@@ -439,6 +476,11 @@ function startServer({ port = 4173 } = {}) {
           imageData = parseDataUrl(payload.dataUrl);
         }
 
+        imageData = letterboxImageBufferToSquare(
+          imageData.buffer,
+          imageData.extension,
+        );
+
         const { buffer, extension } = imageData;
         if (buffer.length > 15 * 1024 * 1024) {
           sendJson(res, 400, {
@@ -449,7 +491,8 @@ function startServer({ port = 4173 } = {}) {
         }
 
         fs.mkdirSync(manualImageDir, { recursive: true });
-        const fileName = `${slugify(chapterTitle) || "chapter"}${extension}`;
+        const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
+        const fileName = `${slugify(chapterTitle) || "chapter"}-${uniqueSuffix}${extension}`;
         const filePath = path.join(manualImageDir, fileName);
         fs.writeFileSync(filePath, buffer);
         saveChapterOverride(chapterTitle, filePath);
