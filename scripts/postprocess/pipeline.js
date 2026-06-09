@@ -178,6 +178,97 @@ function buildDescription({ explicitDescription, speakers, mainTopic }) {
   return `Al and Greg talk about ${mainTopic}.`;
 }
 
+function decodeHtmlEntities(input) {
+  return String(input || "")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#(\d+);/g, (_, codePoint) => {
+      const value = Number(codePoint);
+      return Number.isFinite(value) ? String.fromCodePoint(value) : _;
+    });
+}
+
+async function findExactSteamStoreUrl(title) {
+  const normalizedTitle = normalizeTitle(title);
+  if (!normalizedTitle) {
+    return null;
+  }
+
+  const searchUrl = new URL("https://store.steampowered.com/search/suggest");
+  searchUrl.searchParams.set("term", title);
+  searchUrl.searchParams.set("f", "games");
+  searchUrl.searchParams.set("cc", "GB");
+  searchUrl.searchParams.set("realm", "1");
+  searchUrl.searchParams.set("l", "english");
+
+  const response = await fetch(searchUrl, {
+    headers: {
+      "user-agent": "ths-postprocess-bot/1.0",
+      accept: "text/html, */*;q=0.1",
+    },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const html = await response.text();
+  const anchorPattern = /<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+
+  for (const match of html.matchAll(anchorPattern)) {
+    const href = match[1];
+    const anchorHtml = match[2];
+    const titleMatch = /class="match_name"[^>]*>([\s\S]*?)<\/div>/i.exec(
+      anchorHtml,
+    );
+    const rawName = titleMatch
+      ? titleMatch[1]
+      : anchorHtml.replace(/<[^>]+>/g, " ");
+    const candidateTitle = decodeHtmlEntities(rawName)
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (normalizeTitle(candidateTitle) !== normalizedTitle) {
+      continue;
+    }
+
+    const cleanUrl = decodeHtmlEntities(href).replace(/\/?\?snr=.*$/i, "/");
+    return cleanUrl;
+  }
+
+  return null;
+}
+
+async function resolveHiddenChapterLinks(chapters) {
+  const hiddenTitles = chapters
+    .filter((chapter) => chapter.toc === false)
+    .map((chapter) => chapter.title);
+
+  const uniqueTitles = [
+    ...new Set(
+      hiddenTitles.map((title) => String(title || "").trim()).filter(Boolean),
+    ),
+  ];
+  const resolvedLinks = new Map();
+
+  for (const title of uniqueTitles) {
+    try {
+      const url = await findExactSteamStoreUrl(title);
+      resolvedLinks.set(title, url);
+    } catch {
+      resolvedLinks.set(title, null);
+    }
+  }
+
+  return hiddenTitles.map((title) => ({
+    title,
+    url: resolvedLinks.get(title) || null,
+  }));
+}
+
 function buildIndexMarkdown({
   episodeTitle,
   episodeMeta,
@@ -188,6 +279,7 @@ function buildIndexMarkdown({
   podcastDuration,
   dateString,
   chapters,
+  hiddenLinks,
   author,
 }) {
   const lines = [];
@@ -223,15 +315,23 @@ function buildIndexMarkdown({
   lines.push("## Links");
   lines.push("");
 
-  const hiddenLinkTitles = chapters
+  const fallbackHiddenLinks = chapters
     .filter((chapter) => chapter.toc === false)
-    .map((chapter) => chapter.title);
+    .map((chapter) => ({ title: chapter.title, url: null }));
+  const resolvedHiddenLinks =
+    Array.isArray(hiddenLinks) && hiddenLinks.length > 0
+      ? hiddenLinks
+      : fallbackHiddenLinks;
 
-  if (hiddenLinkTitles.length === 0) {
+  if (resolvedHiddenLinks.length === 0) {
     lines.push("[]()");
   } else {
-    for (const title of hiddenLinkTitles) {
-      lines.push(title);
+    for (const link of resolvedHiddenLinks) {
+      if (link.url) {
+        lines.push(`[${link.title}](${link.url})`);
+      } else {
+        lines.push(link.title);
+      }
     }
   }
 
@@ -336,9 +436,9 @@ async function discoverEpisodeData(inputOptions = {}) {
     mainTopic,
   });
 
-  const hiddenLinkTitles = chapters
-    .filter((chapter) => chapter.toc === false)
-    .map((chapter) => chapter.title);
+  onProgress("Looking up exact Steam links...");
+  const hiddenLinks = await resolveHiddenChapterLinks(chapters);
+  const hiddenLinkTitles = hiddenLinks.map((link) => link.title);
 
   const stat = fs.statSync(inputOptions.mp3Path);
   const podcastBytes = stat.size;
@@ -394,6 +494,7 @@ async function discoverEpisodeData(inputOptions = {}) {
     mainTopic,
     speakers,
     description,
+    hiddenLinks,
     hiddenLinkTitles,
     podcastBytes,
     podcastDuration,
@@ -558,6 +659,7 @@ async function runPipeline(inputOptions = {}) {
     podcastDuration,
     dateString,
     chapters: chaptersWithImages,
+    hiddenLinks: discovered.hiddenLinks,
     author: config.defaultAuthor,
   });
 
