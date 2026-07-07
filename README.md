@@ -28,8 +28,6 @@ Initial implementation lives in `scripts/postprocess/`.
 - Main config: `postprocess.config.json`
 - Persistent chapter image overrides: `data/chapter-image-overrides.json`
 
-Update `seasonMap` in `postprocess.config.json` if you use additional seasons.
-
 ### CLI Dry Run
 
 ```bash

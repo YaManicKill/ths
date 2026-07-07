@@ -21,23 +21,16 @@ const {
   readJson,
   runCommand,
   slugify,
+  titleCase,
   writeJson,
 } = require("./utils");
 
 const DEFAULT_CONFIG = {
   defaultAuthor: "Al McKinlay",
-  defaultSeasonNumber: "11",
   releaseTimeLocal: "19:00:00",
   timezoneOffset: "+01:00",
   outputRoot: "content/episode",
   videoOutputRoot: "content/episode-videos",
-  seasonMap: {
-    11: {
-      year: "3",
-      seasonName: "Autumn",
-      folder: "autumn",
-    },
-  },
   imageOverridesFile: "data/chapter-image-overrides.json",
   profanityWords: [
     "fuck",
@@ -351,10 +344,30 @@ function loadConfig(repoRoot, configPath) {
   return {
     ...DEFAULT_CONFIG,
     ...config,
-    seasonMap: {
-      ...DEFAULT_CONFIG.seasonMap,
-      ...(config.seasonMap || {}),
-    },
+  };
+}
+
+function resolveSeasonInfo(episodeMeta) {
+  const targetSeasonCode = String(episodeMeta.seasonCode || "").padStart(
+    2,
+    "0",
+  );
+  const targetSeasonNumber = Number(episodeMeta.seasonNumber);
+
+  if (!Number.isFinite(targetSeasonNumber) || targetSeasonNumber < 1) {
+    throw new Error(`Invalid season number: ${targetSeasonCode}`);
+  }
+
+  const seasonOrder = ["spring", "summer", "autumn", "winter"];
+  const zeroBased = targetSeasonNumber - 1;
+  const index = zeroBased % seasonOrder.length;
+  const year = Math.floor(zeroBased / seasonOrder.length) + 1;
+
+  const derivedSlug = seasonOrder[index];
+  return {
+    year: String(year),
+    seasonName: titleCase(derivedSlug),
+    folder: slugify(derivedSlug),
   };
 }
 
@@ -394,15 +407,7 @@ async function discoverEpisodeData(inputOptions = {}) {
   onProgress("Parsing episode metadata...");
 
   const episodeMeta = parseEpisodeFromMp3Path(inputOptions.mp3Path);
-  const seasonInfo =
-    config.seasonMap[episodeMeta.seasonCode] ||
-    config.seasonMap[episodeMeta.seasonNumber];
-
-  if (!seasonInfo) {
-    throw new Error(
-      `No season mapping found for season ${episodeMeta.seasonCode}`,
-    );
-  }
+  const seasonInfo = resolveSeasonInfo(episodeMeta);
 
   const transcriptMdText = fs.readFileSync(
     inputOptions.transcriptMdPath,
