@@ -7,7 +7,10 @@ const {
   discoverLatestEpisodeInputs,
 } = require("./episode-discovery");
 const { readJson } = require("./utils");
-const { inferNextSeasonEpisode } = require("./sequence-inference");
+const {
+  inferPublishDateForEpisode,
+  inferNextSeasonEpisode,
+} = require("./sequence-inference");
 
 const DEFAULT_EPISODES_ROOT = "~/Google Drive/My Drive/Projects/ths/Episodes";
 
@@ -34,6 +37,57 @@ function resolveSeasonEpisode({ repoRoot, args }) {
     releaseTimeLocal: config.releaseTimeLocal || "19:00:00",
     timezoneOffset: config.timezoneOffset || "+01:00",
   });
+
+  const episodeNumberArg = args["episode-number"];
+  if (episodeNumberArg !== undefined) {
+    const rawValue = String(episodeNumberArg).trim();
+    const codeMatch = rawValue.match(/^(?:ths-)?(\d{1,2})-(\d{1,2})$/i);
+
+    let seasonNumber;
+    let episodeNumber;
+
+    if (codeMatch) {
+      seasonNumber = Number(codeMatch[1]);
+      episodeNumber = Number(codeMatch[2]);
+    } else {
+      seasonNumber = Number(inferred.seasonNumber);
+      episodeNumber = Number(rawValue);
+    }
+
+    if (
+      !Number.isFinite(seasonNumber) ||
+      !Number.isFinite(episodeNumber) ||
+      seasonNumber < 1 ||
+      episodeNumber < 1 ||
+      episodeNumber > 26
+    ) {
+      throw new Error(
+        `Invalid --episode-number value "${rawValue}". Use EE (e.g. 5) or SS-EE (e.g. 12-05).`,
+      );
+    }
+
+    const publishDate = inferPublishDateForEpisode({
+      contentEpisodeRoot,
+      seasonNumber,
+      episodeNumber,
+      releaseTimeLocal: config.releaseTimeLocal || "19:00:00",
+      timezoneOffset: config.timezoneOffset || "+01:00",
+    });
+
+    return {
+      season: String(seasonNumber).padStart(2, "0"),
+      episode: String(episodeNumber).padStart(2, "0"),
+      inferred: false,
+      publishDate,
+      metadata: {
+        seasonCode: String(seasonNumber).padStart(2, "0"),
+        episodeCode: String(episodeNumber).padStart(2, "0"),
+        seasonNumber,
+        episodeNumber,
+        reason: "manual-episode-number",
+      },
+    };
+  }
 
   if (forceNewSeason && inferred.basedOn) {
     const nextSeason = Number(inferred.basedOn.lastSeason) + 1;
@@ -89,11 +143,14 @@ function printUsage() {
   console.log("");
   console.log("Launch prefilled web UI for the next episode:");
   console.log(
-    "  node scripts/postprocess/cli.js [episode] [--dry-run] [--new-season]",
+    "  node scripts/postprocess/cli.js [episode] [--dry-run] [--new-season] [--episode-number EE|SS-EE]",
   );
   console.log("  episode         Open the web UI (default command if omitted)");
   console.log("  --dry-run       Start UI with dry-run checked");
   console.log("  --new-season    Force next season, episode 01");
+  console.log(
+    "  --episode-number  Target episode number and infer publish date (EE or SS-EE)",
+  );
 }
 
 function logInferenceContext(metadata) {
@@ -151,7 +208,13 @@ async function main() {
     process.exit(1);
   }
 
-  const allowedFlags = new Set(["dry-run", "new-season", "help", "h"]);
+  const allowedFlags = new Set([
+    "dry-run",
+    "new-season",
+    "episode-number",
+    "help",
+    "h",
+  ]);
   const providedFlags = Object.keys(args).filter((key) => key !== "_");
   const unknownFlags = providedFlags.filter((key) => !allowedFlags.has(key));
   if (unknownFlags.length > 0) {
@@ -172,6 +235,9 @@ async function main() {
       episode: resolved.episode,
     });
   } catch (error) {
+    if (args["episode-number"] !== undefined) {
+      throw error;
+    }
     discovered = discoverLatestEpisodeInputs({ episodesRoot });
     console.warn(
       `Requested inferred episode ths-${String(resolved.season).padStart(2, "0")}-${String(resolved.episode).padStart(2, "0")} not found; using latest available on disk instead.`,
@@ -184,6 +250,7 @@ async function main() {
     transcriptMdPath: discovered.transcriptMdPath,
     transcriptVttPath: discovered.transcriptVttPath,
     episodeTitle: discovered.episodeTitle,
+    publishDate: resolved.publishDate,
     dryRun: args["dry-run"] ? "1" : "0",
   };
 

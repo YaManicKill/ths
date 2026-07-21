@@ -2,6 +2,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { getUpcomingWednesdayDateString } = require("./utils");
 
+const MAX_EPISODES_PER_SEASON = 26;
+
 function walkIndexFiles(rootDir) {
   const results = [];
 
@@ -89,6 +91,36 @@ function isSeasonBoundaryMonth(month) {
   return month === 1 || month === 7;
 }
 
+function episodeOrdinal(season, episode) {
+  return (Number(season) - 1) * MAX_EPISODES_PER_SEASON + Number(episode);
+}
+
+function inferPublishDateForEpisode({
+  contentEpisodeRoot,
+  seasonNumber,
+  episodeNumber,
+  releaseTimeLocal,
+  timezoneOffset,
+}) {
+  const records = loadEpisodeRecords(contentEpisodeRoot);
+  if (records.length === 0) {
+    return getUpcomingWednesdayDateString({
+      time: releaseTimeLocal,
+      timezoneOffset,
+    });
+  }
+
+  const last = records[records.length - 1];
+  const targetOrdinal = episodeOrdinal(seasonNumber, episodeNumber);
+  const lastOrdinal = episodeOrdinal(last.season, last.episode);
+  const weekDelta = targetOrdinal - lastOrdinal;
+
+  const targetDate = new Date(
+    last.date.getTime() + weekDelta * 7 * 24 * 60 * 60 * 1000,
+  );
+  return targetDate.toISOString();
+}
+
 function inferNextSeasonEpisode({
   contentEpisodeRoot,
   releaseTimeLocal,
@@ -155,6 +187,7 @@ function inferNextSeasonEpisode({
 }
 
 module.exports = {
+  inferPublishDateForEpisode,
   inferNextSeasonEpisode,
   loadEpisodeRecords,
 };
