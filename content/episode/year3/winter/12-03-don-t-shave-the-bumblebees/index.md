@@ -9,7 +9,7 @@ guid: "ths-12-03"
 podcast: "ths/year3/winter/ths-12-03.mp3"
 podcast_bytes: "153729314"
 podcast_duration: "01:45:27"
-date: 2026-07-29T18:00:00.000Z
+date: 2026-07-22T18:00:00.000Z
 author: "Al McKinlay"
 transcript_files: true
 ---
