@@ -298,6 +298,14 @@ function serveStaticFile(res, filePath, contentType) {
   }
 }
 
+const SERVABLE_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+
+function isServableImagePath(filePath) {
+  return SERVABLE_IMAGE_EXTENSIONS.includes(
+    path.extname(filePath).toLowerCase(),
+  );
+}
+
 function contentTypeForImage(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   if (ext === ".png") {
@@ -662,7 +670,11 @@ function startServer({ port = 4173 } = {}) {
 
     if (req.method === "GET" && pathname === "/api/image") {
       const imagePath = parsedUrl.searchParams.get("path");
-      if (!imagePath || !path.isAbsolute(imagePath)) {
+      if (
+        !imagePath ||
+        !path.isAbsolute(imagePath) ||
+        !isServableImagePath(imagePath)
+      ) {
         res.statusCode = 400;
         res.end("Bad image path");
         return;
@@ -1056,7 +1068,9 @@ function startServer({ port = 4173 } = {}) {
     res.end("Not Found");
   });
 
-  server.listen(port, () => {
+  // Loopback only. This server reads local files and runs the pipeline with no auth,
+  // so it must not be reachable from the network.
+  server.listen(port, "127.0.0.1", () => {
     console.log(`THS post-process UI running at http://localhost:${port}`);
   });
 
