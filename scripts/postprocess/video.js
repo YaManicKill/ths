@@ -1,29 +1,157 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { ensureDir, runCommandStream } = require("./utils");
+const { ensureDir, runCommand, runCommandStream } = require("./utils");
+const {
+  formatEpisodeDateForOverlay,
+  resolveClipBoldFontPath,
+  resolveClipFontPath,
+  wrapLabelText,
+  writeLabelTextFile,
+} = require("./clip-text");
 
 const CLIP_WIDTH = 1080;
 const CLIP_HEIGHT = 1920;
+const LABEL_SIDE_MARGIN = 60;
 
-function buildClipVisualFilter({ withLabel = false, label = "Clip" } = {}) {
-  const labelY = Math.floor(CLIP_HEIGHT * 0.8);
+// Title-card overlay: bold title, short brand-orange rule, date beneath. Vertical
+// positions are fractions of frame height; the bottom of the frame is reserved for
+// subtitles. The title is bottom-anchored on the rule so a two-line title grows upward.
+const TITLE_FONT_SIZE = 72;
+const TITLE_BOTTOM_Y = 0.105;
+// Bold glyphs run wider than the regular-weight 0.52 estimate.
+const TITLE_GLYPH_WIDTH_RATIO = 0.58;
+const DATE_FONT_SIZE = 40;
+const DATE_TOP_Y = 0.133;
+const RULE_Y = 0.117;
+const RULE_WIDTH = 220;
+const RULE_HEIGHT = 8;
+const BRAND_ORANGE = "0xeb8807"; // sampled from HarvestSeason-FullLogo-FullColor-01.png
 
+let cachedFilters = null;
+
+function availableFfmpegFilters() {
+  if (cachedFilters) {
+    return cachedFilters;
+  }
+
+  const result = runCommand("ffmpeg", ["-hide_banner", "-filters"]);
+  if (result.error || result.status !== 0) {
+    throw new Error(
+      `Could not run ffmpeg to list its filters: ${result.error?.message || result.stderr || "unknown error"}`,
+    );
+  }
+
+  const names = new Set();
+  for (const line of String(result.stdout || "").split(/\r?\n/)) {
+    // Lines look like: " ... drawtext          V->V       Draw text on top of video."
+    const match = /^\s*[A-Z.]+\s+(\S+)\s+\S+->\S+/.exec(line);
+    if (match) {
+      names.add(match[1]);
+    }
+  }
+
+  cachedFilters = names;
+  return cachedFilters;
+}
+
+function assertFfmpegFilters(required) {
+  const available = availableFfmpegFilters();
+  const missing = required.filter((name) => !available.has(name));
+  if (missing.length === 0) {
+    return;
+  }
+
+  throw new Error(
+    `This ffmpeg build is missing the ${missing.join(", ")} filter(s), which are required to draw text on clips. ` +
+      "Homebrew's core ffmpeg formula ships without libfreetype/libass; install one that includes them, e.g. " +
+      "brew install homebrew-ffmpeg/ffmpeg/ffmpeg",
+  );
+}
+
+// Paths reach ffmpeg inside a filtergraph, where ":" separates options and "," separates
+// filters. Episode work dirs live under "Google Drive/My Drive/...", and Windows font
+// paths contain both a colon and backslashes, so values have to be escaped.
+function escapeFilterValue(value) {
+  return String(value)
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'")
+    .replace(/:/g, "\\:")
+    .replace(/,/g, "\\,")
+    .replace(/\[/g, "\\[")
+    .replace(/\]/g, "\\]");
+}
+
+function buildClipVisualFilter({ overlay } = {}) {
+  // format=yuv420p: the cover PNG carries an alpha channel through the whole chain, and
+  // drawbox silently draws nothing on alpha frames.
   let graph =
     `[0:v]scale=${CLIP_WIDTH}:${CLIP_HEIGHT}:force_original_aspect_ratio=increase,crop=${CLIP_WIDTH}:${CLIP_HEIGHT},boxblur=34:10,eq=saturation=1.12:brightness=-0.05[bg];` +
     `[0:v]scale=${CLIP_WIDTH}:-2:flags=lanczos[fg];` +
-    `[bg][fg]overlay=(W-w)/2:(H-h)/2`;
+    `[bg][fg]overlay=(W-w)/2:(H-h)/2,format=yuv420p`;
 
-  if (withLabel) {
-    graph += `,drawtext=text='${escapeFfmpegText(label)}':fontcolor=white:fontsize=52:fontfile=/System/Library/Fonts/Helvetica.ttc:box=1:boxcolor=black@0.35:boxborderw=18:x=(w-text_w)/2:y=${labelY}`;
+  // A heavy outline plus soft shadow keeps the text readable on any cover art without
+  // needing a background box (which made the overlay read as a subtitle).
+  const titleLegibility =
+    "borderw=7:bordercolor=black@0.85:shadowx=0:shadowy=4:shadowcolor=black@0.4";
+  const dateLegibility =
+    "borderw=5:bordercolor=black@0.85:shadowx=0:shadowy=3:shadowcolor=black@0.4";
+
+  if (overlay?.titleTextFile) {
+    graph +=
+      // expansion=none: overlay text is literal, not a drawtext template ("%" is
+      // otherwise an expansion sequence and a title like "50% Done" errors the render).
+      `,drawtext=textfile=${escapeFilterValue(overlay.titleTextFile)}` +
+      `:fontfile=${escapeFilterValue(overlay.boldFontPath)}` +
+      `:expansion=none:fontcolor=white:fontsize=${TITLE_FONT_SIZE}` +
+      `:line_spacing=10:text_align=center:${titleLegibility}` +
+      `:x=(w-text_w)/2:y=(h*${TITLE_BOTTOM_Y})-text_h`;
+  }
+
+  if (overlay?.titleTextFile && overlay?.dateTextFile) {
+    graph += `,drawbox=x=(iw-${RULE_WIDTH})/2:y=ih*${RULE_Y}:w=${RULE_WIDTH}:h=${RULE_HEIGHT}:color=${BRAND_ORANGE}:t=fill`;
+  }
+
+  if (overlay?.dateTextFile) {
+    graph +=
+      `,drawtext=textfile=${escapeFilterValue(overlay.dateTextFile)}` +
+      `:fontfile=${escapeFilterValue(overlay.fontPath)}` +
+      `:expansion=none:fontcolor=white:fontsize=${DATE_FONT_SIZE}` +
+      `:${dateLegibility}` +
+      `:x=(w-text_w)/2:y=h*${DATE_TOP_Y}`;
   }
 
   return `${graph}[vout]`;
 }
 
-function escapeFfmpegText(value) {
-  return String(value || "")
-    .replace(/\\/g, "\\\\")
-    .replace(/'/g, "\\'");
+// Every clip in an episode carries the same overlay: the episode title above a short
+// brand-orange rule, with the release date beneath it.
+function prepareEpisodeOverlay({ episodeTitle, episodeDateString, workDir }) {
+  const titleLines = wrapLabelText({
+    text: episodeTitle,
+    maxWidthPx: CLIP_WIDTH - LABEL_SIDE_MARGIN * 2,
+    fontSize: TITLE_FONT_SIZE,
+    glyphWidthRatio: TITLE_GLYPH_WIDTH_RATIO,
+    maxLines: 2,
+  });
+  const dateLine = formatEpisodeDateForOverlay(episodeDateString);
+
+  if (titleLines.length === 0 && !dateLine) {
+    return null;
+  }
+
+  return {
+    titleTextFile:
+      titleLines.length > 0
+        ? writeLabelTextFile({ lines: titleLines, workDir, name: "title" })
+        : null,
+    dateTextFile: dateLine
+      ? writeLabelTextFile({ lines: [dateLine], workDir, name: "date" })
+      : null,
+    boldFontPath: resolveClipBoldFontPath(),
+    fontPath: resolveClipFontPath(),
+    titleLines,
+    dateLine,
+  };
 }
 
 function secondsToFileToken(value) {
@@ -111,6 +239,38 @@ function buildClipVideoOutputName({
   return `clip-${sequence}-${startToken}-${endToken}-${slug}${extension}`;
 }
 
+// Parses ffmpeg's "-progress pipe:2" key=value stream (interleaved with its normal
+// stderr logging) and reports each new out_time as seconds, capped at the expected
+// duration and strictly increasing.
+function makeFfmpegProgressParser({ durationSeconds, onSeconds }) {
+  let stderrBuffer = "";
+  let lastProgressSeconds = 0;
+
+  return (chunk) => {
+    stderrBuffer += chunk;
+    const lines = stderrBuffer.split(/\r?\n/);
+    stderrBuffer = lines.pop() || "";
+
+    for (const line of lines) {
+      if (!line.startsWith("out_time_us=")) {
+        continue;
+      }
+
+      const microseconds = Number(line.slice("out_time_us=".length));
+      if (!Number.isFinite(microseconds)) {
+        continue;
+      }
+
+      const progressSeconds = Math.max(0, microseconds / 1_000_000);
+      if (progressSeconds <= lastProgressSeconds) {
+        continue;
+      }
+      lastProgressSeconds = progressSeconds;
+      onSeconds(Math.min(durationSeconds, progressSeconds));
+    }
+  };
+}
+
 async function createSegmentVideo({
   imagePath,
   durationSeconds,
@@ -118,8 +278,6 @@ async function createSegmentVideo({
   onProgress = () => {},
 }) {
   const duration = Math.max(0.2, Number(durationSeconds || 0));
-  let stderrBuffer = "";
-  let lastProgressSeconds = 0;
   const result = await runCommandStream(
     "ffmpeg",
     [
@@ -142,29 +300,10 @@ async function createSegmentVideo({
       outputPath,
     ],
     {
-      onStderr: (chunk) => {
-        stderrBuffer += chunk;
-        const lines = stderrBuffer.split(/\r?\n/);
-        stderrBuffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (!line.startsWith("out_time_us=")) {
-            continue;
-          }
-
-          const microseconds = Number(line.slice("out_time_us=".length));
-          if (!Number.isFinite(microseconds)) {
-            continue;
-          }
-
-          const progressSeconds = Math.max(0, microseconds / 1_000_000);
-          if (progressSeconds <= lastProgressSeconds) {
-            continue;
-          }
-          lastProgressSeconds = progressSeconds;
-          onProgress(Math.min(duration, progressSeconds));
-        }
-      },
+      onStderr: makeFfmpegProgressParser({
+        durationSeconds: duration,
+        onSeconds: onProgress,
+      }),
     },
   );
 
@@ -181,45 +320,14 @@ async function createStaticClipVideo({
   imagePath,
   durationSeconds,
   outputPath,
-  label,
+  overlay,
+  onProgress = () => {},
 }) {
   const duration = Math.max(0.2, Number(durationSeconds || 0));
-  const visualWithLabel = buildClipVisualFilter({
-    withLabel: true,
-    label: label || "Clip",
-  });
   // Streamed (async) spawn keeps the UI server's event loop free while ffmpeg runs.
-  const result = await runCommandStream("ffmpeg", [
-    "-y",
-    "-loop",
-    "1",
-    "-i",
-    imagePath,
-    "-t",
-    String(duration),
-    "-r",
-    "30",
-    "-filter_complex",
-    visualWithLabel,
-    "-map",
-    "[vout]",
-    "-pix_fmt",
-    "yuv420p",
-    outputPath,
-  ]);
-
-  if (result.status === 0) {
-    return;
-  }
-
-  const drawtextMissing = /No such filter:\s*'drawtext'/i.test(
-    `${result.stderr || ""}\n${result.stdout || ""}`,
-  );
-
-  if (drawtextMissing) {
-    // Some ffmpeg builds exclude drawtext (libfreetype). Fall back to image-only clips.
-    const visualNoLabel = buildClipVisualFilter({ withLabel: false });
-    const fallbackResult = await runCommandStream("ffmpeg", [
+  const result = await runCommandStream(
+    "ffmpeg",
+    [
       "-y",
       "-loop",
       "1",
@@ -230,26 +338,29 @@ async function createStaticClipVideo({
       "-r",
       "30",
       "-filter_complex",
-      visualNoLabel,
+      buildClipVisualFilter({ overlay }),
       "-map",
       "[vout]",
       "-pix_fmt",
       "yuv420p",
+      "-progress",
+      "pipe:2",
+      "-nostats",
       outputPath,
-    ]);
+    ],
+    {
+      onStderr: makeFfmpegProgressParser({
+        durationSeconds: duration,
+        onSeconds: onProgress,
+      }),
+    },
+  );
 
-    if (fallbackResult.status === 0) {
-      return;
-    }
-
+  if (result.status !== 0) {
     throw new Error(
-      `ffmpeg failed to create clip video: ${fallbackResult.stderr || fallbackResult.stdout}`,
+      `ffmpeg failed to create clip video: ${result.stderr || result.stdout}`,
     );
   }
-
-  throw new Error(
-    `ffmpeg failed to create clip video: ${result.stderr || result.stdout}`,
-  );
 }
 
 async function createClipVideoWithAudio({
@@ -258,15 +369,11 @@ async function createClipVideoWithAudio({
   startSeconds,
   durationSeconds,
   outputPath,
-  label,
+  overlay,
+  onProgress = () => {},
 }) {
   const duration = Math.max(0.2, Number(durationSeconds || 0));
   const start = Math.max(0, Number(startSeconds || 0));
-  const visualWithLabel = buildClipVisualFilter({
-    withLabel: true,
-    label: label || "Clip",
-  });
-  const visualNoLabel = buildClipVisualFilter({ withLabel: false });
 
   const args = (filterGraph) => [
     "-y",
@@ -303,36 +410,29 @@ async function createClipVideoWithAudio({
     "-b:a",
     "160k",
     "-shortest",
+    "-progress",
+    "pipe:2",
+    "-nostats",
     outputPath,
   ];
 
   // Streamed (async) spawn keeps the UI server's event loop free while ffmpeg runs.
-  const result = await runCommandStream("ffmpeg", args(visualWithLabel));
-  if (result.status === 0) {
-    return;
-  }
-
-  const drawtextMissing = /No such filter:\s*'drawtext'/i.test(
-    `${result.stderr || ""}\n${result.stdout || ""}`,
+  const result = await runCommandStream(
+    "ffmpeg",
+    args(buildClipVisualFilter({ overlay })),
+    {
+      onStderr: makeFfmpegProgressParser({
+        durationSeconds: duration,
+        onSeconds: onProgress,
+      }),
+    },
   );
 
-  if (drawtextMissing) {
-    const fallbackResult = await runCommandStream(
-      "ffmpeg",
-      args(visualNoLabel),
-    );
-    if (fallbackResult.status === 0) {
-      return;
-    }
-
+  if (result.status !== 0) {
     throw new Error(
-      `ffmpeg failed to create clip video: ${fallbackResult.stderr || fallbackResult.stdout}`,
+      `ffmpeg failed to create clip video: ${result.stderr || result.stdout}`,
     );
   }
-
-  throw new Error(
-    `ffmpeg failed to create clip video: ${result.stderr || result.stdout}`,
-  );
 }
 
 async function generateVideoFromChapters({
@@ -501,6 +601,8 @@ async function generateClipVideos({
   mp3Path,
   outputDir,
   workDir,
+  episodeTitle,
+  episodeDateString,
   startIndex = 0,
   onProgress = () => {},
 }) {
@@ -508,29 +610,57 @@ async function generateClipVideos({
     return [];
   }
 
+  // Checked once up front so a build that cannot draw text fails before rendering
+  // anything, instead of quietly producing clips with no label on them.
+  assertFfmpegFilters(["drawtext"]);
+
   ensureDir(outputDir);
   ensureDir(workDir);
+
+  const overlay = prepareEpisodeOverlay({
+    episodeTitle,
+    episodeDateString,
+    workDir,
+  });
 
   const outputs = [];
   const totalSteps = Math.max(1, clipSuggestions.length);
   const indexOffset = Math.max(0, Number(startIndex || 0));
 
+  // Clip durations vary a lot (roughly 28-55s) and encode time tracks output duration,
+  // so percent is weighted by rendered seconds - including mid-render progress from
+  // ffmpeg - rather than by clip count.
+  const clipDurations = clipSuggestions.map((clipSuggestion) =>
+    Math.max(2, Number(clipSuggestion?.durationSeconds || 12)),
+  );
+  const totalDurationSeconds = clipDurations.reduce((sum, d) => sum + d, 0);
+  let completedDurationSeconds = 0;
+
+  const reportProgress = (clipsDone, midClipSeconds) => {
+    const doneSeconds = Math.min(
+      totalDurationSeconds,
+      completedDurationSeconds + Math.max(0, midClipSeconds),
+    );
+    onProgress({
+      current: clipsDone,
+      total: totalSteps,
+      percent:
+        totalDurationSeconds > 0
+          ? Math.round((doneSeconds / totalDurationSeconds) * 100)
+          : 0,
+    });
+  };
+
   for (let index = 0; index < clipSuggestions.length; index += 1) {
     const clipSuggestion = clipSuggestions[index];
     const absoluteIndex = indexOffset + index;
-    const durationSeconds = Math.max(
-      2,
-      Number(clipSuggestion?.durationSeconds || 12),
-    );
-    const label =
-      clipSuggestion?.summary ||
-      clipSuggestion?.title ||
-      `Clip ${absoluteIndex + 1}`;
+    const durationSeconds = clipDurations[index];
     const startSeconds = Math.max(0, Number(clipSuggestion?.startSeconds || 0));
     const outputPath = path.join(
       outputDir,
       buildClipVideoOutputName({ index: absoluteIndex, clipSuggestion }),
     );
+    const onRenderProgress = (seconds) => reportProgress(index, seconds);
 
     if (mp3Path) {
       await createClipVideoWithAudio({
@@ -539,31 +669,34 @@ async function generateClipVideos({
         startSeconds,
         durationSeconds,
         outputPath,
-        label,
+        overlay,
+        onProgress: onRenderProgress,
       });
     } else {
       await createStaticClipVideo({
         imagePath,
         durationSeconds,
         outputPath,
-        label,
+        overlay,
+        onProgress: onRenderProgress,
       });
     }
 
+    const summary =
+      clipSuggestion?.summary ||
+      clipSuggestion?.title ||
+      `Clip ${absoluteIndex + 1}`;
     outputs.push({
-      title: clipSuggestion?.title || label,
-      summary: label,
+      title: clipSuggestion?.title || summary,
+      summary,
       outputPath,
       durationSeconds,
       startSeconds,
       endSeconds: clipSuggestion?.endSeconds,
     });
 
-    onProgress({
-      current: index + 1,
-      total: totalSteps,
-      percent: Math.round(((index + 1) / totalSteps) * 100),
-    });
+    completedDurationSeconds += durationSeconds;
+    reportProgress(index + 1, 0);
   }
 
   return outputs;

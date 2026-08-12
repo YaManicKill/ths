@@ -472,20 +472,25 @@ function startServer({ port = 4173 } = {}) {
     status,
     total,
     current = 0,
+    percent,
     outputs = [],
     error,
     waitingForVideo = false,
   }) {
     const safeTotal = Math.max(0, Number(total || 0));
     const safeCurrent = Math.max(0, Number(current || 0));
-    const percent =
-      safeTotal > 0 ? Math.round((safeCurrent / safeTotal) * 100) : 0;
+    // Time-weighted percent from the renderer when available; clip count otherwise.
+    const safePercent = Number.isFinite(Number(percent))
+      ? Math.max(0, Math.min(100, Math.round(Number(percent))))
+      : safeTotal > 0
+        ? Math.round((safeCurrent / safeTotal) * 100)
+        : 0;
     return {
       status,
       total: safeTotal,
       current: safeCurrent,
       remaining: Math.max(0, safeTotal - safeCurrent),
-      percent,
+      percent: safePercent,
       outputs,
       waitingForVideo,
       ...(error ? { error } : {}),
@@ -497,6 +502,8 @@ function startServer({ port = 4173 } = {}) {
     clipSuggestions,
     preferredClipImagePath,
     resolvedMp3Path,
+    episodeTitle,
+    episodeDateString,
   }) {
     activeClipGenerationStatusFiles.add(statusFile);
 
@@ -519,7 +526,9 @@ function startServer({ port = 4173 } = {}) {
     setImmediate(async () => {
       const clipBaseDirectory = path.dirname(resolvedMp3Path);
       const clipOutputDir = path.join(clipBaseDirectory, "clip-videos");
-      const outputs = [];
+      // The renderer reports through onProgress, including mid-render; remembered here
+      // so a failure can still say how far the run got.
+      let lastProgress = { current: 0, percent: 0 };
 
       try {
         if (shouldWaitForVideo) {
@@ -536,27 +545,29 @@ function startServer({ port = 4173 } = {}) {
           );
         }
 
-        for (let index = 0; index < clipSuggestions.length; index += 1) {
-          const generated = await generateClipVideos({
-            clipSuggestions: [clipSuggestions[index]],
-            imagePath: preferredClipImagePath,
-            mp3Path: resolvedMp3Path,
-            outputDir: clipOutputDir,
-            workDir: path.join(clipOutputDir, ".work"),
-            startIndex: index,
-          });
-          outputs.push(...generated);
-          updateClipGenerationStatus(
-            statusFile,
-            buildClipGenerationState({
-              status: "started",
-              total,
-              current: index + 1,
-              outputs,
-              waitingForVideo: false,
-            }),
-          );
-        }
+        const outputs = await generateClipVideos({
+          clipSuggestions,
+          imagePath: preferredClipImagePath,
+          mp3Path: resolvedMp3Path,
+          outputDir: clipOutputDir,
+          workDir: path.join(clipOutputDir, ".work"),
+          episodeTitle,
+          episodeDateString,
+          onProgress: (progress) => {
+            lastProgress = progress;
+            updateClipGenerationStatus(
+              statusFile,
+              buildClipGenerationState({
+                status: "started",
+                total: progress.total,
+                current: progress.current,
+                percent: progress.percent,
+                outputs: [],
+                waitingForVideo: false,
+              }),
+            );
+          },
+        });
 
         updateClipGenerationStatus(statusFile, {
           ...buildClipGenerationState({
@@ -573,8 +584,9 @@ function startServer({ port = 4173 } = {}) {
           ...buildClipGenerationState({
             status: "failed",
             total,
-            current: outputs.length,
-            outputs,
+            current: lastProgress.current,
+            percent: lastProgress.percent,
+            outputs: [],
             waitingForVideo: false,
             error: error.message,
           }),
@@ -913,6 +925,8 @@ function startServer({ port = 4173 } = {}) {
           clipSuggestions,
           preferredClipImagePath,
           resolvedMp3Path,
+          episodeTitle: discovered.episodeTitle,
+          episodeDateString: discovered.dateString,
         });
 
         sendJson(res, 200, {

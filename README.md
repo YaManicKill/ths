@@ -21,7 +21,10 @@ Lives in `scripts/postprocess/`.
 ### Prerequisites
 
 - Node 24+ (declared in `engines`, and enforced by `.npmrc`)
-- `ffmpeg` and `ffprobe` available in PATH
+- `ffmpeg` and `ffprobe` available in PATH, built with `libfreetype` and `libass` (the
+  `drawtext` and `subtitles` filters). Homebrew core ships without them; use
+  `brew install homebrew-ffmpeg/ffmpeg/ffmpeg` instead. Clip generation checks for
+  `drawtext` up front and refuses to render unlabelled clips silently.
 - `python3` available in PATH, with the `mutagen` package installed:
   `python3 -m pip install --user mutagen`
 
@@ -128,16 +131,7 @@ directory.
 ### Clip Workflow TODOs
 
 - Improve clip suggestion cards so approval is meaningful. The generator already returns `reason`, `speaker` and the full `text`; the card just doesn't render them, so this is a UI-only change.
-- Make the burned-in text label actually work: it is wanted, but currently never drawn (see Known Bugs). Needs a `drawtext` fallback for builds without the filter, word wrapping, and a non-macOS font path.
-- Add further overlays once the label works: episode name, episode date, and a playback/progress bar for social-style presentation.
+- Add a playback/progress bar overlay to clips for social-style presentation.
 - Add subtitles, sliced from the existing episode VTT and rebased to the clip start.
 - Replace the regex/keyword scoring in `clip-suggestions.js` with an LLM pass over the transcript. The current `HOOK_WORDS` heuristics are why summaries land on things like "That".
 - Snap clip boundaries to sentence or VTT cue edges instead of the flat `trailingContextSeconds: 12` pad, so clips stop cutting mid-word.
-
-### Known Bugs
-
-Clip generation:
-
-- The `drawtext` label is never rendered on ffmpeg builds without the `drawtext` filter (including the one currently installed here), so those clips silently take the no-label fallback path.
-- The label is a single unwrapped `drawtext` line at fontsize 52 on a 1080px frame, fed a summary of up to 180 characters. It would overflow the frame if `drawtext` were available.
-- The macOS-only font path `/System/Library/Fonts/Helvetica.ttc` is hardcoded in `video.js`.
