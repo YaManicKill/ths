@@ -12,8 +12,10 @@ const { resolveChapterImages } = require("./image-resolver");
 const { findWordMatches } = require("./transcript-check");
 const { generateVideoFromChapters } = require("./video");
 const { buildClipSuggestions } = require("./clip-suggestions");
+const { loadPostprocessConfig } = require("./config");
 const {
   assertToolAvailable,
+  chapterImageOverridesPath,
   createOrCheckoutEpisodeBranch,
   ensureDir,
   fileExists,
@@ -25,25 +27,6 @@ const {
   titleCase,
   writeJson,
 } = require("./utils");
-
-const DEFAULT_CONFIG = {
-  defaultAuthor: "Al McKinlay",
-  releaseTimeLocal: "19:00:00",
-  timezoneOffset: "+01:00",
-  outputRoot: "content/episode",
-  videoOutputRoot: "content/episode-videos",
-  imageOverridesFile: "data/chapter-image-overrides.json",
-  profanityWords: [
-    "fuck*",
-    "shit*",
-    "bitch*",
-    "cunt*",
-    "asshole*",
-    "motherfucker*",
-    "damn*",
-    "crap*",
-  ],
-};
 
 function getAudioDurationSeconds(mp3Path) {
   const result = runCommand("ffprobe", [
@@ -95,6 +78,67 @@ function createFallbackImage(outputPath) {
   ]);
 
   return result.status === 0 && fileExists(outputPath);
+}
+
+function checkChapterEmbedSupport() {
+  if (!assertToolAvailable("python3")) {
+    return {
+      ok: false,
+      error:
+        "python3 was not found in PATH, and it is required to embed chapter images into the MP3",
+    };
+  }
+
+  const result = runCommand("python3", ["-c", "import mutagen"]);
+  if (result.status !== 0) {
+    return {
+      ok: false,
+      error:
+        "The python3 'mutagen' package is required to embed chapter images into the MP3. Install with: python3 -m pip install --user mutagen",
+    };
+  }
+
+  return { ok: true };
+}
+
+const WORK_DIR_RETENTION_MS = 24 * 60 * 60 * 1000;
+
+// Discovery runs on every UI input change, and a run leaves chapter MP4 segments behind,
+// so without pruning this grows by hundreds of megabytes per episode.
+function pruneStaleWorkDirs(workRoot, keepDir) {
+  const cutoff = Date.now() - WORK_DIR_RETENTION_MS;
+
+  let entries = [];
+  try {
+    entries = fs.readdirSync(workRoot, { withFileTypes: true });
+  } catch {
+    return;
+  }
+
+  for (const entry of entries) {
+    if (
+      !entry.isDirectory() ||
+      !/^(?:ths-\d{2}-\d{2}|rerender)-\d+$/.test(entry.name)
+    ) {
+      continue;
+    }
+
+    const fullPath = path.join(workRoot, entry.name);
+    if (fullPath === keepDir) {
+      continue;
+    }
+
+    const timestamp = Number(entry.name.split("-").pop());
+    if (Number.isFinite(timestamp) && timestamp > cutoff) {
+      continue;
+    }
+
+    try {
+      fs.rmSync(fullPath, { recursive: true, force: true });
+    } catch {
+      // A dir still in use by another run will be picked up next time.
+    }
+  }
 }
 
 function ensureMp3Backup(mp3Path) {
@@ -340,23 +384,6 @@ function buildIndexMarkdown({
   return lines.join("\n");
 }
 
-function loadConfig(repoRoot, configPath) {
-  const fullPath = configPath || path.join(repoRoot, "postprocess.config.json");
-  const config = fileExists(fullPath) ? readJson(fullPath) : {};
-  const configuredProfanityWords = Array.isArray(config.profanityWords)
-    ? config.profanityWords
-    : [];
-  const mergedProfanityWords = [
-    ...new Set([...DEFAULT_CONFIG.profanityWords, ...configuredProfanityWords]),
-  ];
-
-  return {
-    ...DEFAULT_CONFIG,
-    ...config,
-    profanityWords: mergedProfanityWords,
-  };
-}
-
 function writeVideoStatusPreserveClipGeneration(statusFilePath, nextStatus) {
   const existing = readJson(statusFilePath, {});
   if (existing.clipGeneration && nextStatus.clipGeneration === undefined) {
@@ -404,7 +431,7 @@ function validateInputs(inputs) {
 // Discovery phase - parse chapters, resolve images, but don't write files
 async function discoverEpisodeData(inputOptions = {}) {
   const repoRoot = inputOptions.repoRoot || path.resolve(__dirname, "..", "..");
-  const config = loadConfig(repoRoot, inputOptions.configPath);
+  const config = loadPostprocessConfig(repoRoot, inputOptions.configPath);
 
   const onProgress = inputOptions.onProgress || (() => {});
 
@@ -413,13 +440,18 @@ async function discoverEpisodeData(inputOptions = {}) {
   const tools = {
     ffmpeg: assertToolAvailable("ffmpeg"),
     ffprobe: assertToolAvailable("ffprobe"),
-    python3: assertToolAvailable("python3"),
   };
 
   if (!tools.ffmpeg || !tools.ffprobe) {
     throw new Error(
       "ffmpeg and ffprobe are required and were not found in PATH",
     );
+  }
+
+  // Only a warning here; runPipeline rejects the same condition before it writes.
+  const embedSupport = checkChapterEmbedSupport();
+  if (!embedSupport.ok) {
+    onProgress(`Warning: ${embedSupport.error}`);
   }
 
   onProgress("Parsing episode metadata...");
@@ -471,7 +503,7 @@ async function discoverEpisodeData(inputOptions = {}) {
     inputOptions.publishDate ||
     getUpcomingWednesdayDateString({
       time: config.releaseTimeLocal,
-      timezoneOffset: config.timezoneOffset,
+      timezone: config.timezone,
     });
 
   onProgress("Extracting cover art...");
@@ -479,6 +511,7 @@ async function discoverEpisodeData(inputOptions = {}) {
   const workRoot = path.join(repoRoot, ".cache", "postprocess");
   const workDir = path.join(workRoot, `${episodeMeta.guid}-${Date.now()}`);
   ensureDir(workDir);
+  pruneStaleWorkDirs(workRoot, workDir);
 
   const fallbackCoverPath = path.join(workDir, "fallback-cover.jpg");
   const coverExtracted = extractCoverArt(
@@ -491,10 +524,7 @@ async function discoverEpisodeData(inputOptions = {}) {
 
   onProgress("Resolving chapter images...");
 
-  const imageOverridesPath = path.isAbsolute(config.imageOverridesFile)
-    ? config.imageOverridesFile
-    : path.join(repoRoot, config.imageOverridesFile);
-  const persistentOverrides = readJson(imageOverridesPath, {});
+  const persistentOverrides = readJson(chapterImageOverridesPath(repoRoot), {});
 
   const chaptersWithImages = await resolveChapterImages(chapters, {
     cacheDir: path.join(workRoot, "image-cache"),
@@ -539,11 +569,10 @@ async function discoverEpisodeData(inputOptions = {}) {
 
 async function runPipeline(inputOptions = {}) {
   const repoRoot = inputOptions.repoRoot || path.resolve(__dirname, "..", "..");
-  const config = loadConfig(repoRoot, inputOptions.configPath);
+  const config = loadPostprocessConfig(repoRoot, inputOptions.configPath);
 
   const onProgress = inputOptions.onProgress || (() => {});
 
-  // Use cached discovery data if provided, otherwise perform discovery
   let discovered;
   if (inputOptions.discoveredData) {
     discovered = inputOptions.discoveredData;
@@ -578,7 +607,6 @@ async function runPipeline(inputOptions = {}) {
   let effectivePodcastBytes = discoveredPodcastBytes;
   let indexMarkdown = "";
 
-  // Determine video output path - use discovered episode folder or derive from mp3
   let videoPath;
   if (inputOptions.episodeFolderPath) {
     videoPath = path.join(
@@ -586,7 +614,6 @@ async function runPipeline(inputOptions = {}) {
       `ths-${episodeMeta.seasonCode}-${episodeMeta.episodeCode}.mp4`,
     );
   } else {
-    // Derive from mp3Path - the folder containing the mp3 is the episodes folder
     const episodeFolderFromMp3 = path.dirname(inputOptions.mp3Path);
     videoPath = path.join(
       episodeFolderFromMp3,
@@ -629,13 +656,15 @@ async function runPipeline(inputOptions = {}) {
       chaptersEmbedded: 0,
       backupPath: null,
     },
-    notes: [
-      "Per-chapter images are embedded into MP3 chapter metadata.",
-      "Video generation uses chapter image fallback to MP3 cover when lookup fails.",
-    ],
   };
 
   if (!inputOptions.dryRun) {
+    // Fail before the branch and files exist, rather than part-way through the run.
+    const embedSupport = checkChapterEmbedSupport();
+    if (!embedSupport.ok) {
+      throw new Error(embedSupport.error);
+    }
+
     onProgress("Creating git branch...");
 
     const branchResult = createOrCheckoutEpisodeBranch(
@@ -712,7 +741,6 @@ async function runPipeline(inputOptions = {}) {
     const videoStatusPath = path.join(episodeDir, "video-status.json");
     const startedAt = new Date().toISOString();
 
-    // Use setImmediate to start the task asynchronously without blocking
     setImmediate(async () => {
       writeVideoStatusPreserveClipGeneration(videoStatusPath, {
         status: "started",
@@ -738,6 +766,13 @@ async function runPipeline(inputOptions = {}) {
           completedAt: new Date().toISOString(),
           videoPath,
           percent: 100,
+        });
+
+        // The chapter segments are the bulk of the scratch space and the muxed MP4 is
+        // already written, so drop them as soon as the render succeeds.
+        fs.rmSync(path.join(workDir, "video"), {
+          recursive: true,
+          force: true,
         });
       } catch (error) {
         // Log error but don't throw since we're background

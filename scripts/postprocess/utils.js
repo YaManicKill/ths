@@ -2,6 +2,13 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawn, spawnSync } = require("node:child_process");
 
+const DEFAULT_TIMEZONE = "Europe/London";
+const CHAPTER_IMAGE_OVERRIDES_FILE = "data/chapter-image-overrides.json";
+
+function chapterImageOverridesPath(repoRoot) {
+  return path.join(repoRoot, CHAPTER_IMAGE_OVERRIDES_FILE);
+}
+
 function readJson(filePath, fallbackValue = null) {
   try {
     const raw = fs.readFileSync(filePath, "utf8");
@@ -122,45 +129,109 @@ function slugify(input) {
     .replace(/-{2,}/g, "-");
 }
 
+function timezoneOffsetLabel(instant, timezone) {
+  const label = new Intl.DateTimeFormat("en-GB", {
+    timeZone: timezone,
+    timeZoneName: "longOffset",
+  })
+    .formatToParts(instant)
+    .find((part) => part.type === "timeZoneName").value;
+
+  const match = /GMT([+-])(\d{2}):(\d{2})/.exec(label);
+  if (!match) {
+    return "+00:00";
+  }
+
+  return `${match[1]}${match[2]}:${match[3]}`;
+}
+
+function offsetLabelToMinutes(label) {
+  const match = /^([+-])(\d{2}):(\d{2})$/.exec(label);
+  if (!match) {
+    return 0;
+  }
+
+  const magnitude = Number(match[2]) * 60 + Number(match[3]);
+  return match[1] === "-" ? -magnitude : magnitude;
+}
+
+function zonedDateParts(instant, timezone = DEFAULT_TIMEZONE) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(instant);
+
+  const value = (type) =>
+    Number(parts.find((part) => part.type === type).value);
+  return { year: value("year"), month: value("month"), day: value("day") };
+}
+
+function formatZonedTimestamp({
+  year,
+  month,
+  day,
+  time = "19:00:00",
+  timezone = DEFAULT_TIMEZONE,
+}) {
+  const [hour, minute, second] = String(time)
+    .split(":")
+    .map((part) => Number(part));
+  const hh = Number.isFinite(hour) ? hour : 19;
+  const mm = Number.isFinite(minute) ? minute : 0;
+  const ss = Number.isFinite(second) ? second : 0;
+
+  const wallClockAsUtc = Date.UTC(year, month - 1, day, hh, mm, ss);
+  const approximateOffset = timezoneOffsetLabel(
+    new Date(wallClockAsUtc),
+    timezone,
+  );
+  // A zone's offset varies by instant, so resolve it against the instant this wall
+  // clock actually lands on rather than the naive UTC reading of it.
+  const offset = timezoneOffsetLabel(
+    new Date(wallClockAsUtc - offsetLabelToMinutes(approximateOffset) * 60_000),
+    timezone,
+  );
+
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${year}-${pad(month)}-${pad(day)}T${pad(hh)}:${pad(mm)}:${pad(ss)}${offset}`;
+}
+
+function addCalendarDays({ year, month, day }, days) {
+  const cursor = new Date(Date.UTC(year, month - 1, day));
+  cursor.setUTCDate(cursor.getUTCDate() + days);
+  return {
+    year: cursor.getUTCFullYear(),
+    month: cursor.getUTCMonth() + 1,
+    day: cursor.getUTCDate(),
+    weekday: cursor.getUTCDay(),
+  };
+}
+
 function getUpcomingWednesdayDateString({
   now = new Date(),
   time = "19:00:00",
-  timezoneOffset = "+01:00",
+  timezone = DEFAULT_TIMEZONE,
 } = {}) {
-  const [hour, minute, second] = time.split(":").map((part) => Number(part));
-
-  const target = new Date(now);
-  target.setHours(0, 0, 0, 0);
-
-  const day = target.getDay();
-  let diff = (3 - day + 7) % 7;
+  const today = addCalendarDays(zonedDateParts(now, timezone), 0);
+  let diff = (3 - today.weekday + 7) % 7;
   if (diff === 0) {
     diff = 7;
   }
 
-  target.setDate(target.getDate() + diff);
-
-  const year = target.getFullYear();
-  const month = String(target.getMonth() + 1).padStart(2, "0");
-  const date = String(target.getDate()).padStart(2, "0");
-
-  const hh = String(Number.isFinite(hour) ? hour : 19).padStart(2, "0");
-  const mm = String(Number.isFinite(minute) ? minute : 0).padStart(2, "0");
-  const ss = String(Number.isFinite(second) ? second : 0).padStart(2, "0");
-
-  return `${year}-${month}-${date}T${hh}:${mm}:${ss}${timezoneOffset}`;
+  const target = addCalendarDays(today, diff);
+  return formatZonedTimestamp({ ...target, time, timezone });
 }
 
 function createOrCheckoutEpisodeBranch(repoRoot, seasonCode, episodeCode) {
   const branchName = `ep-${seasonCode}-${episodeCode}`;
 
-  // Check if branch exists
   const checkResult = runCommand("git", ["rev-parse", "--verify", branchName], {
     cwd: repoRoot,
   });
 
   if (checkResult.status !== 0) {
-    // Branch doesn't exist, create it
     const createResult = runCommand("git", ["checkout", "-b", branchName], {
       cwd: repoRoot,
     });
@@ -173,7 +244,6 @@ function createOrCheckoutEpisodeBranch(repoRoot, seasonCode, episodeCode) {
 
     return { created: true, branchName };
   } else {
-    // Branch exists, checkout to it
     const checkoutResult = runCommand("git", ["checkout", branchName], {
       cwd: repoRoot,
     });
@@ -189,10 +259,13 @@ function createOrCheckoutEpisodeBranch(repoRoot, seasonCode, episodeCode) {
 }
 
 module.exports = {
+  DEFAULT_TIMEZONE,
   assertToolAvailable,
+  chapterImageOverridesPath,
   createOrCheckoutEpisodeBranch,
   ensureDir,
   fileExists,
+  formatZonedTimestamp,
   getUpcomingWednesdayDateString,
   normalizeTitle,
   readJson,
@@ -201,4 +274,5 @@ module.exports = {
   slugify,
   titleCase,
   writeJson,
+  zonedDateParts,
 };

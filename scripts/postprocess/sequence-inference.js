@@ -1,6 +1,11 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { getUpcomingWednesdayDateString } = require("./utils");
+const {
+  DEFAULT_TIMEZONE,
+  formatZonedTimestamp,
+  getUpcomingWednesdayDateString,
+  zonedDateParts,
+} = require("./utils");
 
 const MAX_EPISODES_PER_SEASON = 26;
 
@@ -100,13 +105,13 @@ function inferPublishDateForEpisode({
   seasonNumber,
   episodeNumber,
   releaseTimeLocal,
-  timezoneOffset,
+  timezone = DEFAULT_TIMEZONE,
 }) {
   const records = loadEpisodeRecords(contentEpisodeRoot);
   if (records.length === 0) {
     return getUpcomingWednesdayDateString({
       time: releaseTimeLocal,
-      timezoneOffset,
+      timezone,
     });
   }
 
@@ -115,16 +120,27 @@ function inferPublishDateForEpisode({
   const lastOrdinal = episodeOrdinal(last.season, last.episode);
   const weekDelta = targetOrdinal - lastOrdinal;
 
-  const targetDate = new Date(
-    last.date.getTime() + weekDelta * 7 * 24 * 60 * 60 * 1000,
+  // Step by calendar days rather than a fixed number of hours, so the release time
+  // stays put when the target lands on the other side of a DST change.
+  const lastParts = zonedDateParts(last.date, timezone);
+  const cursor = new Date(
+    Date.UTC(lastParts.year, lastParts.month - 1, lastParts.day),
   );
-  return targetDate.toISOString();
+  cursor.setUTCDate(cursor.getUTCDate() + weekDelta * 7);
+
+  return formatZonedTimestamp({
+    year: cursor.getUTCFullYear(),
+    month: cursor.getUTCMonth() + 1,
+    day: cursor.getUTCDate(),
+    time: releaseTimeLocal,
+    timezone,
+  });
 }
 
 function inferNextSeasonEpisode({
   contentEpisodeRoot,
   releaseTimeLocal,
-  timezoneOffset,
+  timezone = DEFAULT_TIMEZONE,
   publishDate,
 }) {
   const records = loadEpisodeRecords(contentEpisodeRoot);
@@ -148,7 +164,7 @@ function inferNextSeasonEpisode({
   if (!nextPublish || Number.isNaN(nextPublish.getTime())) {
     const nextPublishText = getUpcomingWednesdayDateString({
       time: releaseTimeLocal,
-      timezoneOffset,
+      timezone,
     });
     nextPublish = new Date(nextPublishText);
   }

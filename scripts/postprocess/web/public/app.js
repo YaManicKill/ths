@@ -391,7 +391,6 @@ function renderChapterPreviews(discovered) {
       align-items: flex-start;
     `;
 
-    // Current image
     const imgWrapper = document.createElement("div");
     imgWrapper.style.cssText =
       "position: relative; width: 150px; height: 150px;";
@@ -954,7 +953,6 @@ async function runDiscovery() {
     resumeVideoStatusPollingFromDiscover(result.discovered?.videoStatus);
     resumeClipStatusPollingFromDiscover(result.discovered?.videoStatus);
 
-    // Store discovery data and render previews
     currentDiscoveryData = {
       discoveryData: result.discoveryData,
     };

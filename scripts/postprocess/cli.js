@@ -6,36 +6,21 @@ const {
   discoverEpisodeInputs,
   discoverLatestEpisodeInputs,
 } = require("./episode-discovery");
-const { readJson } = require("./utils");
+const { loadPostprocessConfig } = require("./config");
 const {
   inferPublishDateForEpisode,
   inferNextSeasonEpisode,
 } = require("./sequence-inference");
 
-const DEFAULT_EPISODES_ROOT = "~/Google Drive/My Drive/Projects/ths/Episodes";
-
-function loadConfig(repoRoot) {
-  const configPath = path.join(repoRoot, "postprocess.config.json");
-  return readJson(configPath, {});
-}
-
-function getEpisodesRoot(repoRoot, argValue) {
-  const config = loadConfig(repoRoot);
-  return config.episodesRoot || DEFAULT_EPISODES_ROOT;
-}
-
 function resolveSeasonEpisode({ repoRoot, args }) {
   const forceNewSeason = Boolean(args["new-season"]);
 
-  const config = loadConfig(repoRoot);
-  const contentEpisodeRoot = path.join(
-    repoRoot,
-    config.outputRoot || "content/episode",
-  );
+  const config = loadPostprocessConfig(repoRoot);
+  const contentEpisodeRoot = path.join(repoRoot, config.outputRoot);
   const inferred = inferNextSeasonEpisode({
     contentEpisodeRoot,
-    releaseTimeLocal: config.releaseTimeLocal || "19:00:00",
-    timezoneOffset: config.timezoneOffset || "+01:00",
+    releaseTimeLocal: config.releaseTimeLocal,
+    timezone: config.timezone,
   });
 
   const episodeNumberArg = args["episode-number"];
@@ -70,8 +55,8 @@ function resolveSeasonEpisode({ repoRoot, args }) {
       contentEpisodeRoot,
       seasonNumber,
       episodeNumber,
-      releaseTimeLocal: config.releaseTimeLocal || "19:00:00",
-      timezoneOffset: config.timezoneOffset || "+01:00",
+      releaseTimeLocal: config.releaseTimeLocal,
+      timezone: config.timezone,
     });
 
     return {
@@ -143,11 +128,9 @@ function printUsage() {
   console.log("");
   console.log("Launch prefilled web UI for the next episode:");
   console.log(
-    "  node scripts/postprocess/cli.js [episode] [--dry-run] [--new-season] [--episode-number EE|SS-EE]",
+    "  node scripts/postprocess/cli.js [--new-season] [--episode-number EE|SS-EE]",
   );
-  console.log("  episode         Open the web UI (default command if omitted)");
-  console.log("  --dry-run       Start UI with dry-run checked");
-  console.log("  --new-season    Force next season, episode 01");
+  console.log("  --new-season      Force next season, episode 01");
   console.log(
     "  --episode-number  Target episode number and infer publish date (EE or SS-EE)",
   );
@@ -204,17 +187,12 @@ async function main() {
   }
 
   if (command && command !== "episode") {
+    console.error(`Unsupported argument: ${command}`);
     printUsage();
     process.exit(1);
   }
 
-  const allowedFlags = new Set([
-    "dry-run",
-    "new-season",
-    "episode-number",
-    "help",
-    "h",
-  ]);
+  const allowedFlags = new Set(["new-season", "episode-number", "help", "h"]);
   const providedFlags = Object.keys(args).filter((key) => key !== "_");
   const unknownFlags = providedFlags.filter((key) => !allowedFlags.has(key));
   if (unknownFlags.length > 0) {
@@ -226,7 +204,7 @@ async function main() {
   }
 
   const resolved = resolveSeasonEpisode({ repoRoot, args });
-  const episodesRoot = getEpisodesRoot(repoRoot);
+  const episodesRoot = loadPostprocessConfig(repoRoot).episodesRoot;
   let discovered;
   try {
     discovered = discoverEpisodeInputs({
@@ -251,11 +229,9 @@ async function main() {
     transcriptVttPath: discovered.transcriptVttPath,
     episodeTitle: discovered.episodeTitle,
     publishDate: resolved.publishDate,
-    dryRun: args["dry-run"] ? "1" : "0",
   };
 
   const serverPath = path.join(__dirname, "web", "server.js");
-  // eslint-disable-next-line global-require, import/no-dynamic-require
   const { startServer } = require(serverPath);
   startServer({ port });
 

@@ -4,75 +4,112 @@ Code for the THS site
 
 ## Dev
 
-- `yarn` to install dependencies
+- `npm install` to install dependencies
 - Edit `content/episode/` files
 - Upload mp3 file
-- Run `yarn dev`
+- Run `npm run dev`
 - Access `localhost:1313`
 
 ## Deploy
 
-Deploy is done with `yarn build` but it is handled by circleci in the `.circleci/config.yml` file, automatically built and pushed to production server.
+Deploy is done with `npm run build` but it is handled by circleci in the `.circleci/config.yml` file, automatically built and pushed to production server.
 
-## Episode Post-Processing (WIP)
+## Episode Post-Processing
 
-Initial implementation lives in `scripts/postprocess/`.
+Lives in `scripts/postprocess/`.
 
 ### Prerequisites
 
-- Node 24+
+- Node 24+ (declared in `engines`, and enforced by `.npmrc`)
 - `ffmpeg` and `ffprobe` available in PATH
-- `python3` available in PATH (used to embed per-chapter images into the MP3)
+- `python3` available in PATH, with the `mutagen` package installed:
+  `python3 -m pip install --user mutagen`
+
+Python is used to embed per-chapter images into the MP3. Both it and `mutagen` are
+checked during discovery (as a warning) and again before a run writes anything, so a
+missing dependency fails before any branch or file is created.
+
+### Running It
+
+```bash
+npm run postprocess
+```
+
+That is the whole interface. It finds the next episode's assets under the configured
+Episodes folder, starts the local web UI on `http://localhost:4173`, opens your browser
+with every field prefilled, and automatically runs discovery.
+
+Discovery parses chapters, resolves images, checks transcripts and builds clip
+suggestions. It never touches your MP3, your episode assets or the site content — its only
+writes are scratch files under `.cache/postprocess/`. Nothing else is written until you
+press **Approve** in the UI.
+
+Optional flags:
+
+| Flag                           | Effect                                                                                                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--new-season`                 | Force the next season, episode 01, instead of incrementing the episode number.                                                                                |
+| `--episode-number <EE\|SS-EE>` | Target a specific episode and infer its publish date from that position in the sequence. `5` keeps the inferred season; `12-05` sets both season and episode. |
+
+### What A Run Does
+
+Pressing Approve in the UI:
+
+- Validates the MP3 filename (`ths-SS-EE.mp3`) and the required tools
+- Reads chapter timings from the MP3's own metadata
+- Resolves chapter images from your saved overrides, falling back to the MP3 cover art
+- Creates and checks out an `ep-SS-EE` git branch
+- Generates `index.md`, `transcript.md` and `transcript.vtt` in the episode folder
+- Embeds per-chapter images into MP3 chapter metadata (via `embed_chapter_images.py`,
+  keeping a `.bak` of the original alongside it)
+- Generates a 1080x1080 MP4 chapter-image video
+- Runs warning-only inappropriate word checks on the transcripts
+
+Per-chapter images are used for the MP3 chapter metadata and the full-episode MP4. Clip
+videos deliberately do not use them: they use the show logo from the project `Assets`
+folder, falling back to the MP3 cover art.
+
+### Episode Number Inference
+
+If you don't pass `--episode-number`, the next episode code is inferred from the episodes
+already on the site, using these rules:
+
+- max 26 episodes per season
+- the first episode published in January or July starts a new season
+- otherwise increment the episode number
 
 ### Configuration
 
-- Main config: `postprocess.config.json`
-- Persistent chapter image overrides: `data/chapter-image-overrides.json`
+Main config is `postprocess.config.json` at the repo root. Every key is optional; the
+defaults in `DEFAULT_CONFIG` in `config.js` are used when a key is absent. `config.js` is
+the only reader, shared by the CLI, the pipeline and the web server, and it validates
+`timezone` and `releaseTimeLocal` on load rather than failing later.
 
-### CLI Dry Run
+| Key                | Default                       | What it does                                                                                                     |
+| ------------------ | ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `episodesRoot`     | `~/Google Drive/.../Episodes` | Where source assets are searched for (MP3, transcripts). `~` is expanded. Searched up to 4 directories deep.     |
+| `outputRoot`       | `content/episode`             | Where generated episode folders are written, relative to the repo root. Also where episode inference reads from. |
+| `defaultAuthor`    | `Al McKinlay`                 | The `author` field in generated `index.md` frontmatter.                                                          |
+| `releaseTimeLocal` | `19:00:00`                    | Local time of day used for inferred publish dates.                                                               |
+| `timezone`         | `Europe/London`               | IANA zone the release time is interpreted in. The UTC offset is computed per date, so DST is handled.            |
+| `profanityWords`   | see below                     | Extra words for the warning-only transcript check. Wildcards like `shit*` match word families.                   |
 
-```bash
-npm run postprocess:dry -- \
-	--mp3 /absolute/path/to/ths-11-18.mp3 \
-	--chapters "/absolute/path/Tangent Factories - Chapter Info.txt" \
-	--transcript-md "/absolute/path/Tangent Factories.md" \
-	--transcript-vtt "/absolute/path/Tangent Factories.vtt"
-```
+`profanityWords` from config is unioned with a hardcoded default list, so it can only add
+words, never remove them.
 
-### CLI Full Run
+Persistent per-chapter image overrides live in `data/chapter-image-overrides.json`. That
+path is not configurable: it is defined once in `utils.js` and shared by the UI that
+writes overrides and the pipeline that reads them. The images themselves are stored in
+`.cache/postprocess/manual-images/`. Both are gitignored and local to your machine.
 
-```bash
-npm run postprocess -- \
-	--mp3 /absolute/path/to/ths-11-18.mp3 \
-	--chapters "/absolute/path/Tangent Factories - Chapter Info.txt" \
-	--transcript-md "/absolute/path/Tangent Factories.md" \
-	--transcript-vtt "/absolute/path/Tangent Factories.vtt"
-```
-
-This currently does the following:
-
-- Validates expected filenames and required tools
-- Parses chapter timings
-- Resolves chapter images from overrides, IGN, Steam, then MP3 cover fallback
-- Generates `index.md`, `transcript.md`, and `transcript.vtt` in the episode folder
-- Generates a 1080x1080 MP4 chapter-image video
-- Runs warning-only inappropriate word checks on transcripts
-- Embeds per-chapter images directly into MP3 chapter metadata (via `embed_chapter_images.py`)
-
-Per-chapter images are used for the MP3 chapter metadata and the full-episode MP4. Clip videos deliberately do not use them: they use the show logo from the project `Assets` folder, falling back to the MP3 cover art.
-
-### Local Web UI
-
-```bash
-npm run postprocess:ui
-```
-
-Then open `http://localhost:4173`.
+Everything else under `.cache/postprocess/` is scratch. Per-run work directories are
+pruned automatically after 24 hours, and a run's chapter MP4 segments are deleted as soon
+as the video finishes, so the directory should stay small. Deleting it by hand is safe
+apart from `manual-images/`, which your saved overrides point at.
 
 ### TODOs
 
 - Electron wrapper around the UI, so the tool runs as a desktop app instead of a local server plus browser tab.
-- Fix the documentation in this file so it matches the tool (see Known Bugs: every CLI example is currently wrong).
 - Preview clips before approving them: range-serve the MP3 so each suggestion card has a play button, instead of approving from a text summary alone.
 - Add a cancel button for in-progress clip generation. Now that ffmpeg runs async, an in-flight run can be killed instead of needing a server restart.
 - Decide how the status file should behave when a CLI run and the UI server are both open. They are separate processes writing the same `video-status.json`, and each fully overwrites it.
@@ -89,11 +126,6 @@ Then open `http://localhost:4173`.
 
 ### Known Bugs
 
-Documentation:
-
-- Every CLI example in this file is broken. `postprocess:ui` and `postprocess:episode` are not defined in `package.json`, and `cli.js` rejects `--mp3`, `--chapters`, `--transcript-md`, `--transcript-vtt`, `--season`, `--episode` and `--publish-date` as unsupported options. The only working invocations are `npm run postprocess` and `npm run postprocess:dry`, with `--dry-run`, `--new-season` and `--episode-number`.
-- The docs claim chapter images resolve "from overrides, IGN, Steam, then MP3 cover fallback". `image-resolver.js` only checks manual overrides before falling back to the MP3 cover; there is no IGN or Steam image lookup in the code at all.
-
 Clip generation:
 
 - `parseTranscriptSegments` strips `And|But|So|Yeah|Yes|Okay|Well` with a global regex, so the words are removed mid-sentence, not just as lead-ins. `"I was so tired and honestly..."` becomes `"I was  tired  honestly..."`, leaving doubled spaces behind. This corrupts both the card summaries and the burned-in label.
@@ -101,11 +133,6 @@ Clip generation:
 - The `drawtext` label is never rendered on this machine: the installed ffmpeg has no `drawtext` filter, so every clip silently takes the no-label fallback path.
 - The label is a single unwrapped `drawtext` line at fontsize 52 on a 1080px frame, fed a summary of up to 180 characters. It would overflow the frame if `drawtext` were available.
 - The macOS-only font path `/System/Library/Fonts/Helvetica.ttc` is hardcoded in `video.js`.
-
-Publish dates:
-
-- `timezoneOffset` is a fixed `+01:00` in the config, so episodes published between late October and late March get an offset an hour off from UK local time.
-- `inferPublishDateForEpisode` returns a UTC `...Z` string rather than the configured offset format used everywhere else, and adds a flat 7x24h per week so it drifts across DST boundaries.
 
 Web UI:
 
@@ -116,53 +143,3 @@ Web UI:
 Other:
 
 - `postprocess-report.json` is written before `report.videoStatus` is set, so the saved report never contains the video status.
-- Profanity words in `postprocess.config.json` are unioned with a hardcoded default list, so a word cannot be removed via config.
-
-### Quick Episode Flow (Season + Episode Only)
-
-If your episode assets are in the configured Episodes folder and use the standard names, run:
-
-```bash
-npm run postprocess:episode -- --season 11 --episode 18
-```
-
-This will:
-
-- Find the episode folder automatically under the configured Episodes root
-- Detect the MP3, chapter info, transcript MD, and transcript VTT files
-- Launch the local UI automatically with all fields prefilled
-- Auto-run the pipeline immediately (full run)
-
-To open UI and auto-run in dry-run mode instead:
-
-```bash
-npm run postprocess:episode -- --season 11 --episode 18 --dry-run
-```
-
-### Fastest Flow (Infer Season + Episode)
-
-If you omit season and episode, the tool infers the next episode code using existing site episodes and these rules:
-
-- max 26 episodes per season
-- first episode published in January and July starts a new season
-- otherwise increment episode number
-
-Open prefilled UI using inference:
-
-```bash
-npm run postprocess:episode
-```
-
-This inferred flow also auto-runs by default. Use `--dry-run` to switch to preview mode.
-
-Run pipeline directly using inference:
-
-```bash
-npm run postprocess:dry
-```
-
-You can still override inferred publish date if needed:
-
-```bash
-npm run postprocess:episode -- --publish-date 2026-07-01T19:00:00+01:00
-```

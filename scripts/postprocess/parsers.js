@@ -19,79 +19,12 @@ function parseEpisodeFromMp3Path(mp3Path) {
   };
 }
 
-function parseTimeToSeconds(input) {
-  const value = String(input || "").trim();
-  if (!value) {
-    return null;
-  }
-
-  const parts = value.split(":").map((item) => item.trim());
-  if (parts.some((item) => item === "" || Number.isNaN(Number(item)))) {
-    return null;
-  }
-
-  if (parts.length === 2) {
-    const [mm, ss] = parts.map(Number);
-    return mm * 60 + ss;
-  }
-
-  if (parts.length === 3) {
-    const [hh, mm, ss] = parts.map(Number);
-    return hh * 3600 + mm * 60 + ss;
-  }
-
-  return null;
-}
-
 function formatSecondsToHhmmss(totalSeconds) {
   const seconds = Math.max(0, Math.floor(totalSeconds));
   const hh = String(Math.floor(seconds / 3600)).padStart(2, "0");
   const mm = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
   const ss = String(seconds % 60).padStart(2, "0");
   return `${hh}:${mm}:${ss}`;
-}
-
-function parseChapterFile(contents) {
-  const lines = String(contents || "").split(/\r?\n/);
-  const chapters = [];
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) {
-      continue;
-    }
-
-    const match = trimmed.match(/^(\d{1,2}:\d{2}(?::\d{2})?)\s*[:\-]\s*(.+)$/);
-    if (!match) {
-      continue;
-    }
-
-    const startSeconds = parseTimeToSeconds(match[1]);
-    if (startSeconds === null) {
-      continue;
-    }
-
-    // Check for hidden chapter marker: leading * or [hidden] tag
-    const titleRaw = match[2].trim();
-    const isHidden =
-      titleRaw.startsWith("*") || titleRaw.toLowerCase().includes("[hidden]");
-    const title = titleRaw
-      .replace(/^\*\s*/, "")
-      .replace(/\s*\[hidden\]/gi, "")
-      .trim();
-
-    chapters.push({
-      startSeconds,
-      timeLabel: formatSecondsToHhmmss(startSeconds),
-      title,
-      normalizedTitle: normalizeTitle(title),
-      hidden: isHidden,
-    });
-  }
-
-  chapters.sort((a, b) => a.startSeconds - b.startSeconds);
-
-  return chapters;
 }
 
 function parseBooleanish(value) {
@@ -389,18 +322,6 @@ function attachChapterDurations(chapters, totalDurationSeconds) {
   });
 }
 
-function episodeTitleFromChapterFilename(chapterPath, explicitTitle) {
-  if (explicitTitle) {
-    return explicitTitle.trim();
-  }
-
-  const base = path.basename(chapterPath);
-  const normalizedBase = base.replace(/\u00a0/g, " ");
-  return normalizedBase
-    .replace(/\s*[\-\u2013\u2014]\s*Chapter Info\.txt$/i, "")
-    .trim();
-}
-
 function episodeTitleFromInputs({ explicitTitle, transcriptMdPath, mp3Path }) {
   if (explicitTitle) {
     return explicitTitle.trim();
@@ -451,11 +372,8 @@ function extractSpeakerNames(
 module.exports = {
   attachChapterDurations,
   episodeTitleFromInputs,
-  episodeTitleFromChapterFilename,
   extractSpeakerNames,
   formatSecondsToHhmmss,
   parseChaptersFromMp3,
-  parseChapterFile,
   parseEpisodeFromMp3Path,
-  parseTimeToSeconds,
 };

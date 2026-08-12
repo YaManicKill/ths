@@ -5,7 +5,14 @@ const http = require("node:http");
 const crypto = require("node:crypto");
 const { runPipeline, discoverEpisodeData } = require("../pipeline");
 const { generateClipVideos, generateVideoFromChapters } = require("../video");
-const { normalizeTitle, readJson, runCommand, writeJson } = require("../utils");
+const { loadPostprocessConfig } = require("../config");
+const {
+  chapterImageOverridesPath,
+  normalizeTitle,
+  readJson,
+  runCommand,
+  writeJson,
+} = require("../utils");
 
 function slugify(input) {
   return String(input || "")
@@ -332,13 +339,8 @@ function resolvePreferredClipImagePath({ resolvedMp3Path, resolvedImagePath }) {
   return resolvedImagePath;
 }
 
-function readPostprocessConfig(repoRoot) {
-  return readJson(path.join(repoRoot, "postprocess.config.json"), {});
-}
-
 function deriveEpisodeOutputPaths({ repoRoot, discovered, mp3Path }) {
-  const postprocessConfig = readPostprocessConfig(repoRoot);
-  const outputRoot = String(postprocessConfig.outputRoot || "content/episode");
+  const outputRoot = loadPostprocessConfig(repoRoot).outputRoot;
 
   const episodeFolderName = `${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}-${slugify(discovered.episodeTitle)}`;
   const episodeDir = path.join(
@@ -370,11 +372,7 @@ function startServer({ port = 4173 } = {}) {
     "postprocess",
     "manual-images",
   );
-  const chapterOverridesPath = path.join(
-    repoRoot,
-    "data",
-    "chapter-image-overrides.json",
-  );
+  const chapterOverridesPath = chapterImageOverridesPath(repoRoot);
   const activeVideoStatusFiles = new Set();
   const activeClipGenerationStatusFiles = new Set();
 
@@ -747,7 +745,6 @@ function startServer({ port = 4173 } = {}) {
             },
             videoStatus: discoveredVideoStatus,
           },
-          // Store serialized data for later generation
           discoveryData: JSON.stringify(discovered),
         });
       } catch (error) {
@@ -928,7 +925,6 @@ function startServer({ port = 4173 } = {}) {
           progressMessages.push(message);
         };
 
-        // If discovery data is provided, parse it and use it to skip discovery phase
         let runOptions = {
           mp3Path: payload.mp3Path,
           transcriptMdPath: payload.transcriptMdPath,
