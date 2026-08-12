@@ -8,6 +8,8 @@ const {
   wrapLabelText,
   writeLabelTextFile,
 } = require("./clip-text");
+const { sliceCuesForClip, writeClipSubtitles } = require("./clip-subtitles");
+const { parseVttCues } = require("./vtt");
 
 const CLIP_WIDTH = 1080;
 const CLIP_HEIGHT = 1920;
@@ -81,7 +83,7 @@ function escapeFilterValue(value) {
     .replace(/\]/g, "\\]");
 }
 
-function buildClipVisualFilter({ overlay } = {}) {
+function buildClipVisualFilter({ overlay, subtitlesFile, fontsDir } = {}) {
   // format=yuv420p: the cover PNG carries an alpha channel through the whole chain, and
   // drawbox silently draws nothing on alpha frames.
   let graph =
@@ -118,6 +120,14 @@ function buildClipVisualFilter({ overlay } = {}) {
       `:expansion=none:fontcolor=white:fontsize=${DATE_FONT_SIZE}` +
       `:${dateLegibility}` +
       `:x=(w-text_w)/2:y=h*${DATE_TOP_Y}`;
+  }
+
+  if (subtitlesFile) {
+    // fontsdir loads faces straight from disk: fontconfig on macOS resolves "Arial
+    // Bold" to the wrong font entirely, so libass must not go through it.
+    graph += `,subtitles=filename=${escapeFilterValue(subtitlesFile)}${
+      fontsDir ? `:fontsdir=${escapeFilterValue(fontsDir)}` : ""
+    }`;
   }
 
   return `${graph}[vout]`;
@@ -321,6 +331,8 @@ async function createStaticClipVideo({
   durationSeconds,
   outputPath,
   overlay,
+  subtitlesFile,
+  fontsDir,
   onProgress = () => {},
 }) {
   const duration = Math.max(0.2, Number(durationSeconds || 0));
@@ -338,7 +350,7 @@ async function createStaticClipVideo({
       "-r",
       "30",
       "-filter_complex",
-      buildClipVisualFilter({ overlay }),
+      buildClipVisualFilter({ overlay, subtitlesFile, fontsDir }),
       "-map",
       "[vout]",
       "-pix_fmt",
@@ -370,6 +382,8 @@ async function createClipVideoWithAudio({
   durationSeconds,
   outputPath,
   overlay,
+  subtitlesFile,
+  fontsDir,
   onProgress = () => {},
 }) {
   const duration = Math.max(0.2, Number(durationSeconds || 0));
@@ -419,7 +433,7 @@ async function createClipVideoWithAudio({
   // Streamed (async) spawn keeps the UI server's event loop free while ffmpeg runs.
   const result = await runCommandStream(
     "ffmpeg",
-    args(buildClipVisualFilter({ overlay })),
+    args(buildClipVisualFilter({ overlay, subtitlesFile, fontsDir })),
     {
       onStderr: makeFfmpegProgressParser({
         durationSeconds: duration,
@@ -603,6 +617,7 @@ async function generateClipVideos({
   workDir,
   episodeTitle,
   episodeDateString,
+  transcriptVttText,
   startIndex = 0,
   onProgress = () => {},
 }) {
@@ -610,9 +625,13 @@ async function generateClipVideos({
     return [];
   }
 
+  const cues = transcriptVttText ? parseVttCues(transcriptVttText) : [];
+
   // Checked once up front so a build that cannot draw text fails before rendering
-  // anything, instead of quietly producing clips with no label on them.
-  assertFfmpegFilters(["drawtext"]);
+  // anything, instead of quietly producing clips with no label or subtitles on them.
+  assertFfmpegFilters(
+    cues.length > 0 ? ["drawtext", "subtitles"] : ["drawtext"],
+  );
 
   ensureDir(outputDir);
   ensureDir(workDir);
@@ -622,6 +641,8 @@ async function generateClipVideos({
     episodeDateString,
     workDir,
   });
+  // libass loads the subtitle face from this directory rather than via fontconfig.
+  const fontsDir = path.dirname(resolveClipBoldFontPath());
 
   const outputs = [];
   const totalSteps = Math.max(1, clipSuggestions.length);
@@ -662,6 +683,16 @@ async function generateClipVideos({
     );
     const onRenderProgress = (seconds) => reportProgress(index, seconds);
 
+    const subtitlesFile = writeClipSubtitles({
+      cues: sliceCuesForClip({
+        cues,
+        clipStartSeconds: startSeconds,
+        clipEndSeconds: startSeconds + durationSeconds,
+      }),
+      workDir,
+      name: `subs-${String(absoluteIndex + 1).padStart(3, "0")}`,
+    });
+
     if (mp3Path) {
       await createClipVideoWithAudio({
         imagePath,
@@ -670,6 +701,8 @@ async function generateClipVideos({
         durationSeconds,
         outputPath,
         overlay,
+        subtitlesFile,
+        fontsDir,
         onProgress: onRenderProgress,
       });
     } else {
@@ -678,6 +711,8 @@ async function generateClipVideos({
         durationSeconds,
         outputPath,
         overlay,
+        subtitlesFile,
+        fontsDir,
         onProgress: onRenderProgress,
       });
     }

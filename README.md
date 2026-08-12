@@ -132,5 +132,4 @@ directory.
 
 - Improve clip suggestion cards so approval is meaningful. The generator already returns `reason`, `speaker` and the full `text`; the card just doesn't render them, so this is a UI-only change.
 - Add a playback/progress bar overlay to clips for social-style presentation.
-- Add subtitles, sliced from the existing episode VTT and rebased to the clip start.
 - Replace the regex/keyword scoring in `clip-suggestions.js` with an LLM pass over the transcript. The current `HOOK_WORDS` heuristics are why summaries land on things like "That".

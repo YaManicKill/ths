@@ -504,6 +504,7 @@ function startServer({ port = 4173 } = {}) {
     resolvedMp3Path,
     episodeTitle,
     episodeDateString,
+    transcriptVttText,
   }) {
     activeClipGenerationStatusFiles.add(statusFile);
 
@@ -553,6 +554,7 @@ function startServer({ port = 4173 } = {}) {
           workDir: path.join(clipOutputDir, ".work"),
           episodeTitle,
           episodeDateString,
+          transcriptVttText,
           onProgress: (progress) => {
             lastProgress = progress;
             updateClipGenerationStatus(
@@ -927,6 +929,7 @@ function startServer({ port = 4173 } = {}) {
           resolvedMp3Path,
           episodeTitle: discovered.episodeTitle,
           episodeDateString: discovered.dateString,
+          transcriptVttText: discovered.transcriptVttText,
         });
 
         sendJson(res, 200, {

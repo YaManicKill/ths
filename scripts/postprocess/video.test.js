@@ -57,6 +57,16 @@ generateClipVideos({
   episodeTitle:
     "Wait: it's 50% done, right? A very long episode title that certainly cannot fit on one line of the frame",
   episodeDateString: "2026-08-19T19:00:00+01:00",
+  // Cue two only overlaps the second clip (3s-9s); cue one only the first (0s-2s).
+  transcriptVttText: [
+    "WEBVTT",
+    "",
+    "00:00:00.500 --> 00:00:01.800",
+    "Codey: Subtitle in the first clip.",
+    "",
+    "00:00:04.000 --> 00:00:07.500",
+    "Chelsea: Subtitle in the second clip.",
+  ].join("\n"),
   onProgress: (progress) => progressEvents.push(progress),
 })
   .then((outputs) => {
@@ -81,6 +91,34 @@ generateClipVideos({
       fs.readFileSync(path.join(base, ".work", "date.txt"), "utf8").trim(),
       "19 August 2026",
     );
+
+    // Each clip gets its own .ass file with cues rebased to clip time and the speaker
+    // prefix stripped.
+    const subsOne = fs.readFileSync(
+      path.join(base, ".work", "subs-001.ass"),
+      "utf8",
+    );
+    assert.ok(
+      subsOne.includes(
+        "Dialogue: 0,0:00:00.50,0:00:01.80,Clip,,0,0,0,,Subtitle in the first clip.",
+      ),
+      "first clip subtitle missing or not rebased",
+    );
+    assert.ok(
+      !subsOne.includes("second clip"),
+      "first clip picked up the second clip's cue",
+    );
+    const subsTwo = fs.readFileSync(
+      path.join(base, ".work", "subs-002.ass"),
+      "utf8",
+    );
+    assert.ok(
+      subsTwo.includes(
+        "Dialogue: 0,0:00:01.00,0:00:04.50,Clip,,0,0,0,,Subtitle in the second clip.",
+      ),
+      "second clip subtitle not rebased against its own start",
+    );
+    assert.ok(!subsTwo.includes("Codey:"), "speaker prefix was not stripped");
 
     // Percent is weighted by rendered seconds, not clip count: after the 2s clip of an
     // 8s batch it must read 25, and it must only ever move forward.
