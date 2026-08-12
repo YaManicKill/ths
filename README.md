@@ -107,13 +107,23 @@ pruned automatically after 24 hours, and a run's chapter MP4 segments are delete
 as the video finishes, so the directory should stay small. Deleting it by hand is safe
 apart from `manual-images/`, which your saved overrides point at.
 
+### Tests
+
+```bash
+npm run test:postprocess
+```
+
+Plain `node --test` files alongside the code they cover. They need `ffmpeg` on PATH, since
+`pipeline.test.js` builds a real chaptered MP3 as a fixture. Nothing touches the site
+content, your Episodes folder or the repo's `.cache` — every test works in a temp
+directory.
+
 ### TODOs
 
 - Electron wrapper around the UI, so the tool runs as a desktop app instead of a local server plus browser tab.
 - Preview clips before approving them: range-serve the MP3 so each suggestion card has a play button, instead of approving from a text summary alone.
 - Add a cancel button for in-progress clip generation. Now that ffmpeg runs async, an in-flight run can be killed instead of needing a server restart.
 - Decide how the status file should behave when a CLI run and the UI server are both open. They are separate processes writing the same `video-status.json`, and each fully overwrites it.
-- Add tests for the untested fragile parts, especially `parseTranscriptSegments`, `parseId3ChapterVisibility`, and the season/date inference in `sequence-inference.js`.
 
 ### Clip Workflow TODOs
 
@@ -128,16 +138,13 @@ apart from `manual-images/`, which your saved overrides point at.
 
 Clip generation:
 
-- `parseTranscriptSegments` strips `And|But|So|Yeah|Yes|Okay|Well` with a global regex, so the words are removed mid-sentence, not just as lead-ins. `"I was so tired and honestly..."` becomes `"I was  tired  honestly..."`, leaving doubled spaces behind. This corrupts both the card summaries and the burned-in label.
-- Clip dedup compares only `startSeconds` with a 20s threshold, so accepted clips can overlap by 20-30s of identical audio.
-- The `drawtext` label is never rendered on this machine: the installed ffmpeg has no `drawtext` filter, so every clip silently takes the no-label fallback path.
+- The `drawtext` label is never rendered on ffmpeg builds without the `drawtext` filter (including the one currently installed here), so those clips silently take the no-label fallback path.
 - The label is a single unwrapped `drawtext` line at fontsize 52 on a 1080px frame, fed a summary of up to 180 characters. It would overflow the frame if `drawtext` were available.
 - The macOS-only font path `/System/Library/Fonts/Helvetica.ttc` is hardcoded in `video.js`.
 
 Web UI:
 
 - Status polling captures an index into the status-line array, but `resetStatus()` empties that array. If auto-discovery re-runs (it fires on input changes) while a render or clip generation is in progress, progress updates land on the wrong line or are dropped.
-- `/api/image` serves any absolute path it is given, including non-image files, and the server binds to all network interfaces rather than localhost. Anyone on the same network can read arbitrary files while the tool is running.
 - On a failed run the UI prints "Generation completed" before printing the error, because the spinner is stopped before `result.error` is checked.
 
 Other:
