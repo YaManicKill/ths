@@ -79,10 +79,10 @@ function loadApp() {
   vm.createContext(context);
   vm.runInContext(source, context);
 
-  return { context, resultBox: document.getElementById("result") };
+  return { context, resultBox: document.getElementById("result"), document };
 }
 
-const { context, resultBox } = loadApp();
+const { context, resultBox, document } = loadApp();
 const { addStatus, setStatusLine, resetStatus, findStatusLineId } = context;
 
 resetStatus();
@@ -143,3 +143,78 @@ assert.equal(addStatus(""), null);
 setStatusLine(null, "should not throw");
 
 console.log("app status-log test passed");
+
+// Clip suggestion cards render the full payload: transcript behind a toggle, opening
+// speaker and chapter in the meta line, and the reason as a badge.
+const { renderClipSuggestions, chapterTitleForTime } = context;
+
+assert.equal(
+  chapterTitleForTime(
+    [
+      { title: "Intro", startSeconds: 0 },
+      { title: "Entomology Corner", startSeconds: 960 },
+      { title: "Outro", startSeconds: 2000 },
+    ],
+    976,
+  ),
+  "Entomology Corner",
+);
+assert.equal(
+  chapterTitleForTime([{ title: "Late", startSeconds: 100 }], 50),
+  null,
+  "a clip before the first chapter has no chapter",
+);
+assert.equal(chapterTitleForTime([], 50), null);
+assert.equal(
+  chapterTitleForTime([{ title: "No timing info" }], 50),
+  null,
+  "chapters without startSeconds must be skipped, not misattributed",
+);
+
+function collectText(element) {
+  let text = element.textContent || "";
+  for (const child of element.children || []) {
+    text += "\n" + collectText(child);
+  }
+  return text;
+}
+
+renderClipSuggestions([
+  {
+    summary: "Do you want to tell the story of that",
+    timestampLabel: "00:16:16-00:17:03",
+    durationSeconds: 47.7,
+    startSeconds: 976.24,
+    speaker: "Codey",
+    reason: "strong hook and clear payoff",
+    text: "Do you want to tell the story of that? Yeah, so I just asked my daughter.",
+  },
+]);
+
+const cardsRoot = document.getElementById("clip-suggestions-list");
+assert.equal(cardsRoot.children.length, 1, "expected one card");
+const cardText = collectText(cardsRoot.children[0]);
+assert.ok(cardText.includes("Opens with Codey"), "speaker missing from card");
+assert.ok(
+  cardText.includes("strong hook and clear payoff"),
+  "reason badge missing",
+);
+assert.ok(cardText.includes("Show transcript"), "transcript toggle missing");
+assert.ok(
+  cardText.includes("I just asked my daughter"),
+  "full transcript text missing",
+);
+assert.ok(cardText.includes("48s"), "duration should render rounded");
+
+// A suggestion with no speaker, reason or text still renders a plain card.
+renderClipSuggestions([
+  { summary: "Bare", timestampLabel: "00:01:00-00:01:30", durationSeconds: 30 },
+]);
+assert.ok(
+  collectText(cardsRoot.children[cardsRoot.children.length - 1]).includes(
+    "Bare",
+  ),
+  "bare suggestion card missing",
+);
+
+console.log("clip card test passed");

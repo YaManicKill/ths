@@ -816,6 +816,8 @@ function renderClipSuggestions(suggestions) {
 
   clipSuggestionsSection.style.display = "block";
 
+  const chapters = getDiscoverySnapshot()?.chapters || [];
+
   currentClipSuggestions.forEach((suggestion, index) => {
     const card = document.createElement("div");
     card.style.cssText = `
@@ -836,8 +838,56 @@ function renderClipSuggestions(suggestions) {
     const meta = document.createElement("div");
     meta.style.cssText =
       "font-size: 0.9em; color: var(--muted); margin-bottom: 8px;";
-    meta.textContent = `${suggestion.timestampLabel || ""} • ${suggestion.durationSeconds || 0}s`;
+    const chapterTitle = chapterTitleForTime(chapters, suggestion.startSeconds);
+    const metaParts = [
+      suggestion.timestampLabel || "",
+      `${Math.round(suggestion.durationSeconds || 0)}s`,
+    ];
+    if (chapterTitle) {
+      metaParts.push(chapterTitle);
+    }
+    if (suggestion.speaker) {
+      metaParts.push(`Opens with ${suggestion.speaker}`);
+    }
+    meta.textContent = metaParts.filter(Boolean).join(" • ");
     card.appendChild(meta);
+
+    if (suggestion.reason) {
+      const reasonBadge = document.createElement("span");
+      reasonBadge.textContent = suggestion.reason;
+      reasonBadge.style.cssText = `
+        display: inline-block;
+        font-size: 0.8em;
+        color: var(--muted);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 2px 10px;
+        margin-bottom: 8px;
+      `;
+      card.appendChild(reasonBadge);
+    }
+
+    if (suggestion.text) {
+      const transcript = document.createElement("details");
+      transcript.style.marginBottom = "10px";
+      const transcriptToggle = document.createElement("summary");
+      transcriptToggle.textContent = "Show transcript";
+      transcriptToggle.style.cssText =
+        "cursor: pointer; font-size: 0.9em; color: var(--muted);";
+      const transcriptBody = document.createElement("div");
+      transcriptBody.textContent = suggestion.text;
+      transcriptBody.style.cssText = `
+        font-size: 0.9em;
+        line-height: 1.5;
+        margin-top: 6px;
+        padding: 8px 12px;
+        border-left: 3px solid var(--line);
+        color: var(--muted);
+      `;
+      transcript.appendChild(transcriptToggle);
+      transcript.appendChild(transcriptBody);
+      card.appendChild(transcript);
+    }
 
     const controls = document.createElement("div");
     controls.style.cssText = "display:flex; gap:8px;";
@@ -880,6 +930,27 @@ function renderClipSuggestions(suggestions) {
     card.appendChild(controls);
     clipSuggestionsList.appendChild(card);
   });
+}
+
+// Chapters are sorted by start time; a clip belongs to the last chapter that starts at
+// or before it. Chapters without startSeconds (the trimmed discovery-response shape)
+// are skipped rather than misattributed.
+function chapterTitleForTime(chapters, seconds) {
+  if (typeof seconds !== "number") {
+    return null;
+  }
+
+  let title = null;
+  for (const chapter of chapters || []) {
+    if (typeof chapter.startSeconds !== "number") {
+      continue;
+    }
+    if (chapter.startSeconds > seconds) {
+      break;
+    }
+    title = chapter.title || null;
+  }
+  return title;
 }
 
 function clearClipSuggestionReviewPanel() {

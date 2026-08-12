@@ -127,9 +127,9 @@ directory.
 - Preview clips before approving them: range-serve the MP3 so each suggestion card has a play button, instead of approving from a text summary alone.
 - Add a cancel button for in-progress clip generation. Now that ffmpeg runs async, an in-flight run can be killed instead of needing a server restart.
 - Decide how the status file should behave when a CLI run and the UI server are both open. They are separate processes writing the same `video-status.json`, and each fully overwrites it.
+- Transcript checker: an LLM pass during discovery that flags likely mistranscriptions from context (e.g. "grow weight" for "grow wings"), warning-only in the existing transcript-checks UI slot, high-confidence flags only. Corrections are applied by hand to both `transcript.md` and `transcript.vtt`; the approve flow already re-reads from disk. Needs `ANTHROPIC_API_KEY` (skip gracefully without); roughly $0.10-0.40 per episode depending on model; shares its API plumbing with the LLM clip-selection item below.
 
 ### Clip Workflow TODOs
 
-- Improve clip suggestion cards so approval is meaningful. The generator already returns `reason`, `speaker` and the full `text`; the card just doesn't render them, so this is a UI-only change.
 - Add a playback/progress bar overlay to clips for social-style presentation.
 - Replace the regex/keyword scoring in `clip-suggestions.js` with an LLM pass over the transcript. The current `HOOK_WORDS` heuristics are why summaries land on things like "That".
