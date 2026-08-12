@@ -1,4 +1,5 @@
 const { formatSecondsToHhmmss } = require("./parsers");
+const { parseVttCues } = require("./vtt");
 
 const DEFAULT_OPTIONS = {
   maxSuggestions: 8,
@@ -400,6 +401,88 @@ function scoreSegment(segment) {
   return score;
 }
 
+function lastCueIndexStartingAtOrBefore(cues, time) {
+  let low = 0;
+  let high = cues.length - 1;
+  let found = -1;
+  while (low <= high) {
+    const mid = (low + high) >> 1;
+    if (cues[mid].startSeconds <= time) {
+      found = mid;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return found;
+}
+
+// The transcript.md timestamps are whole-second speaker turns, so a window start can land
+// mid-sentence or in silence. Pull it back to the start of the sentence it falls inside,
+// or forward past a gap to where speech resumes.
+function snapStartToCues(cues, startSeconds) {
+  const index = lastCueIndexStartingAtOrBefore(cues, startSeconds);
+  if (index === -1) {
+    return { index: 0, startSeconds: cues[0].startSeconds };
+  }
+
+  const cue = cues[index];
+  if (startSeconds < cue.endSeconds) {
+    return { index, startSeconds: cue.startSeconds };
+  }
+  if (index + 1 < cues.length) {
+    return { index: index + 1, startSeconds: cues[index + 1].startSeconds };
+  }
+  return { index: -1, startSeconds };
+}
+
+// Cue text carries a "Speaker: " prefix from the transcriber.
+const HESITATION_OPENER = /^(?:[^:\n]{1,20}:\s*)?(?:um|uh|erm|hmm)\b/i;
+const PURE_FILLER_CUE =
+  /^(?:[^:\n]{1,20}:\s*)?(?:(?:um|uh|erm|hmm|mm|yeah|so|okay|right|like)[,.!?\s]*)+$/i;
+const MAX_FILLER_SKIP_CUES = 2;
+
+// A clip that opens on "Um, so..." wastes its hook. Advance past leading cues that are
+// pure filler or open with a hesitation, as long as the clip stays long enough.
+function skipLeadingFillerCues({ cues, startIndex, endSeconds, minDuration }) {
+  let index = startIndex;
+
+  for (let skipped = 0; skipped < MAX_FILLER_SKIP_CUES; skipped += 1) {
+    if (index < 0 || index + 1 >= cues.length) {
+      break;
+    }
+    const text = cues[index].text;
+    if (!PURE_FILLER_CUE.test(text) && !HESITATION_OPENER.test(text)) {
+      break;
+    }
+    if (endSeconds - cues[index + 1].startSeconds < minDuration) {
+      break;
+    }
+    index += 1;
+  }
+
+  return index;
+}
+
+// The end target is the raw window end plus the trailing-context pad, which lands
+// arbitrarily. "finish" completes the sentence being spoken at that point; "back" is the
+// last sentence end before it, for when finishing would run the clip too long.
+function snapEndToCues(cues, targetSeconds) {
+  const index = lastCueIndexStartingAtOrBefore(cues, targetSeconds);
+  if (index === -1) {
+    return { finish: targetSeconds, back: targetSeconds };
+  }
+
+  const cue = cues[index];
+  if (targetSeconds < cue.endSeconds) {
+    return {
+      finish: cue.endSeconds,
+      back: index > 0 ? cues[index - 1].endSeconds : cue.endSeconds,
+    };
+  }
+  return { finish: cue.endSeconds, back: cue.endSeconds };
+}
+
 function buildClipSuggestions(input = {}) {
   const options = {
     ...DEFAULT_OPTIONS,
@@ -410,6 +493,10 @@ function buildClipSuggestions(input = {}) {
   if (segments.length === 0) {
     return [];
   }
+
+  const cues = input.transcriptVttText
+    ? parseVttCues(input.transcriptVttText)
+    : [];
 
   const scoredSegments = segments.map((segment) => ({
     ...segment,
@@ -430,12 +517,33 @@ function buildClipSuggestions(input = {}) {
         break;
       }
 
-      const startSeconds = window[0].startSeconds;
       const rawEndSeconds = window[window.length - 1].endSeconds;
       const paddedEndSeconds =
         rawEndSeconds +
         Math.max(0, Number(options.trailingContextSeconds || 0));
-      const endSeconds = paddedEndSeconds;
+
+      let startSeconds = window[0].startSeconds;
+      let endSeconds = paddedEndSeconds;
+      if (cues.length > 0) {
+        const snappedStart = snapStartToCues(cues, startSeconds);
+        startSeconds = snappedStart.startSeconds;
+
+        const snapped = snapEndToCues(cues, paddedEndSeconds);
+        endSeconds =
+          snapped.finish - startSeconds > options.maxClipDurationSeconds
+            ? snapped.back
+            : snapped.finish;
+
+        const cleanStartIndex = skipLeadingFillerCues({
+          cues,
+          startIndex: snappedStart.index,
+          endSeconds,
+          minDuration: options.minClipDurationSeconds,
+        });
+        if (cleanStartIndex !== snappedStart.index && cleanStartIndex >= 0) {
+          startSeconds = cues[cleanStartIndex].startSeconds;
+        }
+      }
       const durationSeconds = Math.max(0, endSeconds - startSeconds);
 
       if (durationSeconds < options.minClipDurationSeconds) {
@@ -489,10 +597,13 @@ function buildClipSuggestions(input = {}) {
         continue;
       }
 
+      // Snapped cue times carry millisecond precision; rounding keeps float noise out of
+      // the UI and the ffmpeg arguments.
+      const round3 = (value) => Math.round(value * 1000) / 1000;
       candidates.push({
-        startSeconds,
-        endSeconds,
-        durationSeconds,
+        startSeconds: round3(startSeconds),
+        endSeconds: round3(endSeconds),
+        durationSeconds: round3(durationSeconds),
         score,
         text,
         summary,

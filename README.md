@@ -134,4 +134,3 @@ directory.
 - Add a playback/progress bar overlay to clips for social-style presentation.
 - Add subtitles, sliced from the existing episode VTT and rebased to the clip start.
 - Replace the regex/keyword scoring in `clip-suggestions.js` with an LLM pass over the transcript. The current `HOOK_WORDS` heuristics are why summaries land on things like "That".
-- Snap clip boundaries to sentence or VTT cue edges instead of the flat `trailingContextSeconds: 12` pad, so clips stop cutting mid-word.

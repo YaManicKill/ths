@@ -188,3 +188,204 @@ for (let i = 0; i < denseSuggestions.length; i += 1) {
     );
   }
 }
+
+// With a VTT available, clip boundaries snap to sentence edges instead of the flat
+// trailing pad: the start pulls back to the start of its sentence, and the padded end
+// finishes the sentence it lands inside rather than cutting mid-word.
+const snapMd = `## Body
+(10s) **Al:**
+> Why would anyone actually do that, honestly?
+
+(20s) **Greg:**
+> Because it turns out the whole system is genuinely broken and weird.
+
+(40s) **Al:**
+> That means you literally cannot win the game at all, which is wild.
+`;
+
+// The 10s turn actually starts mid-sentence at 9.240; the pad target (40 + 12 = 52)
+// lands inside the cue running 50.100-54.320.
+const snapVtt = `WEBVTT
+
+00:00:09.240 --> 00:00:14.760
+Why would anyone actually do that, honestly?
+
+00:00:20.120 --> 00:00:27.480
+Because it turns out the whole system is genuinely broken and weird.
+
+00:00:40.360 --> 00:00:46.900
+That means you literally cannot win the game at all, which is wild.
+
+00:00:50.100 --> 00:00:54.320
+And that is the whole point of the design, when you think about it.
+
+00:00:55.000 --> 00:00:59.000
+Anyway, moving on to the next topic entirely now.
+`;
+
+const snapped = buildClipSuggestions({
+  transcriptMdText: snapMd,
+  transcriptVttText: snapVtt,
+  maxSuggestions: 5,
+  minClipDurationSeconds: 30,
+  maxClipDurationSeconds: 55,
+});
+assert.ok(snapped.length > 0, "expected a snapped suggestion");
+const snappedClip = snapped[0];
+assert.equal(
+  snappedClip.startSeconds,
+  9.24,
+  "start did not snap to its sentence start",
+);
+assert.equal(
+  snappedClip.endSeconds,
+  54.32,
+  "end did not snap to a sentence end",
+);
+
+// The same transcript without a VTT keeps the old flat-pad behaviour.
+const unsnapped = buildClipSuggestions({
+  transcriptMdText: snapMd,
+  maxSuggestions: 5,
+  minClipDurationSeconds: 30,
+  maxClipDurationSeconds: 55,
+});
+assert.ok(unsnapped.length > 0);
+assert.equal(unsnapped[0].startSeconds, 10);
+assert.equal(unsnapped[0].endSeconds, 52);
+
+// When finishing the sentence would blow the duration cap, the end falls back to the
+// previous sentence end instead of being rejected outright.
+const capVtt = `WEBVTT
+
+00:00:09.240 --> 00:00:14.760
+Why would anyone actually do that, honestly?
+
+00:00:20.120 --> 00:00:27.480
+Because it turns out the whole system is genuinely broken and weird.
+
+00:00:40.360 --> 00:00:46.900
+That means you literally cannot win the game at all, which is wild.
+
+00:00:50.100 --> 00:01:30.000
+An enormous run-on sentence that would push the clip far beyond its cap.
+`;
+const capped = buildClipSuggestions({
+  transcriptMdText: snapMd,
+  transcriptVttText: capVtt,
+  maxSuggestions: 5,
+  minClipDurationSeconds: 30,
+  maxClipDurationSeconds: 55,
+});
+assert.ok(capped.length > 0, "expected the capped candidate to survive");
+assert.equal(
+  capped[0].endSeconds,
+  46.9,
+  "end should fall back to the previous sentence end when finishing exceeds the cap",
+);
+
+// A clip must not open on a hesitation: leading cues that are pure filler or start with
+// um/uh are skipped so the clip opens on its hook, unless that would leave it too short.
+const fillerVtt = `WEBVTT
+
+00:00:09.240 --> 00:00:14.760
+Codey: Um, so you don't have a question necessarily, but you bring one.
+
+00:00:14.760 --> 00:00:16.500
+Codey: Do you want to tell the story of that?
+
+00:00:20.120 --> 00:00:27.480
+Chelsea: Because it turns out the whole system is genuinely broken and weird.
+
+00:00:40.360 --> 00:00:46.900
+Codey: That means you literally cannot win the game at all, which is wild.
+
+00:00:50.100 --> 00:00:54.320
+Chelsea: And that is the whole point of the design, when you think about it.
+`;
+
+const cleanStart = buildClipSuggestions({
+  transcriptMdText: snapMd,
+  transcriptVttText: fillerVtt,
+  maxSuggestions: 5,
+  minClipDurationSeconds: 30,
+  maxClipDurationSeconds: 55,
+});
+assert.ok(cleanStart.length > 0, "expected a suggestion");
+assert.equal(
+  cleanStart[0].startSeconds,
+  14.76,
+  "clip should open on the hook cue, past the um-opening one",
+);
+
+// "Yeah, so I just asked..." is a normal sentence opener, not a hesitation - it stays.
+const yeahVtt = fillerVtt.replace(
+  "Codey: Um, so you don't have a question necessarily, but you bring one.",
+  "Codey: Yeah, so I just asked my daughter about the whole thing there.",
+);
+const yeahStart = buildClipSuggestions({
+  transcriptMdText: snapMd,
+  transcriptVttText: yeahVtt,
+  maxSuggestions: 5,
+  minClipDurationSeconds: 30,
+  maxClipDurationSeconds: 55,
+});
+assert.equal(
+  yeahStart[0].startSeconds,
+  9.24,
+  "a normal opener must not be skipped",
+);
+
+// Skipping stops when the clip would drop below the minimum duration: with a 45s floor,
+// moving past the first cue would leave 54.32 - 14.76 = 39.6s, so the um stays.
+const guarded = buildClipSuggestions({
+  transcriptMdText: snapMd,
+  transcriptVttText: fillerVtt,
+  maxSuggestions: 5,
+  minClipDurationSeconds: 45,
+  maxClipDurationSeconds: 55,
+});
+assert.ok(guarded.length > 0, "expected the guarded suggestion to survive");
+assert.equal(
+  guarded[0].startSeconds,
+  9.24,
+  "skipping must yield to the minimum duration",
+);
+
+// At most two leading filler cues are skipped, so a long run of ums cannot walk the
+// start deep into the clip.
+const manyUmsVtt = `WEBVTT
+
+00:00:09.240 --> 00:00:11.000
+Codey: Um.
+
+00:00:11.000 --> 00:00:13.000
+Codey: Uh, hmm.
+
+00:00:13.000 --> 00:00:15.000
+Codey: Um, right, okay.
+
+00:00:15.000 --> 00:00:16.500
+Codey: Do you want to tell the story of that?
+
+00:00:20.120 --> 00:00:27.480
+Chelsea: Because it turns out the whole system is genuinely broken and weird.
+
+00:00:40.360 --> 00:00:46.900
+Codey: That means you literally cannot win the game at all, which is wild.
+
+00:00:50.100 --> 00:00:54.320
+Chelsea: And that is the whole point of the design, when you think about it.
+`;
+const cappedSkip = buildClipSuggestions({
+  transcriptMdText: snapMd,
+  transcriptVttText: manyUmsVtt,
+  maxSuggestions: 5,
+  minClipDurationSeconds: 30,
+  maxClipDurationSeconds: 55,
+});
+assert.equal(
+  cappedSkip[0].startSeconds,
+  13,
+  "filler skipping should stop after two cues",
+);

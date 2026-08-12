@@ -542,6 +542,7 @@ async function discoverEpisodeData(inputOptions = {}) {
 
   const clipSuggestions = buildClipSuggestions({
     transcriptMdText,
+    transcriptVttText,
     maxSuggestions: 8,
   });
 
