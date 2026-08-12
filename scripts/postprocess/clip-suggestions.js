@@ -338,8 +338,9 @@ function parseTranscriptSegments(transcriptMdText) {
   return filtered
     .map((segment) => ({
       ...segment,
+      // Anchored to the start: these words carry meaning mid-sentence ("I was so tired").
       text: segment.text
-        .replace(/\b(And|But|So|Yeah|Yes|Okay|Well)\b/gi, "")
+        .replace(/^(?:(?:And|But|So|Yeah|Yes|Okay|Well)\b[\s,]*)+/i, "")
         .trim(),
     }))
     .filter((segment) => segment.text.length >= 12);
@@ -506,26 +507,27 @@ function buildClipSuggestions(input = {}) {
     }
   }
 
-  const deduped = [];
   const accepted = [];
 
   candidates
     .sort((left, right) => right.score - left.score)
     .forEach((candidate) => {
-      const overlaps = accepted.some((existing) => {
-        const gap = Math.abs(candidate.startSeconds - existing.startSeconds);
-        return gap < 20;
-      });
+      // Compare the whole span, not just start times: two clips 20s apart can still
+      // share most of their audio when each one runs for up to a minute.
+      const overlaps = accepted.some(
+        (existing) =>
+          candidate.startSeconds < existing.endSeconds &&
+          existing.startSeconds < candidate.endSeconds,
+      );
 
       if (overlaps) {
         return;
       }
 
       accepted.push(candidate);
-      deduped.push(candidate);
     });
 
-  return deduped.slice(0, options.maxSuggestions);
+  return accepted.slice(0, options.maxSuggestions);
 }
 
 module.exports = {
