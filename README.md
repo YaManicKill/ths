@@ -128,8 +128,8 @@ directory.
 ### Clip Workflow TODOs
 
 - Improve clip suggestion cards so approval is meaningful. The generator already returns `reason`, `speaker` and the full `text`; the card just doesn't render them, so this is a UI-only change.
-- Decide whether to keep the burned-in `drawtext` summary label at all. It is currently never drawn (see Known Bugs) so removing it is also an option.
-- Add the remaining overlays if the label is kept: episode name, episode date, and a playback/progress bar for social-style presentation.
+- Make the burned-in text label actually work: it is wanted, but currently never drawn (see Known Bugs). Needs a `drawtext` fallback for builds without the filter, word wrapping, and a non-macOS font path.
+- Add further overlays once the label works: episode name, episode date, and a playback/progress bar for social-style presentation.
 - Add subtitles, sliced from the existing episode VTT and rebased to the clip start.
 - Replace the regex/keyword scoring in `clip-suggestions.js` with an LLM pass over the transcript. The current `HOOK_WORDS` heuristics are why summaries land on things like "That".
 - Snap clip boundaries to sentence or VTT cue edges instead of the flat `trailingContextSeconds: 12` pad, so clips stop cutting mid-word.
@@ -141,12 +141,3 @@ Clip generation:
 - The `drawtext` label is never rendered on ffmpeg builds without the `drawtext` filter (including the one currently installed here), so those clips silently take the no-label fallback path.
 - The label is a single unwrapped `drawtext` line at fontsize 52 on a 1080px frame, fed a summary of up to 180 characters. It would overflow the frame if `drawtext` were available.
 - The macOS-only font path `/System/Library/Fonts/Helvetica.ttc` is hardcoded in `video.js`.
-
-Web UI:
-
-- Status polling captures an index into the status-line array, but `resetStatus()` empties that array. If auto-discovery re-runs (it fires on input changes) while a render or clip generation is in progress, progress updates land on the wrong line or are dropped.
-- On a failed run the UI prints "Generation completed" before printing the error, because the spinner is stopped before `result.error` is checked.
-
-Other:
-
-- `postprocess-report.json` is written before `report.videoStatus` is set, so the saved report never contains the video status.

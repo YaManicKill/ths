@@ -944,7 +944,6 @@ function startServer({ port = 4173 } = {}) {
           episodeTitle: payload.episodeTitle,
           description: payload.description,
           publishDate: payload.publishDate,
-          dryRun: Boolean(payload.dryRun),
           skipVideo: Boolean(payload.skipVideo),
           episodeFolderPath: payload.episodeFolderPath,
           onProgress,

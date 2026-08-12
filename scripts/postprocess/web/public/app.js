@@ -39,6 +39,7 @@ let isVideoRenderInProgress = false;
 let isVideoRenderCompleted = false;
 let chapterImageOverrides = {}; // Track uploaded replacement images by chapter index
 const statusLines = [];
+let statusLineSeq = 0;
 const VIDEO_STATUS_STORAGE_KEY = "ths-postprocess-active-video-status-file";
 const CLIP_STATUS_STORAGE_KEY = "ths-postprocess-active-clip-status-file";
 
@@ -644,7 +645,7 @@ function renderChapterPreviews(discovered) {
 }
 
 function renderStatus() {
-  resultBox.textContent = statusLines.join("\n");
+  resultBox.textContent = statusLines.map((line) => line.text).join("\n");
 }
 
 function resetStatus() {
@@ -655,36 +656,56 @@ function resetStatus() {
 
 function addStatus(text) {
   if (!text) {
-    return -1;
+    return null;
   }
-  statusLines.push(String(text));
+  statusLineSeq += 1;
+  const id = statusLineSeq;
+  statusLines.push({ id, text: String(text) });
   renderStatus();
-  return statusLines.length - 1;
+  return id;
 }
 
-function setStatusLine(index, text) {
-  if (index < 0 || index >= statusLines.length) {
+// Lines are addressed by id, not position: a long-running poller holds its handle across
+// a resetStatus() (which auto-discovery triggers on any input change) and its line is
+// re-added rather than lost or written over somebody else's.
+function setStatusLine(id, text) {
+  if (id === null || id === undefined) {
     return;
   }
-  statusLines[index] = String(text);
+
+  const existing = statusLines.find((line) => line.id === id);
+  if (existing) {
+    existing.text = String(text);
+  } else {
+    statusLines.push({ id, text: String(text) });
+  }
   renderStatus();
+}
+
+function findStatusLineId(substring) {
+  for (let index = statusLines.length - 1; index >= 0; index -= 1) {
+    if (statusLines[index].text.includes(substring)) {
+      return statusLines[index].id;
+    }
+  }
+  return null;
 }
 
 function startStatusSpinner(prefix, suffix = "") {
   const frames = ["|", "/", "-", "\\"];
   let frame = 0;
-  const lineIndex = addStatus(`${prefix} ${frames[0]}${suffix}`);
+  const lineId = addStatus(`${prefix} ${frames[0]}${suffix}`);
   const timer = setInterval(() => {
     frame = (frame + 1) % frames.length;
-    setStatusLine(lineIndex, `${prefix} ${frames[frame]}${suffix}`);
+    setStatusLine(lineId, `${prefix} ${frames[frame]}${suffix}`);
   }, 200);
 
   return (finalText) => {
     clearInterval(timer);
     if (finalText) {
-      setStatusLine(lineIndex, finalText);
+      setStatusLine(lineId, finalText);
     }
-    return lineIndex;
+    return lineId;
   };
 }
 
@@ -1027,7 +1048,7 @@ form.addEventListener("submit", async (event) => {
   },
 );
 
-async function pollVideoStatus(statusFile, lines) {
+async function pollVideoStatus(statusFile) {
   function formatEta(etaSeconds) {
     if (!Number.isFinite(Number(etaSeconds)) || Number(etaSeconds) < 0) {
       return "";
@@ -1069,16 +1090,9 @@ async function pollVideoStatus(statusFile, lines) {
     return `MP4 generation in progress...${percentSuffix}${etaSuffix}`;
   }
 
-  let videoLineIndex = -1;
-  for (let i = lines.length - 1; i >= 0; i -= 1) {
-    if (String(lines[i]).includes("MP4 generation")) {
-      videoLineIndex = i;
-      break;
-    }
-  }
-  if (videoLineIndex === -1) {
-    lines.push("| MP4 generation in progress... 0% (starting)");
-    videoLineIndex = lines.length - 1;
+  let videoLineId = findStatusLineId("MP4 generation");
+  if (videoLineId === null) {
+    videoLineId = addStatus("| MP4 generation in progress... 0% (starting)");
   }
 
   const frames = ["|", "/", "-", "\\"];
@@ -1086,10 +1100,11 @@ async function pollVideoStatus(statusFile, lines) {
   let latestPercent = 0;
   let latestDetail = "MP4 generation in progress...";
   const spinner = setInterval(() => {
-    lines[videoLineIndex] =
-      `${frames[frameIndex % frames.length]} MP4 generation ${latestPercent}% - ${latestDetail}`;
+    setStatusLine(
+      videoLineId,
+      `${frames[frameIndex % frames.length]} MP4 generation ${latestPercent}% - ${latestDetail}`,
+    );
     frameIndex += 1;
-    setStatusLine(videoLineIndex, lines[videoLineIndex]);
   }, 250);
 
   for (;;) {
@@ -1106,8 +1121,7 @@ async function pollVideoStatus(statusFile, lines) {
         persistActiveVideoStatusFile("");
         setVideoRenderUiState(false);
         setVideoRenderCompletedUiState(true);
-        lines[videoLineIndex] = `✓ MP4 generation complete`;
-        setStatusLine(videoLineIndex, lines[videoLineIndex]);
+        setStatusLine(videoLineId, "✓ MP4 generation complete");
         return { status: "completed" };
       } else if (data.status === "failed") {
         clearInterval(spinner);
@@ -1119,22 +1133,23 @@ async function pollVideoStatus(statusFile, lines) {
             String(data.error || ""),
           );
         if (interruptedByRestart) {
-          lines[videoLineIndex] =
-            "ℹ Previous MP4 generation was interrupted by a server restart. Start a new run to continue.";
-          setStatusLine(videoLineIndex, lines[videoLineIndex]);
+          setStatusLine(
+            videoLineId,
+            "ℹ Previous MP4 generation was interrupted by a server restart. Start a new run to continue.",
+          );
           return { status: "interrupted", error: data.error };
         }
-        lines[videoLineIndex] = `❌ MP4 generation failed: ${data.error}`;
-        setStatusLine(videoLineIndex, lines[videoLineIndex]);
+        setStatusLine(videoLineId, `❌ MP4 generation failed: ${data.error}`);
         return { status: "failed", error: data.error };
       } else {
         if (typeof data.percent === "number") {
           latestPercent = Math.max(0, Math.min(100, Math.round(data.percent)));
         }
         latestDetail = buildProgressDetail(data);
-        lines[videoLineIndex] =
-          `${frames[frameIndex % frames.length]} MP4 generation ${latestPercent}% - ${latestDetail}`;
-        setStatusLine(videoLineIndex, lines[videoLineIndex]);
+        setStatusLine(
+          videoLineId,
+          `${frames[frameIndex % frames.length]} MP4 generation ${latestPercent}% - ${latestDetail}`,
+        );
       }
       // still "started" or "pending" — keep polling
     } catch {
@@ -1175,19 +1190,12 @@ function resumeVideoStatusPollingFromDiscover(videoStatus) {
   });
 }
 
-async function pollClipGenerationStatus(statusFile, lines) {
+async function pollClipGenerationStatus(statusFile) {
   persistActiveClipStatusFile(statusFile);
 
-  let lineIndex = -1;
-  for (let index = lines.length - 1; index >= 0; index -= 1) {
-    if (String(lines[index]).includes("Clip generation")) {
-      lineIndex = index;
-      break;
-    }
-  }
-  if (lineIndex === -1) {
-    lines.push("⏳ Clip generation queued...");
-    lineIndex = lines.length - 1;
+  let lineId = findStatusLineId("Clip generation");
+  if (lineId === null) {
+    lineId = addStatus("⏳ Clip generation queued...");
   }
 
   for (;;) {
@@ -1206,7 +1214,7 @@ async function pollClipGenerationStatus(statusFile, lines) {
 
       if (clip.status === "waiting") {
         setStatusLine(
-          lineIndex,
+          lineId,
           `⏳ Clip generation waiting for MP4 render... ${clip.current || 0}/${clip.total || 0} done (${clip.remaining || clip.total || 0} remaining)`,
         );
         continue;
@@ -1214,7 +1222,7 @@ async function pollClipGenerationStatus(statusFile, lines) {
 
       if (clip.status === "started") {
         setStatusLine(
-          lineIndex,
+          lineId,
           `⏳ Clip generation ${clip.percent || 0}% - ${clip.current || 0}/${clip.total || 0} done (${clip.remaining || 0} remaining)`,
         );
         continue;
@@ -1223,7 +1231,7 @@ async function pollClipGenerationStatus(statusFile, lines) {
       if (clip.status === "completed") {
         persistActiveClipStatusFile("");
         setStatusLine(
-          lineIndex,
+          lineId,
           `✓ Clip generation complete - ${clip.current || 0}/${clip.total || 0} done`,
         );
         return { status: "completed", clipGeneration: clip };
@@ -1232,7 +1240,7 @@ async function pollClipGenerationStatus(statusFile, lines) {
       if (clip.status === "failed") {
         persistActiveClipStatusFile("");
         setStatusLine(
-          lineIndex,
+          lineId,
           `❌ Clip generation failed after ${clip.current || 0}/${clip.total || 0} done`,
         );
         addStatus(
@@ -1264,21 +1272,20 @@ function startClipStatusPolling(statusFile, { startMessage = "" } = {}) {
     addStatus(startMessage);
   }
 
-  const pollPromise = pollClipGenerationStatus(
-    normalizedStatusFile,
-    statusLines,
-  ).finally(() => {
-    if (
-      activeClipStatusPoll &&
-      activeClipStatusPoll.statusFile === normalizedStatusFile
-    ) {
-      activeClipStatusPoll = null;
-    }
-    if (activeClipStatusFile === normalizedStatusFile) {
-      activeClipStatusFile = null;
-    }
-    isGeneratingClips = false;
-  });
+  const pollPromise = pollClipGenerationStatus(normalizedStatusFile).finally(
+    () => {
+      if (
+        activeClipStatusPoll &&
+        activeClipStatusPoll.statusFile === normalizedStatusFile
+      ) {
+        activeClipStatusPoll = null;
+      }
+      if (activeClipStatusFile === normalizedStatusFile) {
+        activeClipStatusFile = null;
+      }
+      isGeneratingClips = false;
+    },
+  );
 
   activeClipStatusPoll = {
     statusFile: normalizedStatusFile,
@@ -1342,10 +1349,7 @@ function startVideoStatusPolling(
     addStatus(startMessage);
   }
 
-  const pollPromise = pollVideoStatus(
-    normalizedStatusFile,
-    statusLines,
-  ).finally(() => {
+  const pollPromise = pollVideoStatus(normalizedStatusFile).finally(() => {
     if (
       activeVideoStatusPoll &&
       activeVideoStatusPoll.statusFile === normalizedStatusFile
@@ -1636,13 +1640,18 @@ approveButton.addEventListener("click", async () => {
     });
 
     const result = await response.json();
-    stopRunSpinner("✓ Generation completed");
+    const runFailed = !response.ok || Boolean(result.error);
+    stopRunSpinner(
+      runFailed ? "❌ Generation failed" : "✓ Generation completed",
+    );
     currentRunResult = result;
     renderClipSuggestions(result.clipSuggestions || []);
     activeVideoStatusFile = null;
 
-    if (result.error) {
-      addStatus(`❌ Error: ${result.error}`);
+    if (runFailed) {
+      addStatus(
+        `❌ Error: ${result.error || `Request failed (${response.status})`}`,
+      );
     } else {
       renderProfanityStatus(
         result.transcriptChecks,

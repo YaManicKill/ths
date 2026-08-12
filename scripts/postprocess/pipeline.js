@@ -586,7 +586,6 @@ async function runPipeline(inputOptions = {}) {
     seasonInfo,
     episodeTitle,
     description,
-    podcastBytes: discoveredPodcastBytes,
     podcastDuration,
     dateString,
     chapters: chaptersWithImages,
@@ -604,9 +603,6 @@ async function runPipeline(inputOptions = {}) {
   );
 
   const podcastPath = `ths/year${seasonInfo.year}/${seasonInfo.folder}/ths-${episodeMeta.seasonCode}-${episodeMeta.episodeCode}.mp3`;
-  let effectivePodcastBytes = discoveredPodcastBytes;
-  let indexMarkdown = "";
-
   let videoPath;
   if (inputOptions.episodeFolderPath) {
     videoPath = path.join(
@@ -622,7 +618,6 @@ async function runPipeline(inputOptions = {}) {
   }
 
   const report = {
-    dryRun: Boolean(inputOptions.dryRun),
     episode: {
       ...episodeMeta,
       title: episodeTitle,
@@ -651,71 +646,66 @@ async function runPipeline(inputOptions = {}) {
     clipSuggestions: discovered.clipSuggestions,
     coverImagePath: discovered.fallbackCoverPath,
     mp3ChapterImages: {
-      attempted: !inputOptions.dryRun,
       completed: false,
       chaptersEmbedded: 0,
       backupPath: null,
     },
   };
 
-  if (!inputOptions.dryRun) {
-    // Fail before the branch and files exist, rather than part-way through the run.
-    const embedSupport = checkChapterEmbedSupport();
-    if (!embedSupport.ok) {
-      throw new Error(embedSupport.error);
-    }
-
-    onProgress("Creating git branch...");
-
-    const branchResult = createOrCheckoutEpisodeBranch(
-      repoRoot,
-      episodeMeta.seasonCode,
-      episodeMeta.episodeCode,
-    );
-
-    report.gitBranch = {
-      name: branchResult.branchName,
-      created: branchResult.created,
-    };
-
-    onProgress("Creating episode directory...");
-
-    ensureDir(episodeDir);
-
-    onProgress("Copying transcripts...");
-
-    fs.copyFileSync(
-      inputOptions.transcriptMdPath,
-      path.join(episodeDir, "transcript.md"),
-    );
-    fs.copyFileSync(
-      inputOptions.transcriptVttPath,
-      path.join(episodeDir, "transcript.vtt"),
-    );
-
-    onProgress("Updating MP3 chapter images...");
-
-    const { backupPath } = embedChapterImagesIntoMp3({
-      mp3Path: inputOptions.mp3Path,
-      chapters: chaptersWithImages,
-      workDir,
-    });
-
-    report.mp3ChapterImages.completed = true;
-    report.mp3ChapterImages.chaptersEmbedded = chaptersWithImages.length;
-    report.mp3ChapterImages.backupPath = backupPath;
-
-    // MP3 was just modified by embed; use final file size for frontmatter bytes.
-    effectivePodcastBytes = fs.statSync(inputOptions.mp3Path).size;
+  // Fail before the branch and files exist, rather than part-way through the run.
+  const embedSupport = checkChapterEmbedSupport();
+  if (!embedSupport.ok) {
+    throw new Error(embedSupport.error);
   }
 
-  indexMarkdown = buildIndexMarkdown({
+  onProgress("Creating git branch...");
+
+  const branchResult = createOrCheckoutEpisodeBranch(
+    repoRoot,
+    episodeMeta.seasonCode,
+    episodeMeta.episodeCode,
+  );
+
+  report.gitBranch = {
+    name: branchResult.branchName,
+    created: branchResult.created,
+  };
+
+  onProgress("Creating episode directory...");
+
+  ensureDir(episodeDir);
+
+  onProgress("Copying transcripts...");
+
+  fs.copyFileSync(
+    inputOptions.transcriptMdPath,
+    path.join(episodeDir, "transcript.md"),
+  );
+  fs.copyFileSync(
+    inputOptions.transcriptVttPath,
+    path.join(episodeDir, "transcript.vtt"),
+  );
+
+  onProgress("Updating MP3 chapter images...");
+
+  const { backupPath } = embedChapterImagesIntoMp3({
+    mp3Path: inputOptions.mp3Path,
+    chapters: chaptersWithImages,
+    workDir,
+  });
+
+  report.mp3ChapterImages.completed = true;
+  report.mp3ChapterImages.chaptersEmbedded = chaptersWithImages.length;
+  report.mp3ChapterImages.backupPath = backupPath;
+
+  const indexMarkdown = buildIndexMarkdown({
     episodeTitle,
     episodeMeta,
     seasonInfo,
     description,
+    // Read after the embed, which changes the file size.
+    podcastBytes: fs.statSync(inputOptions.mp3Path).size,
     podcastPath,
-    podcastBytes: effectivePodcastBytes,
     podcastDuration,
     dateString,
     chapters: chaptersWithImages,
@@ -723,20 +713,16 @@ async function runPipeline(inputOptions = {}) {
     author: config.defaultAuthor,
   });
 
-  if (!inputOptions.dryRun) {
-    onProgress("Writing shownotes...");
+  onProgress("Writing shownotes...");
 
-    fs.writeFileSync(path.join(episodeDir, "index.md"), indexMarkdown, "utf8");
+  fs.writeFileSync(path.join(episodeDir, "index.md"), indexMarkdown, "utf8");
 
-    writeJson(path.join(episodeDir, "postprocess-report.json"), report);
-  }
-
-  if (!inputOptions.dryRun && inputOptions.skipVideo) {
+  if (inputOptions.skipVideo) {
     onProgress("Skipping MP4 generation (requested)");
     report.videoStatus = { skipped: true };
   }
 
-  if (!inputOptions.dryRun && !inputOptions.skipVideo) {
+  if (!inputOptions.skipVideo) {
     onProgress("Generating MP4 video...");
     const videoStatusPath = path.join(episodeDir, "video-status.json");
     const startedAt = new Date().toISOString();
@@ -788,10 +774,14 @@ async function runPipeline(inputOptions = {}) {
     report.videoStatus = { statusFile: videoStatusPath };
   }
 
-  if (!inputOptions.dryRun && !inputOptions.skipVideo) {
-    onProgress("Pipeline complete. Video generation running in background...");
-  } else {
+  // Written last so the saved report includes videoStatus, which is only known once the
+  // video branch above has run.
+  writeJson(path.join(episodeDir, "postprocess-report.json"), report);
+
+  if (inputOptions.skipVideo) {
     onProgress("Pipeline complete.");
+  } else {
+    onProgress("Pipeline complete. Video generation running in background...");
   }
 
   return {

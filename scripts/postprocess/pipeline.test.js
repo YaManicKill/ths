@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { discoverEpisodeData } = require("./pipeline");
+const { discoverEpisodeData, runPipeline } = require("./pipeline");
 const { runCommand } = require("./utils");
 
 // Discovery needs a real MP3 with chapters, so build a tiny one with ffmpeg.
@@ -89,38 +89,89 @@ for (const name of Object.keys(seeded)) {
   fs.writeFileSync(path.join(workRoot, name, "file.bin"), "x");
 }
 
-discoverEpisodeData({
-  repoRoot,
-  mp3Path: fixture.mp3Path,
-  transcriptMdPath: fixture.transcriptMdPath,
-  transcriptVttPath: fixture.transcriptVttPath,
-  onProgress: () => {},
-})
-  .then((discovered) => {
-    assert.equal(discovered.episodeMeta.guid, "ths-99-01");
-    assert.ok(
-      discovered.chapters.length >= 2,
-      "expected chapters from the MP3",
-    );
+function initGitRepo(root) {
+  for (const args of [
+    ["init", "-q"],
+    ["config", "user.email", "test@example.com"],
+    ["config", "user.name", "Test"],
+  ]) {
+    const result = runCommand("git", args, { cwd: root });
+    assert.equal(result.status, 0, `git ${args[0]} failed: ${result.stderr}`);
+  }
+  fs.writeFileSync(path.join(root, ".keep"), "x");
+  runCommand("git", ["add", "-A"], { cwd: root });
+  const committed = runCommand("git", ["commit", "-qm", "init"], { cwd: root });
+  assert.equal(committed.status, 0, `git commit failed: ${committed.stderr}`);
+}
 
-    const survivors = fs.readdirSync(workRoot);
-    for (const [name, shouldRemain] of Object.entries(seeded)) {
-      assert.equal(
-        survivors.includes(name),
-        shouldRemain,
-        `${name} should ${shouldRemain ? "have survived" : "have been pruned"}`,
-      );
-    }
-
-    assert.ok(
-      survivors.some((name) => /^ths-99-01-\d+$/.test(name)),
-      "the current run's own work dir was pruned",
-    );
-
-    fs.rmSync(repoRoot, { recursive: true, force: true });
-    console.log("pipeline test passed", { survivors: survivors.length });
-  })
-  .catch((error) => {
-    console.error("pipeline test failed:", error.message);
-    process.exit(1);
+async function main() {
+  const discovered = await discoverEpisodeData({
+    repoRoot,
+    mp3Path: fixture.mp3Path,
+    transcriptMdPath: fixture.transcriptMdPath,
+    transcriptVttPath: fixture.transcriptVttPath,
+    onProgress: () => {},
   });
+
+  assert.equal(discovered.episodeMeta.guid, "ths-99-01");
+  assert.ok(discovered.chapters.length >= 2, "expected chapters from the MP3");
+
+  const survivors = fs.readdirSync(workRoot);
+  for (const [name, shouldRemain] of Object.entries(seeded)) {
+    assert.equal(
+      survivors.includes(name),
+      shouldRemain,
+      `${name} should ${shouldRemain ? "have survived" : "have been pruned"}`,
+    );
+  }
+
+  assert.ok(
+    survivors.some((name) => /^ths-99-01-\d+$/.test(name)),
+    "the current run's own work dir was pruned",
+  );
+
+  // A full run, so the saved report can be inspected. The MP3 is copied first because the
+  // run embeds chapter images into it.
+  const runRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ths-run-"));
+  initGitRepo(runRoot);
+  const runMp3 = path.join(runRoot, "ths-99-01.mp3");
+  fs.copyFileSync(fixture.mp3Path, runMp3);
+
+  const { report } = await runPipeline({
+    repoRoot: runRoot,
+    mp3Path: runMp3,
+    transcriptMdPath: fixture.transcriptMdPath,
+    transcriptVttPath: fixture.transcriptVttPath,
+    skipVideo: true,
+    onProgress: () => {},
+  });
+
+  assert.equal(report.gitBranch.name, "ep-99-01");
+  assert.ok(
+    report.mp3ChapterImages.completed,
+    "chapter images were not embedded",
+  );
+
+  const episodeDir = path.dirname(
+    path.join(report.episode.outputDirectory, "index.md"),
+  );
+  const savedReport = JSON.parse(
+    fs.readFileSync(path.join(episodeDir, "postprocess-report.json"), "utf8"),
+  );
+
+  // The report is written after the video branch runs, so videoStatus must be present.
+  assert.ok(
+    savedReport.videoStatus,
+    "postprocess-report.json is missing videoStatus",
+  );
+  assert.equal(savedReport.videoStatus.skipped, true);
+
+  fs.rmSync(repoRoot, { recursive: true, force: true });
+  fs.rmSync(runRoot, { recursive: true, force: true });
+  console.log("pipeline test passed", { survivors: survivors.length });
+}
+
+main().catch((error) => {
+  console.error("pipeline test failed:", error.message);
+  process.exit(1);
+});
