@@ -7,12 +7,13 @@
   "episodesRoot": "~/Google Drive/My Drive/Projects/ths/Episodes",
   "imageOverridesFile": "data/chapter-image-overrides.json",
   "profanityWords": [
-    "fuck",
-    "fucking",
-    "shit",
-    "bitch",
-    "cunt",
-    "asshole",
-    "motherfucker"
+    "fuck*",
+    "shit*",
+    "bitch*",
+    "cunt*",
+    "asshole*",
+    "motherfucker*",
+    "damn*",
+    "crap*"
   ]
 }

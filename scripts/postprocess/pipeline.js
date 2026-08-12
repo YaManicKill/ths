@@ -11,6 +11,7 @@ const {
 const { resolveChapterImages } = require("./image-resolver");
 const { findWordMatches } = require("./transcript-check");
 const { generateVideoFromChapters } = require("./video");
+const { buildClipSuggestions } = require("./clip-suggestions");
 const {
   assertToolAvailable,
   createOrCheckoutEpisodeBranch,
@@ -33,13 +34,14 @@ const DEFAULT_CONFIG = {
   videoOutputRoot: "content/episode-videos",
   imageOverridesFile: "data/chapter-image-overrides.json",
   profanityWords: [
-    "fuck",
-    "fucking",
-    "shit",
-    "bitch",
-    "cunt",
-    "asshole",
-    "motherfucker",
+    "fuck*",
+    "shit*",
+    "bitch*",
+    "cunt*",
+    "asshole*",
+    "motherfucker*",
+    "damn*",
+    "crap*",
   ],
 };
 
@@ -341,10 +343,26 @@ function buildIndexMarkdown({
 function loadConfig(repoRoot, configPath) {
   const fullPath = configPath || path.join(repoRoot, "postprocess.config.json");
   const config = fileExists(fullPath) ? readJson(fullPath) : {};
+  const configuredProfanityWords = Array.isArray(config.profanityWords)
+    ? config.profanityWords
+    : [];
+  const mergedProfanityWords = [
+    ...new Set([...DEFAULT_CONFIG.profanityWords, ...configuredProfanityWords]),
+  ];
+
   return {
     ...DEFAULT_CONFIG,
     ...config,
+    profanityWords: mergedProfanityWords,
   };
+}
+
+function writeVideoStatusPreserveClipGeneration(statusFilePath, nextStatus) {
+  const existing = readJson(statusFilePath, {});
+  if (existing.clipGeneration && nextStatus.clipGeneration === undefined) {
+    nextStatus.clipGeneration = existing.clipGeneration;
+  }
+  writeJson(statusFilePath, nextStatus);
 }
 
 function resolveSeasonInfo(episodeMeta) {
@@ -492,6 +510,11 @@ async function discoverEpisodeData(inputOptions = {}) {
     transcriptVtt: findWordMatches(transcriptVttText, config.profanityWords),
   };
 
+  const clipSuggestions = buildClipSuggestions({
+    transcriptMdText,
+    maxSuggestions: 8,
+  });
+
   return {
     episodeMeta,
     seasonInfo,
@@ -508,6 +531,7 @@ async function discoverEpisodeData(inputOptions = {}) {
     profanityMatches,
     transcriptMdText,
     transcriptVttText,
+    clipSuggestions,
     workDir,
     fallbackCoverPath,
   };
@@ -597,6 +621,8 @@ async function runPipeline(inputOptions = {}) {
       transcriptMd: discovered.profanityMatches.transcriptMd,
       transcriptVtt: discovered.profanityMatches.transcriptVtt,
     },
+    clipSuggestions: discovered.clipSuggestions,
+    coverImagePath: discovered.fallbackCoverPath,
     mp3ChapterImages: {
       attempted: !inputOptions.dryRun,
       completed: false,
@@ -687,27 +713,27 @@ async function runPipeline(inputOptions = {}) {
     const startedAt = new Date().toISOString();
 
     // Use setImmediate to start the task asynchronously without blocking
-    setImmediate(() => {
-      writeJson(videoStatusPath, {
+    setImmediate(async () => {
+      writeVideoStatusPreserveClipGeneration(videoStatusPath, {
         status: "started",
         startedAt,
         percent: 0,
       });
       try {
-        generateVideoFromChapters({
+        await generateVideoFromChapters({
           chapters: chaptersWithImages,
           mp3Path: inputOptions.mp3Path,
           outputPath: videoPath,
           workDir: path.join(workDir, "video"),
           onProgress: (progress) => {
-            writeJson(videoStatusPath, {
+            writeVideoStatusPreserveClipGeneration(videoStatusPath, {
               status: "started",
               startedAt,
               ...progress,
             });
           },
         });
-        writeJson(videoStatusPath, {
+        writeVideoStatusPreserveClipGeneration(videoStatusPath, {
           status: "completed",
           completedAt: new Date().toISOString(),
           videoPath,
@@ -716,7 +742,7 @@ async function runPipeline(inputOptions = {}) {
       } catch (error) {
         // Log error but don't throw since we're background
         console.error("Video generation error:", error.message);
-        writeJson(videoStatusPath, {
+        writeVideoStatusPreserveClipGeneration(videoStatusPath, {
           status: "failed",
           failedAt: new Date().toISOString(),
           error: error.message,

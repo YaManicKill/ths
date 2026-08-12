@@ -4,6 +4,7 @@ const path = require("node:path");
 const http = require("node:http");
 const crypto = require("node:crypto");
 const { runPipeline, discoverEpisodeData } = require("../pipeline");
+const { generateClipVideos, generateVideoFromChapters } = require("../video");
 const { normalizeTitle, readJson, runCommand, writeJson } = require("../utils");
 
 function slugify(input) {
@@ -256,6 +257,8 @@ async function downloadImageFromUrl(imageUrl) {
 function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
+  // Status endpoints are polled on the same URL; never let a response be reused.
+  res.setHeader("Cache-Control", "no-store");
   res.end(JSON.stringify(payload, null, 2));
 }
 
@@ -307,6 +310,57 @@ function toRepoRelativePath(repoRoot, filePath) {
   return relative.split(path.sep).join("/");
 }
 
+function resolvePreferredClipImagePath({ resolvedMp3Path, resolvedImagePath }) {
+  const episodeDir = path.dirname(resolvedMp3Path);
+  const episodesRoot = path.dirname(episodeDir);
+  const projectRoot = path.dirname(episodesRoot);
+  const assetsDir = path.join(projectRoot, "Assets");
+
+  const candidates = [
+    "HarvestSeason-FullLogo-FullColor-01.png",
+    "HarvestSeason-Final-PodcastArt-01.png",
+    "logo.png",
+    "thumbnail.png",
+  ].map((name) => path.join(assetsDir, name));
+
+  for (const candidatePath of candidates) {
+    if (fs.existsSync(candidatePath)) {
+      return candidatePath;
+    }
+  }
+
+  return resolvedImagePath;
+}
+
+function readPostprocessConfig(repoRoot) {
+  return readJson(path.join(repoRoot, "postprocess.config.json"), {});
+}
+
+function deriveEpisodeOutputPaths({ repoRoot, discovered, mp3Path }) {
+  const postprocessConfig = readPostprocessConfig(repoRoot);
+  const outputRoot = String(postprocessConfig.outputRoot || "content/episode");
+
+  const episodeFolderName = `${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}-${slugify(discovered.episodeTitle)}`;
+  const episodeDir = path.join(
+    repoRoot,
+    outputRoot,
+    `year${String(discovered.seasonInfo.year)}`,
+    String(discovered.seasonInfo.folder || ""),
+    episodeFolderName,
+  );
+  const videoStatusFile = path.join(episodeDir, "video-status.json");
+  const videoPath = path.join(
+    path.dirname(mp3Path),
+    `ths-${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}.mp4`,
+  );
+
+  return {
+    episodeDir,
+    videoStatusFile,
+    videoPath,
+  };
+}
+
 function startServer({ port = 4173 } = {}) {
   const publicDir = path.join(__dirname, "public");
   const repoRoot = path.resolve(__dirname, "..", "..", "..");
@@ -321,6 +375,8 @@ function startServer({ port = 4173 } = {}) {
     "data",
     "chapter-image-overrides.json",
   );
+  const activeVideoStatusFiles = new Set();
+  const activeClipGenerationStatusFiles = new Set();
 
   function saveChapterOverride(chapterTitle, filePath) {
     const key = normalizeTitle(chapterTitle);
@@ -344,6 +400,229 @@ function startServer({ port = 4173 } = {}) {
     delete overrides[key];
     writeJson(chapterOverridesPath, overrides);
     return true;
+  }
+
+  function markVideoStatusInterrupted(statusFile, statusData = {}) {
+    const interrupted = {
+      ...statusData,
+      status: "failed",
+      failedAt: new Date().toISOString(),
+      error:
+        statusData.error ||
+        "Video generation was interrupted (server process restarted or exited)",
+    };
+    writeJson(statusFile, interrupted);
+    activeVideoStatusFiles.delete(statusFile);
+    return interrupted;
+  }
+
+  function markClipGenerationInterrupted(statusFile, clipStatus = {}) {
+    const existing = readJson(statusFile, { status: "unknown" });
+    existing.clipGeneration = {
+      ...clipStatus,
+      status: "failed",
+      failedAt: new Date().toISOString(),
+      error:
+        clipStatus.error ||
+        "Clip generation was interrupted (server process restarted or exited)",
+    };
+    writeJson(statusFile, existing);
+    activeClipGenerationStatusFiles.delete(statusFile);
+    return existing.clipGeneration;
+  }
+
+  function writeVideoStatusPreserveClipGeneration(statusFile, nextStatus) {
+    const existing = readJson(statusFile, {});
+    if (existing.clipGeneration && nextStatus.clipGeneration === undefined) {
+      nextStatus.clipGeneration = existing.clipGeneration;
+    }
+    writeJson(statusFile, nextStatus);
+  }
+
+  function updateClipGenerationStatus(statusFile, patch) {
+    const existing = readJson(statusFile, { status: "unknown" });
+    existing.clipGeneration = {
+      ...(existing.clipGeneration || {}),
+      ...patch,
+    };
+    writeJson(statusFile, existing);
+    return existing.clipGeneration;
+  }
+
+  async function waitForVideoCompletion(statusFile) {
+    for (;;) {
+      const current = readNormalizedVideoStatus(statusFile);
+      if (current.status === "completed" || current.status === "skipped") {
+        return current;
+      }
+      if (current.status === "failed") {
+        throw new Error(current.error || "MP4 generation failed");
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+
+  function buildClipGenerationState({
+    status,
+    total,
+    current = 0,
+    outputs = [],
+    error,
+    waitingForVideo = false,
+  }) {
+    const safeTotal = Math.max(0, Number(total || 0));
+    const safeCurrent = Math.max(0, Number(current || 0));
+    const percent =
+      safeTotal > 0 ? Math.round((safeCurrent / safeTotal) * 100) : 0;
+    return {
+      status,
+      total: safeTotal,
+      current: safeCurrent,
+      remaining: Math.max(0, safeTotal - safeCurrent),
+      percent,
+      outputs,
+      waitingForVideo,
+      ...(error ? { error } : {}),
+    };
+  }
+
+  async function startQueuedClipGeneration({
+    statusFile,
+    clipSuggestions,
+    preferredClipImagePath,
+    resolvedMp3Path,
+  }) {
+    activeClipGenerationStatusFiles.add(statusFile);
+
+    const total = clipSuggestions.length;
+    const initialVideoStatus = readNormalizedVideoStatus(statusFile);
+    const shouldWaitForVideo = initialVideoStatus.status === "started";
+
+    updateClipGenerationStatus(
+      statusFile,
+      buildClipGenerationState({
+        status: shouldWaitForVideo ? "waiting" : "started",
+        total,
+        current: 0,
+        outputs: [],
+        waitingForVideo: shouldWaitForVideo,
+        startedAt: new Date().toISOString(),
+      }),
+    );
+
+    setImmediate(async () => {
+      const clipBaseDirectory = path.dirname(resolvedMp3Path);
+      const clipOutputDir = path.join(clipBaseDirectory, "clip-videos");
+      const outputs = [];
+
+      try {
+        if (shouldWaitForVideo) {
+          await waitForVideoCompletion(statusFile);
+          updateClipGenerationStatus(
+            statusFile,
+            buildClipGenerationState({
+              status: "started",
+              total,
+              current: 0,
+              outputs: [],
+              waitingForVideo: false,
+            }),
+          );
+        }
+
+        for (let index = 0; index < clipSuggestions.length; index += 1) {
+          const generated = await generateClipVideos({
+            clipSuggestions: [clipSuggestions[index]],
+            imagePath: preferredClipImagePath,
+            mp3Path: resolvedMp3Path,
+            outputDir: clipOutputDir,
+            workDir: path.join(clipOutputDir, ".work"),
+            startIndex: index,
+          });
+          outputs.push(...generated);
+          updateClipGenerationStatus(
+            statusFile,
+            buildClipGenerationState({
+              status: "started",
+              total,
+              current: index + 1,
+              outputs,
+              waitingForVideo: false,
+            }),
+          );
+        }
+
+        updateClipGenerationStatus(statusFile, {
+          ...buildClipGenerationState({
+            status: "completed",
+            total,
+            current: total,
+            outputs,
+            waitingForVideo: false,
+          }),
+          completedAt: new Date().toISOString(),
+        });
+      } catch (error) {
+        updateClipGenerationStatus(statusFile, {
+          ...buildClipGenerationState({
+            status: "failed",
+            total,
+            current: outputs.length,
+            outputs,
+            waitingForVideo: false,
+            error: error.message,
+          }),
+          failedAt: new Date().toISOString(),
+        });
+      } finally {
+        activeClipGenerationStatusFiles.delete(statusFile);
+      }
+    });
+  }
+
+  function readNormalizedVideoStatus(statusFile) {
+    if (!fs.existsSync(statusFile)) {
+      return {
+        statusFile,
+        status: "missing",
+      };
+    }
+
+    const parsed = readJson(statusFile, { status: "unknown" });
+    if (
+      parsed.status === "started" &&
+      !activeVideoStatusFiles.has(statusFile)
+    ) {
+      const interrupted = markVideoStatusInterrupted(statusFile, parsed);
+      return {
+        statusFile,
+        ...interrupted,
+      };
+    }
+
+    if (
+      parsed.clipGeneration &&
+      ["started", "waiting"].includes(parsed.clipGeneration.status) &&
+      !activeClipGenerationStatusFiles.has(statusFile)
+    ) {
+      parsed.clipGeneration = markClipGenerationInterrupted(
+        statusFile,
+        parsed.clipGeneration,
+      );
+    }
+
+    if (
+      parsed.status === "completed" ||
+      parsed.status === "failed" ||
+      parsed.status === "skipped"
+    ) {
+      activeVideoStatusFiles.delete(statusFile);
+    }
+
+    return {
+      statusFile,
+      ...parsed,
+    };
   }
 
   const server = http.createServer(async (req, res) => {
@@ -430,6 +709,16 @@ function startServer({ port = 4173 } = {}) {
           onProgress,
         });
 
+        const { videoStatusFile: derivedVideoStatusFile } =
+          deriveEpisodeOutputPaths({
+            repoRoot,
+            discovered,
+            mp3Path: payload.mp3Path,
+          });
+        const discoveredVideoStatus = readNormalizedVideoStatus(
+          derivedVideoStatusFile,
+        );
+
         sendJson(res, 200, {
           success: true,
           progress: progressMessages,
@@ -439,6 +728,7 @@ function startServer({ port = 4173 } = {}) {
             seasonInfo: discovered.seasonInfo,
             description: discovered.description,
             dateString: discovered.dateString,
+            clipSuggestions: discovered.clipSuggestions,
             chapters: discovered.chapters.map((ch) => ({
               timeLabel: ch.timeLabel,
               title: ch.title,
@@ -448,6 +738,14 @@ function startServer({ port = 4173 } = {}) {
               defaultImagePath: ch.defaultImagePath,
             })),
             hiddenLinkTitles: discovered.hiddenLinkTitles,
+            transcriptChecks: {
+              totalMatches:
+                discovered.profanityMatches.transcriptMd.length +
+                discovered.profanityMatches.transcriptVtt.length,
+              transcriptMd: discovered.profanityMatches.transcriptMd,
+              transcriptVtt: discovered.profanityMatches.transcriptVtt,
+            },
+            videoStatus: discoveredVideoStatus,
           },
           // Store serialized data for later generation
           discoveryData: JSON.stringify(discovered),
@@ -534,10 +832,88 @@ function startServer({ port = 4173 } = {}) {
         return;
       }
       try {
-        const raw = fs.readFileSync(statusFile, "utf8");
-        sendJson(res, 200, JSON.parse(raw));
+        const normalized = readNormalizedVideoStatus(statusFile);
+        if (normalized.status === "missing") {
+          sendJson(res, 200, { status: "pending" });
+          return;
+        }
+        sendJson(res, 200, normalized);
       } catch {
         sendJson(res, 200, { status: "pending" });
+      }
+      return;
+    }
+
+    if (req.method === "POST" && pathname === "/api/generate-clip-videos") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const imagePath = String(payload.imagePath || "").trim();
+        const mp3Path = String(payload.mp3Path || "").trim();
+        const clipSuggestions = Array.isArray(payload.clipSuggestions)
+          ? payload.clipSuggestions
+          : [];
+        const resolvedImagePath =
+          imagePath && path.isAbsolute(imagePath) ? imagePath : null;
+        const resolvedMp3Path =
+          mp3Path && path.isAbsolute(mp3Path) ? mp3Path : null;
+
+        if (!resolvedMp3Path || !fs.existsSync(resolvedMp3Path)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid mp3Path",
+          });
+          return;
+        }
+
+        const clipBaseDirectory = path.dirname(resolvedMp3Path);
+        const preferredClipImagePath = resolvePreferredClipImagePath({
+          resolvedMp3Path,
+          resolvedImagePath,
+        });
+
+        if (!preferredClipImagePath || !fs.existsSync(preferredClipImagePath)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid imagePath",
+          });
+          return;
+        }
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !Array.isArray(discovered.chapters)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+
+        const clipOutputDir = path.join(clipBaseDirectory, "clip-videos");
+        const { videoStatusFile } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: resolvedMp3Path,
+        });
+
+        await startQueuedClipGeneration({
+          statusFile: videoStatusFile,
+          clipSuggestions,
+          preferredClipImagePath,
+          resolvedMp3Path,
+        });
+
+        sendJson(res, 200, {
+          success: true,
+          outputDirectory: clipBaseDirectory,
+          imagePathUsed: preferredClipImagePath,
+          clipStatusFile: videoStatusFile,
+        });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
       }
       return;
     }
@@ -575,6 +951,9 @@ function startServer({ port = 4173 } = {}) {
         }
 
         const { report } = await runPipeline(runOptions);
+        if (report?.videoStatus?.statusFile) {
+          activeVideoStatusFiles.add(report.videoStatus.statusFile);
+        }
 
         sendJson(res, 200, {
           ...report,
@@ -582,6 +961,97 @@ function startServer({ port = 4173 } = {}) {
         });
       } catch (error) {
         sendJson(res, 400, { error: error.message });
+      }
+      return;
+    }
+
+    if (req.method === "POST" && pathname === "/api/rerender-mp4") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const mp3Path = String(payload.mp3Path || "").trim();
+        if (!mp3Path || !path.isAbsolute(mp3Path) || !fs.existsSync(mp3Path)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid mp3Path",
+          });
+          return;
+        }
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+
+        if (!discovered || !Array.isArray(discovered.chapters)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+
+        const { videoStatusFile, videoPath } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path,
+        });
+
+        const startedAt = new Date().toISOString();
+        activeVideoStatusFiles.add(videoStatusFile);
+
+        setImmediate(async () => {
+          writeVideoStatusPreserveClipGeneration(videoStatusFile, {
+            status: "started",
+            startedAt,
+            percent: 0,
+          });
+
+          try {
+            await generateVideoFromChapters({
+              chapters: discovered.chapters,
+              mp3Path,
+              outputPath: videoPath,
+              workDir: path.join(
+                repoRoot,
+                ".cache",
+                "postprocess",
+                `rerender-${Date.now()}`,
+              ),
+              onProgress: (progress) => {
+                writeVideoStatusPreserveClipGeneration(videoStatusFile, {
+                  status: "started",
+                  startedAt,
+                  ...progress,
+                });
+              },
+            });
+
+            writeVideoStatusPreserveClipGeneration(videoStatusFile, {
+              status: "completed",
+              completedAt: new Date().toISOString(),
+              videoPath,
+              percent: 100,
+            });
+          } catch (error) {
+            writeVideoStatusPreserveClipGeneration(videoStatusFile, {
+              status: "failed",
+              failedAt: new Date().toISOString(),
+              error: error.message,
+            });
+          } finally {
+            activeVideoStatusFiles.delete(videoStatusFile);
+          }
+        });
+
+        sendJson(res, 200, {
+          success: true,
+          videoStatus: {
+            statusFile: videoStatusFile,
+          },
+        });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
       }
       return;
     }

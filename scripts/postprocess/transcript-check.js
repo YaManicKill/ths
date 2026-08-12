@@ -2,6 +2,27 @@ function escapeRegExp(input) {
   return String(input).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function buildMatcherRegex(term) {
+  const normalized = String(term || "")
+    .trim()
+    .toLowerCase();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const wildcard = normalized.endsWith("*");
+  const stem = wildcard ? normalized.slice(0, -1) : normalized;
+  if (!stem) {
+    return null;
+  }
+
+  const escapedStem = escapeRegExp(stem);
+  // Asterisk suffix means "match word-family variants", e.g. "shit*" => "shit", "shits", "shitty".
+  const tokenPattern = wildcard ? `${escapedStem}[a-z0-9']*` : escapedStem;
+  return new RegExp(`\\b${tokenPattern}\\b`, "gi");
+}
+
 function findWordMatches(text, words) {
   const lines = String(text || "").split(/\r?\n/);
   const compiled = words
@@ -13,8 +34,9 @@ function findWordMatches(text, words) {
     .filter(Boolean)
     .map((word) => ({
       word,
-      regex: new RegExp(`\\b${escapeRegExp(word)}\\b`, "gi"),
-    }));
+      regex: buildMatcherRegex(word),
+    }))
+    .filter((item) => item.regex);
 
   const matches = [];
 

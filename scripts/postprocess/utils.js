@@ -1,6 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { spawnSync } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 
 function readJson(filePath, fallbackValue = null) {
   try {
@@ -47,6 +47,50 @@ function runCommand(command, args, options = {}) {
     stdout,
     stderr,
   };
+}
+
+function runCommandStream(command, args, options = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      stdio: ["ignore", "pipe", "pipe"],
+      ...options,
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    if (child.stdout) {
+      child.stdout.on("data", (chunk) => {
+        const text = String(chunk);
+        stdout += text;
+        if (typeof options.onStdout === "function") {
+          options.onStdout(text);
+        }
+      });
+    }
+
+    if (child.stderr) {
+      child.stderr.on("data", (chunk) => {
+        const text = String(chunk);
+        stderr += text;
+        if (typeof options.onStderr === "function") {
+          options.onStderr(text);
+        }
+      });
+    }
+
+    child.on("error", (error) => {
+      reject(error);
+    });
+
+    child.on("close", (status) => {
+      resolve({
+        status,
+        stdout: stdout.trim(),
+        stderr: stderr.trim(),
+      });
+    });
+  });
 }
 
 function assertToolAvailable(command) {
@@ -153,6 +197,7 @@ module.exports = {
   normalizeTitle,
   readJson,
   runCommand,
+  runCommandStream,
   slugify,
   titleCase,
   writeJson,

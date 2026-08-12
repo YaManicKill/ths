@@ -22,6 +22,19 @@
         <pre id="result"></pre>
       </section>
 
+      <section id="process-actions-section" style="display: none">
+        <h2>Process Actions</h2>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap">
+          <button type="button" id="restart-process-button">
+            Clear & Restart Process
+          </button>
+          <button type="button" id="rerender-mp4-button">Re-render MP4</button>
+          <button type="button" id="regenerate-clips-button">
+            Re-generate Clip Suggestions
+          </button>
+        </div>
+      </section>
+
       <section>
         <button type="button" id="toggle-overrides" style="display: none">
           Show Overrides
@@ -87,6 +100,17 @@
           style="margin-top: 20px; padding: 10px 20px; font-size: 1em"
         >
           ✓ Approve & Generate Files
+        </button>
+      </section>
+
+      <section id="clip-suggestions-section" style="display: none">
+        <h2>Clip Suggestions</h2>
+        <div id="clip-suggestions-list"></div>
+        <button
+          id="generate-clip-videos-button"
+          style="margin-top: 16px; padding: 10px 20px; font-size: 1em"
+        >
+          Generate Approved Clip Videos
         </button>
       </section>
     </main>

@@ -1,5 +1,13 @@
 const form = document.getElementById("run-form");
 const resultBox = document.getElementById("result");
+const processActionsSection = document.getElementById(
+  "process-actions-section",
+);
+const restartProcessButton = document.getElementById("restart-process-button");
+const rerenderMp4Button = document.getElementById("rerender-mp4-button");
+const regenerateClipsButton = document.getElementById(
+  "regenerate-clips-button",
+);
 const previewSection = document.getElementById("image-preview-section");
 const chaptersGrid = document.getElementById("chapters-grid");
 const approveButton = document.getElementById("approve-button");
@@ -9,10 +17,128 @@ const discoverySummarySection = document.getElementById("discovery-summary");
 const discoverySummaryContent = document.getElementById(
   "discovery-summary-content",
 );
+const clipSuggestionsSection = document.getElementById(
+  "clip-suggestions-section",
+);
+const clipSuggestionsList = document.getElementById("clip-suggestions-list");
+const generateClipVideosButton = document.getElementById(
+  "generate-clip-videos-button",
+);
 
 let currentDiscoveryData = null;
+let currentRunResult = null;
+let currentClipSuggestions = [];
+let clipApprovalState = [];
+let activeVideoStatusFile = null;
+let activeVideoStatusPoll = null;
+let activeClipStatusFile = null;
+let activeClipStatusPoll = null;
+let pendingClipGenerationRequest = null;
+let isGeneratingClips = false;
+let isVideoRenderInProgress = false;
+let isVideoRenderCompleted = false;
 let chapterImageOverrides = {}; // Track uploaded replacement images by chapter index
 const statusLines = [];
+const VIDEO_STATUS_STORAGE_KEY = "ths-postprocess-active-video-status-file";
+const CLIP_STATUS_STORAGE_KEY = "ths-postprocess-active-clip-status-file";
+
+function setVideoRenderUiState(inProgress) {
+  isVideoRenderInProgress = Boolean(inProgress);
+
+  if (isVideoRenderInProgress) {
+    isVideoRenderCompleted = false;
+  }
+
+  if (isVideoRenderInProgress) {
+    toggleOverridesButton.style.display = "none";
+    previewSection.style.display = "none";
+    clipSuggestionsSection.style.display = "none";
+    approveButton.disabled = true;
+    generateClipVideosButton.style.display = "none";
+    rerenderMp4Button.disabled = true;
+    restartProcessButton.disabled = true;
+    regenerateClipsButton.disabled = true;
+    return;
+  }
+
+  approveButton.disabled = false;
+  rerenderMp4Button.disabled = false;
+  restartProcessButton.disabled = false;
+  regenerateClipsButton.disabled = false;
+}
+
+function setVideoRenderCompletedUiState(completed) {
+  isVideoRenderCompleted = Boolean(completed);
+  if (!isVideoRenderCompleted) {
+    return;
+  }
+
+  isVideoRenderInProgress = false;
+  toggleOverridesButton.style.display = "none";
+  previewSection.style.display = "none";
+  clipSuggestionsSection.style.display = "none";
+  approveButton.disabled = true;
+  generateClipVideosButton.style.display = "none";
+  rerenderMp4Button.disabled = false;
+  restartProcessButton.disabled = false;
+  regenerateClipsButton.disabled = false;
+}
+
+function setProcessActionsVisibility() {
+  processActionsSection.style.display = currentDiscoveryData ? "block" : "none";
+}
+
+function getDiscoverySnapshot() {
+  if (!currentDiscoveryData?.discoveryData) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(currentDiscoveryData.discoveryData);
+  } catch {
+    return null;
+  }
+}
+
+function persistActiveVideoStatusFile(statusFile) {
+  try {
+    if (!statusFile) {
+      localStorage.removeItem(VIDEO_STATUS_STORAGE_KEY);
+      return;
+    }
+    localStorage.setItem(VIDEO_STATUS_STORAGE_KEY, String(statusFile));
+  } catch {
+    // localStorage may be unavailable; ignore persistence failures.
+  }
+}
+
+function persistActiveClipStatusFile(statusFile) {
+  try {
+    if (!statusFile) {
+      localStorage.removeItem(CLIP_STATUS_STORAGE_KEY);
+      return;
+    }
+    localStorage.setItem(CLIP_STATUS_STORAGE_KEY, String(statusFile));
+  } catch {
+    // Ignore persistence failures.
+  }
+}
+
+function readPersistedVideoStatusFile() {
+  try {
+    return String(localStorage.getItem(VIDEO_STATUS_STORAGE_KEY) || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+function readPersistedClipStatusFile() {
+  try {
+    return String(localStorage.getItem(CLIP_STATUS_STORAGE_KEY) || "").trim();
+  } catch {
+    return "";
+  }
+}
 
 function imageApiUrl(imagePath) {
   return `/api/image?path=${encodeURIComponent(imagePath)}&v=${Date.now()}`;
@@ -522,6 +648,12 @@ function renderStatus() {
   resultBox.textContent = statusLines.join("\n");
 }
 
+function resetStatus() {
+  statusLines.length = 0;
+  setStatusAlertState(false);
+  renderStatus();
+}
+
 function addStatus(text) {
   if (!text) {
     return -1;
@@ -557,6 +689,65 @@ function startStatusSpinner(prefix, suffix = "") {
   };
 }
 
+function setStatusAlertState(enabled) {
+  if (enabled) {
+    resultBox.style.borderColor = "#b91c1c";
+    resultBox.style.boxShadow =
+      "0 0 0 1px rgba(185, 28, 28, 0.35), 0 0 20px rgba(185, 28, 28, 0.18)";
+    return;
+  }
+
+  resultBox.style.borderColor = "";
+  resultBox.style.boxShadow = "";
+}
+
+function renderProfanityStatus(
+  transcriptChecks,
+  phaseLabel = "Check",
+  transcriptPath = "",
+) {
+  const mdMatches = Array.isArray(transcriptChecks?.transcriptMd)
+    ? transcriptChecks.transcriptMd
+    : [];
+  const totalMatches = mdMatches.length;
+  const pathLabel = transcriptPath ? ` (${transcriptPath})` : "";
+
+  if (totalMatches <= 0) {
+    addStatus(`[${phaseLabel}] No profanity matches found${pathLabel}.`);
+    setStatusAlertState(false);
+    return;
+  }
+
+  setStatusAlertState(true);
+  addStatus(
+    `!!! PROFANITY DETECTED (${totalMatches} match(es))${pathLabel} !!!`,
+  );
+  addStatus(`[${phaseLabel}] transcript.md: ${mdMatches.length}`);
+
+  const countsByWord = mdMatches.reduce((acc, match) => {
+    const key = String(match.word || "unknown");
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  const summary = Object.entries(countsByWord)
+    .sort((a, b) => b[1] - a[1])
+    .map(([word, count]) => `${word} (${count})`)
+    .join(", ");
+  if (summary) {
+    addStatus(`[${phaseLabel}] detected words: ${summary}`);
+  }
+
+  const examples = mdMatches
+    .slice(0, 8)
+    .map((match) => ({ source: "transcript.md", ...match }));
+
+  for (const match of examples) {
+    addStatus(
+      `  - ${match.word} at ${match.source}:${match.line} -> ${String(match.text || "").slice(0, 110)}`,
+    );
+  }
+}
+
 function renderDiscoverySummary(discovered) {
   const lines = [];
   lines.push(`Episode: ${discovered.episodeTitle}`);
@@ -577,6 +768,110 @@ function renderDiscoverySummary(discovered) {
   }
 
   discoverySummaryContent.textContent = lines.join("\n");
+}
+
+function renderClipSuggestions(suggestions) {
+  currentClipSuggestions = Array.isArray(suggestions) ? suggestions : [];
+  const nextApprovalState = [];
+
+  currentClipSuggestions.forEach((_, index) => {
+    nextApprovalState[index] = clipApprovalState[index] ?? true;
+  });
+
+  clipApprovalState = nextApprovalState;
+  clipSuggestionsList.innerHTML = "";
+
+  if (isVideoRenderInProgress) {
+    clipSuggestionsSection.style.display = "none";
+    return;
+  }
+
+  generateClipVideosButton.style.display = "inline-block";
+  generateClipVideosButton.disabled = false;
+
+  if (currentClipSuggestions.length === 0) {
+    clipSuggestionsSection.style.display = "none";
+    return;
+  }
+
+  clipSuggestionsSection.style.display = "block";
+
+  currentClipSuggestions.forEach((suggestion, index) => {
+    const card = document.createElement("div");
+    card.style.cssText = `
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: var(--panel-alt);
+    `;
+
+    const title = document.createElement("strong");
+    title.textContent =
+      suggestion.summary || suggestion.title || `Clip ${index + 1}`;
+    title.style.display = "block";
+    title.style.marginBottom = "6px";
+    card.appendChild(title);
+
+    const meta = document.createElement("div");
+    meta.style.cssText =
+      "font-size: 0.9em; color: var(--muted); margin-bottom: 8px;";
+    meta.textContent = `${suggestion.timestampLabel || ""} • ${suggestion.durationSeconds || 0}s`;
+    card.appendChild(meta);
+
+    const controls = document.createElement("div");
+    controls.style.cssText = "display:flex; gap:8px;";
+
+    const approved = clipApprovalState[index] !== false;
+    const approveButton = document.createElement("button");
+    approveButton.type = "button";
+    approveButton.textContent = approved ? "✓ Approved" : "Approve";
+    approveButton.style.cssText = `
+      padding: 8px 10px;
+      cursor: pointer;
+      background: ${approved ? "#1f4d2b" : "var(--panel)"};
+      color: ${approved ? "#fff" : "inherit"};
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    `;
+    approveButton.addEventListener("click", () => {
+      clipApprovalState[index] = true;
+      renderClipSuggestions(currentClipSuggestions);
+    });
+
+    const denyButton = document.createElement("button");
+    denyButton.type = "button";
+    denyButton.textContent = approved ? "Deny" : "✕ Denied";
+    denyButton.style.cssText = `
+      padding: 8px 10px;
+      cursor: pointer;
+      background: ${approved ? "var(--panel)" : "#4f1c1c"};
+      color: ${approved ? "inherit" : "#fff"};
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    `;
+    denyButton.addEventListener("click", () => {
+      clipApprovalState[index] = false;
+      renderClipSuggestions(currentClipSuggestions);
+    });
+
+    controls.appendChild(approveButton);
+    controls.appendChild(denyButton);
+    card.appendChild(controls);
+    clipSuggestionsList.appendChild(card);
+  });
+}
+
+function clearClipSuggestionReviewPanel() {
+  currentClipSuggestions = [];
+  clipApprovalState = [];
+  renderClipSuggestions([]);
+}
+
+function getApprovedClipSuggestions() {
+  return currentClipSuggestions.filter(
+    (_, index) => clipApprovalState[index] !== false,
+  );
 }
 
 function buildDiscoverPayload() {
@@ -616,6 +911,7 @@ async function runDiscovery() {
     return;
   }
 
+  resetStatus();
   isDiscovering = true;
   toggleOverridesButton.style.display = "none";
 
@@ -650,19 +946,54 @@ async function runDiscovery() {
         addStatus(`• ${msg}`);
       }
     }
-    addStatus("✓ Chapter images ready for review");
+    renderProfanityStatus(
+      result.discovered?.transcriptChecks,
+      "Discovery",
+      payload.transcriptMdPath,
+    );
+    resumeVideoStatusPollingFromDiscover(result.discovered?.videoStatus);
+    resumeClipStatusPollingFromDiscover(result.discovered?.videoStatus);
 
     // Store discovery data and render previews
     currentDiscoveryData = {
       discoveryData: result.discoveryData,
     };
+    setProcessActionsVisibility();
+    currentRunResult = null;
+    renderClipSuggestions([]);
 
-    toggleOverridesButton.style.display = "inline-block";
+    const videoStatusState = String(
+      result.discovered?.videoStatus?.status || "",
+    );
+    const hasActiveVideoRun = videoStatusState === "started";
+    const hasCompletedVideoRun = videoStatusState === "completed";
+
+    setVideoRenderCompletedUiState(false);
+    setVideoRenderUiState(hasActiveVideoRun);
+    if (hasCompletedVideoRun) {
+      setVideoRenderCompletedUiState(true);
+    }
+
+    if (hasActiveVideoRun) {
+      addStatus(
+        "⏳ MP4 render is already in progress; clip generation will be available when it completes.",
+      );
+    } else if (hasCompletedVideoRun) {
+      addStatus("✓ MP4 generation is already complete for this episode.");
+    } else {
+      addStatus("✓ Chapter images ready for review");
+    }
+
+    if (!hasActiveVideoRun && !hasCompletedVideoRun) {
+      toggleOverridesButton.style.display = "inline-block";
+    }
 
     renderDiscoverySummary(result.discovered);
     discoverySummarySection.style.display = "block";
-    renderChapterPreviews(result.discovered);
-    previewSection.style.display = "block";
+    if (!hasActiveVideoRun && !hasCompletedVideoRun) {
+      renderChapterPreviews(result.discovered);
+      previewSection.style.display = "block";
+    }
   } catch (error) {
     stopDiscoverSpinner();
     addStatus(`❌ Request failed: ${error.message}`);
@@ -699,6 +1030,47 @@ form.addEventListener("submit", async (event) => {
 );
 
 async function pollVideoStatus(statusFile, lines) {
+  function formatEta(etaSeconds) {
+    if (!Number.isFinite(Number(etaSeconds)) || Number(etaSeconds) < 0) {
+      return "";
+    }
+    const total = Math.round(Number(etaSeconds));
+    const minutes = Math.floor(total / 60);
+    const seconds = total % 60;
+    if (minutes > 0) {
+      return `, ETA ${minutes}m ${seconds}s`;
+    }
+    return `, ETA ${seconds}s`;
+  }
+
+  persistActiveVideoStatusFile(statusFile);
+
+  function buildProgressDetail(data) {
+    const percentSuffix =
+      typeof data.percent === "number" ? ` (${data.percent}%)` : "";
+    const etaSuffix = formatEta(data.etaSeconds);
+
+    if (data.phase === "segments") {
+      const current = Number.isFinite(Number(data.current))
+        ? Number(data.current)
+        : 0;
+      const total = Number.isFinite(Number(data.total))
+        ? Number(data.total)
+        : 0;
+      return `MP4 generation in progress... segment ${current}/${total}${percentSuffix}${etaSuffix}`;
+    }
+
+    if (data.phase === "concat") {
+      return `MP4 generation in progress... concatenating segments${percentSuffix}${etaSuffix}`;
+    }
+
+    if (data.phase === "mux") {
+      return `MP4 generation in progress... muxing audio/video${percentSuffix}${etaSuffix}`;
+    }
+
+    return `MP4 generation in progress...${percentSuffix}${etaSuffix}`;
+  }
+
   let videoLineIndex = -1;
   for (let i = lines.length - 1; i >= 0; i -= 1) {
     if (String(lines[i]).includes("MP4 generation")) {
@@ -707,20 +1079,22 @@ async function pollVideoStatus(statusFile, lines) {
     }
   }
   if (videoLineIndex === -1) {
-    lines.push("| MP4 generation in progress... (0%)");
+    lines.push("| MP4 generation in progress... 0% (starting)");
     videoLineIndex = lines.length - 1;
   }
 
   const frames = ["|", "/", "-", "\\"];
   let frameIndex = 0;
+  let latestPercent = 0;
+  let latestDetail = "MP4 generation in progress...";
   const spinner = setInterval(() => {
     lines[videoLineIndex] =
-      `${frames[frameIndex % frames.length]} MP4 generation in progress...`;
+      `${frames[frameIndex % frames.length]} MP4 generation ${latestPercent}% - ${latestDetail}`;
     frameIndex += 1;
     setStatusLine(videoLineIndex, lines[videoLineIndex]);
   }, 250);
 
-  for (let attempt = 0; attempt < 120; attempt++) {
+  for (;;) {
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     try {
@@ -728,22 +1102,40 @@ async function pollVideoStatus(statusFile, lines) {
         `/api/video-status?statusFile=${encodeURIComponent(statusFile)}`,
       );
       const data = await res.json();
-      const percentSuffix =
-        typeof data.percent === "number" ? ` (${data.percent}%)` : "";
 
       if (data.status === "completed") {
         clearInterval(spinner);
+        persistActiveVideoStatusFile("");
+        setVideoRenderUiState(false);
+        setVideoRenderCompletedUiState(true);
         lines[videoLineIndex] = `✓ MP4 generation complete`;
         setStatusLine(videoLineIndex, lines[videoLineIndex]);
-        return;
+        return { status: "completed" };
       } else if (data.status === "failed") {
         clearInterval(spinner);
+        persistActiveVideoStatusFile("");
+        setVideoRenderUiState(false);
+        setVideoRenderCompletedUiState(false);
+        const interruptedByRestart =
+          /interrupted \(server process restarted or exited\)/i.test(
+            String(data.error || ""),
+          );
+        if (interruptedByRestart) {
+          lines[videoLineIndex] =
+            "ℹ Previous MP4 generation was interrupted by a server restart. Start a new run to continue.";
+          setStatusLine(videoLineIndex, lines[videoLineIndex]);
+          return { status: "interrupted", error: data.error };
+        }
         lines[videoLineIndex] = `❌ MP4 generation failed: ${data.error}`;
         setStatusLine(videoLineIndex, lines[videoLineIndex]);
-        return;
+        return { status: "failed", error: data.error };
       } else {
+        if (typeof data.percent === "number") {
+          latestPercent = Math.max(0, Math.min(100, Math.round(data.percent)));
+        }
+        latestDetail = buildProgressDetail(data);
         lines[videoLineIndex] =
-          `${frames[frameIndex % frames.length]} MP4 generation in progress...${percentSuffix}`;
+          `${frames[frameIndex % frames.length]} MP4 generation ${latestPercent}% - ${latestDetail}`;
         setStatusLine(videoLineIndex, lines[videoLineIndex]);
       }
       // still "started" or "pending" — keep polling
@@ -752,21 +1144,400 @@ async function pollVideoStatus(statusFile, lines) {
     }
   }
 
-  // Timed out after 10 minutes
-  clearInterval(spinner);
-  lines[videoLineIndex] =
-    `⚠ MP4 generation timed out — check terminal for errors`;
-  setStatusLine(videoLineIndex, lines[videoLineIndex]);
+  // unreachable: loop returns on completion/failure states
 }
 
-approveButton.addEventListener("click", async () => {
-  if (!currentDiscoveryData) {
-    addStatus("❌ No discovery data available");
+function resumeVideoStatusPollingIfNeeded() {
+  const statusFile = readPersistedVideoStatusFile();
+  if (!statusFile) {
     return;
   }
 
+  startVideoStatusPolling(statusFile, {
+    startMessage: "⏳ Reconnected to in-progress MP4 generation after refresh",
+  });
+}
+
+function resumeVideoStatusPollingFromDiscover(videoStatus) {
+  if (!videoStatus || videoStatus.status !== "started") {
+    return;
+  }
+
+  const statusFile = String(videoStatus.statusFile || "").trim();
+  if (!statusFile) {
+    return;
+  }
+  if (activeVideoStatusFile === statusFile) {
+    return;
+  }
+
+  startVideoStatusPolling(statusFile, {
+    startMessage:
+      "⏳ Reconnected to in-progress MP4 generation from server status",
+  });
+}
+
+async function pollClipGenerationStatus(statusFile, lines) {
+  persistActiveClipStatusFile(statusFile);
+
+  let lineIndex = -1;
+  for (let index = lines.length - 1; index >= 0; index -= 1) {
+    if (String(lines[index]).includes("Clip generation")) {
+      lineIndex = index;
+      break;
+    }
+  }
+  if (lineIndex === -1) {
+    lines.push("⏳ Clip generation queued...");
+    lineIndex = lines.length - 1;
+  }
+
+  for (;;) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    try {
+      const res = await fetch(
+        `/api/video-status?statusFile=${encodeURIComponent(statusFile)}`,
+      );
+      const data = await res.json();
+      const clip = data.clipGeneration;
+
+      if (!clip || !clip.status) {
+        continue;
+      }
+
+      if (clip.status === "waiting") {
+        setStatusLine(
+          lineIndex,
+          `⏳ Clip generation waiting for MP4 render... ${clip.current || 0}/${clip.total || 0} done (${clip.remaining || clip.total || 0} remaining)`,
+        );
+        continue;
+      }
+
+      if (clip.status === "started") {
+        setStatusLine(
+          lineIndex,
+          `⏳ Clip generation ${clip.percent || 0}% - ${clip.current || 0}/${clip.total || 0} done (${clip.remaining || 0} remaining)`,
+        );
+        continue;
+      }
+
+      if (clip.status === "completed") {
+        persistActiveClipStatusFile("");
+        setStatusLine(
+          lineIndex,
+          `✓ Clip generation complete - ${clip.current || 0}/${clip.total || 0} done`,
+        );
+        return { status: "completed", clipGeneration: clip };
+      }
+
+      if (clip.status === "failed") {
+        persistActiveClipStatusFile("");
+        setStatusLine(
+          lineIndex,
+          `❌ Clip generation failed after ${clip.current || 0}/${clip.total || 0} done`,
+        );
+        addStatus(
+          `❌ Clip generation failed: ${clip.error || "Unknown error"}`,
+        );
+        return { status: "failed", clipGeneration: clip };
+      }
+    } catch {
+      // keep polling
+    }
+  }
+}
+
+function startClipStatusPolling(statusFile, { startMessage = "" } = {}) {
+  const normalizedStatusFile = String(statusFile || "").trim();
+  if (!normalizedStatusFile) {
+    return Promise.resolve({ status: "pending" });
+  }
+
+  if (
+    activeClipStatusPoll &&
+    activeClipStatusPoll.statusFile === normalizedStatusFile
+  ) {
+    return activeClipStatusPoll.promise;
+  }
+
+  activeClipStatusFile = normalizedStatusFile;
+  if (startMessage) {
+    addStatus(startMessage);
+  }
+
+  const pollPromise = pollClipGenerationStatus(
+    normalizedStatusFile,
+    statusLines,
+  ).finally(() => {
+    if (
+      activeClipStatusPoll &&
+      activeClipStatusPoll.statusFile === normalizedStatusFile
+    ) {
+      activeClipStatusPoll = null;
+    }
+    if (activeClipStatusFile === normalizedStatusFile) {
+      activeClipStatusFile = null;
+    }
+    isGeneratingClips = false;
+  });
+
+  activeClipStatusPoll = {
+    statusFile: normalizedStatusFile,
+    promise: pollPromise,
+  };
+
+  return pollPromise;
+}
+
+function resumeClipStatusPollingIfNeeded() {
+  const statusFile = readPersistedClipStatusFile();
+  if (!statusFile) {
+    return;
+  }
+
+  startClipStatusPolling(statusFile, {
+    startMessage:
+      "⏳ Reconnected to queued/in-progress clip generation after refresh",
+  });
+}
+
+function resumeClipStatusPollingFromDiscover(videoStatus) {
+  const clip = videoStatus?.clipGeneration;
+  if (!clip || !["waiting", "started"].includes(clip.status)) {
+    return;
+  }
+
+  const statusFile = String(videoStatus.statusFile || "").trim();
+  if (!statusFile || activeClipStatusFile === statusFile) {
+    return;
+  }
+
+  startClipStatusPolling(statusFile, {
+    startMessage:
+      "⏳ Reconnected to queued/in-progress clip generation from server status",
+  });
+}
+
+function startVideoStatusPolling(
+  statusFile,
+  { startMessage = "", onComplete = null } = {},
+) {
+  const normalizedStatusFile = String(statusFile || "").trim();
+  if (!normalizedStatusFile) {
+    return Promise.resolve({ status: "pending" });
+  }
+
+  if (
+    activeVideoStatusPoll &&
+    activeVideoStatusPoll.statusFile === normalizedStatusFile
+  ) {
+    if (typeof onComplete === "function") {
+      activeVideoStatusPoll.promise.then(onComplete);
+    }
+    return activeVideoStatusPoll.promise;
+  }
+
+  activeVideoStatusFile = normalizedStatusFile;
+  setVideoRenderUiState(true);
+  if (startMessage) {
+    addStatus(startMessage);
+  }
+
+  const pollPromise = pollVideoStatus(
+    normalizedStatusFile,
+    statusLines,
+  ).finally(() => {
+    if (
+      activeVideoStatusPoll &&
+      activeVideoStatusPoll.statusFile === normalizedStatusFile
+    ) {
+      activeVideoStatusPoll = null;
+    }
+    if (activeVideoStatusFile === normalizedStatusFile) {
+      activeVideoStatusFile = null;
+    }
+  });
+
+  activeVideoStatusPoll = {
+    statusFile: normalizedStatusFile,
+    promise: pollPromise,
+  };
+
+  if (typeof onComplete === "function") {
+    pollPromise.then(onComplete);
+  }
+
+  return pollPromise;
+}
+
+restartProcessButton.addEventListener("click", async () => {
+  if (isVideoRenderInProgress) {
+    addStatus(
+      "MP4 render is currently in progress. Wait for completion before restarting.",
+    );
+    return;
+  }
+
+  const confirmed = window.confirm(
+    "Clear and restart process? This will reset current review state (approvals, suggestions, and temporary overrides in this session).",
+  );
+  if (!confirmed) {
+    addStatus("Clear & Restart cancelled.");
+    return;
+  }
+
+  currentRunResult = null;
+  currentClipSuggestions = [];
+  clipApprovalState = [];
+  chapterImageOverrides = {};
+  persistActiveVideoStatusFile("");
+  resetStatus();
+  addStatus("↺ Process state cleared. Re-running discovery...");
+  await runDiscovery();
+});
+
+rerenderMp4Button.addEventListener("click", async () => {
+  if (isVideoRenderInProgress) {
+    addStatus("MP4 render is already in progress.");
+    return;
+  }
+
+  const discoverySnapshot = getDiscoverySnapshot();
+  const formData = new FormData(form);
+  const mp3Path = String(formData.get("mp3Path") || "").trim();
+
+  if (!discoverySnapshot || !mp3Path) {
+    addStatus("❌ Missing discovery or MP3 data. Run discovery first.");
+    return;
+  }
+
+  rerenderMp4Button.disabled = true;
+  try {
+    const response = await fetch("/api/rerender-mp4", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+      }),
+    });
+    const body = await response.json();
+    if (!response.ok || !body.success || !body.videoStatus?.statusFile) {
+      throw new Error(body.error || "Failed to start MP4 re-render");
+    }
+
+    clearClipSuggestionReviewPanel();
+    startVideoStatusPolling(body.videoStatus.statusFile, {
+      startMessage: "⏳ MP4 re-render started...",
+    });
+  } catch (error) {
+    addStatus(`❌ Failed to start MP4 re-render: ${error.message}`);
+  } finally {
+    if (!isVideoRenderInProgress) {
+      rerenderMp4Button.disabled = false;
+    }
+  }
+});
+
+regenerateClipsButton.addEventListener("click", async () => {
+  if (isVideoRenderInProgress) {
+    addStatus(
+      "MP4 render is in progress. Clip suggestions will be available after completion.",
+    );
+    return;
+  }
+
+  const payload = buildDiscoverPayload();
+  if (
+    !payload.mp3Path ||
+    !payload.transcriptMdPath ||
+    !payload.transcriptVttPath
+  ) {
+    addStatus(
+      "❌ Missing MP3/transcript paths. Fill in required fields first.",
+    );
+    return;
+  }
+
+  regenerateClipsButton.disabled = true;
+  try {
+    const response = await fetch("/api/discover", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || "Failed to regenerate clip suggestions");
+    }
+
+    currentDiscoveryData = {
+      discoveryData: result.discoveryData,
+    };
+    setProcessActionsVisibility();
+    renderClipSuggestions(result.discovered?.clipSuggestions || []);
+    addStatus(
+      "✓ Clip suggestions regenerated. Review approvals before generating clips.",
+    );
+  } catch (error) {
+    addStatus(`❌ Failed to regenerate clip suggestions: ${error.message}`);
+  } finally {
+    regenerateClipsButton.disabled = false;
+  }
+});
+
+async function executeClipGenerationRequest(request) {
+  if (!request || isGeneratingClips) {
+    return;
+  }
+
+  const suggestions = Array.isArray(request.clipSuggestions)
+    ? request.clipSuggestions
+    : [];
+  if (!suggestions.length) {
+    addStatus("No approved clip suggestions to generate.");
+    pendingClipGenerationRequest = null;
+    return;
+  }
+
+  isGeneratingClips = true;
+
+  try {
+    const response = await fetch("/api/generate-clip-videos", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        ...request,
+        discoveryData: currentDiscoveryData?.discoveryData,
+      }),
+    });
+
+    const body = await response.json();
+    if (!response.ok || !body.success || !body.clipStatusFile) {
+      throw new Error(body.error || "Failed to queue clip generation");
+    }
+
+    startClipStatusPolling(body.clipStatusFile, {
+      startMessage: "⏳ Clip generation queued on server...",
+    });
+  } catch (error) {
+    addStatus(`❌ Clip generation failed: ${error.message}`);
+    isGeneratingClips = false;
+  }
+}
+
+approveButton.addEventListener("click", async () => {
   approveButton.disabled = true;
   toggleOverridesButton.style.display = "none";
+  setVideoRenderUiState(true);
+  resetStatus();
   const runFormData = new FormData(form);
   const runPayload = {
     mp3Path: String(runFormData.get("mp3Path") || "").trim(),
@@ -788,7 +1559,43 @@ approveButton.addEventListener("click", async () => {
   previewSection.style.display = "none";
 
   try {
-    let discoveryData = currentDiscoveryData.discoveryData;
+    if (
+      !runPayload.mp3Path ||
+      !runPayload.transcriptMdPath ||
+      !runPayload.transcriptVttPath
+    ) {
+      throw new Error("Missing MP3/transcript paths for run");
+    }
+
+    // Always rediscover from disk before run so transcript edits are reflected.
+    const freshDiscoveryResponse = await fetch("/api/discover", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        mp3Path: runPayload.mp3Path,
+        transcriptMdPath: runPayload.transcriptMdPath,
+        transcriptVttPath: runPayload.transcriptVttPath,
+        episodeTitle: runPayload.episodeTitle,
+        description: runPayload.description,
+        publishDate: runPayload.publishDate,
+      }),
+    });
+
+    const freshDiscoveryBody = await freshDiscoveryResponse.json();
+    if (!freshDiscoveryResponse.ok || !freshDiscoveryBody.success) {
+      throw new Error(
+        freshDiscoveryBody.error || "Failed to refresh discovery data",
+      );
+    }
+
+    let discoveryData = freshDiscoveryBody.discoveryData;
+    currentDiscoveryData = {
+      discoveryData,
+    };
+    addStatus("✓ Refreshed discovery data from transcript and chapter files");
+
     if (discoveryData) {
       const parsed = JSON.parse(discoveryData);
 
@@ -832,10 +1639,18 @@ approveButton.addEventListener("click", async () => {
 
     const result = await response.json();
     stopRunSpinner("✓ Generation completed");
+    currentRunResult = result;
+    renderClipSuggestions(result.clipSuggestions || []);
+    activeVideoStatusFile = null;
 
     if (result.error) {
       addStatus(`❌ Error: ${result.error}`);
     } else {
+      renderProfanityStatus(
+        result.transcriptChecks,
+        "Run",
+        runPayload.transcriptMdPath,
+      );
       if (result.gitBranch) {
         const verb = result.gitBranch.created ? "Created" : "Checked out";
         addStatus(`✓ ${verb} branch: ${result.gitBranch.name}`);
@@ -847,19 +1662,29 @@ approveButton.addEventListener("click", async () => {
         );
       }
       if (result.videoStatus && result.videoStatus.skipped) {
+        persistActiveVideoStatusFile("");
+        setVideoRenderUiState(false);
         addStatus("✓ MP4 generation skipped");
       } else if (result.videoStatus && result.videoStatus.statusFile) {
-        addStatus("⏳ MP4 generation in progress... (0%)");
-        pollVideoStatus(result.videoStatus.statusFile, statusLines);
+        activeVideoStatusFile = result.videoStatus.statusFile;
+        setVideoRenderUiState(true);
+        startVideoStatusPolling(result.videoStatus.statusFile, {
+          startMessage: "⏳ MP4 generation in progress... (0%)",
+        });
+      } else {
+        setVideoRenderUiState(false);
       }
     }
   } catch (error) {
+    setVideoRenderUiState(false);
     if (stopRunSpinner) {
       stopRunSpinner();
     }
     addStatus(`❌ Request failed: ${error.message}`);
   } finally {
-    approveButton.disabled = false;
+    if (!isVideoRenderInProgress) {
+      approveButton.disabled = false;
+    }
   }
 });
 
@@ -871,5 +1696,34 @@ toggleOverridesButton.addEventListener("click", () => {
     : "Hide Overrides";
 });
 
+generateClipVideosButton.addEventListener("click", async () => {
+  const approvedSuggestions = getApprovedClipSuggestions();
+  if (!approvedSuggestions.length) {
+    addStatus("No approved clip suggestions to generate.");
+    return;
+  }
+
+  const outputDirectory = currentRunResult?.episode?.outputDirectory;
+  const imagePath = currentRunResult?.coverImagePath;
+  const formData = new FormData(form);
+  const mp3Path = String(formData.get("mp3Path") || "").trim();
+
+  const requestPayload = {
+    clipSuggestions: approvedSuggestions,
+    outputDirectory,
+    imagePath,
+    mp3Path,
+  };
+
+  // Immediately hide the generate button to prevent duplicate requests.
+  generateClipVideosButton.style.display = "none";
+  clearClipSuggestionReviewPanel();
+
+  executeClipGenerationRequest(requestPayload);
+});
+
 prefillFromQuery();
-runDiscovery();
+runDiscovery().finally(() => {
+  resumeVideoStatusPollingIfNeeded();
+  resumeClipStatusPollingIfNeeded();
+});
