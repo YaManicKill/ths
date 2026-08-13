@@ -32,6 +32,11 @@ function parseBooleanish(value) {
     return value;
   }
 
+  // ffprobe dispositions are numeric 0/1; "value || ''" would swallow the 0.
+  if (typeof value === "number") {
+    return value !== 0;
+  }
+
   const normalized = String(value || "")
     .trim()
     .toLowerCase();
@@ -47,41 +52,38 @@ function parseBooleanish(value) {
 
 function chapterHiddenFromMetadata(chapter) {
   const tags = chapter && chapter.tags ? chapter.tags : {};
+  // "enabled"-style sources mean the opposite of "hidden"-style ones. The inversion
+  // travels with each source: deciding it afterwards by comparing values would mistake
+  // hidden="1" for enabled="1" and invert the wrong flag.
   const possibleValues = [
-    chapter && chapter.hidden,
-    chapter && chapter.is_hidden,
-    chapter && chapter.visibility,
-    chapter && chapter.disposition && chapter.disposition.hidden,
-    chapter && chapter.disposition && chapter.disposition.enabled,
-    tags.hidden,
-    tags.HIDDEN,
-    tags.is_hidden,
-    tags.chapter_hidden,
-    tags["chapter-hidden"],
-    tags["com.apple.iTunes:hidden"],
-    tags["com.apple.iTunes:chapter-hidden"],
-    tags.enabled,
-    tags.ENABLED,
+    { value: chapter && chapter.hidden, invert: false },
+    { value: chapter && chapter.is_hidden, invert: false },
+    { value: chapter && chapter.visibility, invert: false },
+    {
+      value: chapter && chapter.disposition && chapter.disposition.hidden,
+      invert: false,
+    },
+    {
+      value: chapter && chapter.disposition && chapter.disposition.enabled,
+      invert: true,
+    },
+    { value: tags.hidden, invert: false },
+    { value: tags.HIDDEN, invert: false },
+    { value: tags.is_hidden, invert: false },
+    { value: tags.chapter_hidden, invert: false },
+    { value: tags["chapter-hidden"], invert: false },
+    { value: tags["com.apple.iTunes:hidden"], invert: false },
+    { value: tags["com.apple.iTunes:chapter-hidden"], invert: false },
+    { value: tags.enabled, invert: true },
+    { value: tags.ENABLED, invert: true },
   ];
 
-  for (const rawValue of possibleValues) {
-    const parsed = parseBooleanish(rawValue);
+  for (const { value, invert } of possibleValues) {
+    const parsed = parseBooleanish(value);
     if (parsed === null) {
       continue;
     }
-
-    if (rawValue === tags.enabled || rawValue === tags.ENABLED) {
-      return parsed === false;
-    }
-
-    if (
-      rawValue === chapter.disposition?.enabled ||
-      rawValue === chapter?.disposition?.enabled
-    ) {
-      return parsed === false;
-    }
-
-    return parsed;
+    return invert ? parsed === false : parsed;
   }
 
   return false;
@@ -371,6 +373,7 @@ function extractSpeakerNames(
 
 module.exports = {
   attachChapterDurations,
+  chapterHiddenFromMetadata,
   episodeTitleFromInputs,
   extractSpeakerNames,
   formatSecondsToHhmmss,
