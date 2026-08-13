@@ -137,6 +137,9 @@ async function main() {
   const runMp3 = path.join(runRoot, "ths-99-01.mp3");
   fs.copyFileSync(fixture.mp3Path, runMp3);
 
+  // The AI transcript check runs during generation; the fake completer stands in for
+  // Gemini so the review-and-fix path runs without a network call.
+  process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || "test-key";
   const { report } = await runPipeline({
     repoRoot: runRoot,
     mp3Path: runMp3,
@@ -144,6 +147,30 @@ async function main() {
     transcriptVttPath: fixture.transcriptVttPath,
     skipVideo: true,
     onProgress: () => {},
+    llmComplete: async () => ({
+      findings: [
+        {
+          quote: "Why would anyone",
+          correction: "Why would somebody",
+          reason: "test",
+          confidence: "high",
+        },
+        // Present in the md fixture but not the vtt one, so it must be reported as
+        // missed there rather than silently dropped.
+        {
+          quote: "actually do that",
+          correction: "genuinely do that",
+          reason: "test",
+          confidence: "high",
+        },
+        {
+          quote: "honestly",
+          correction: "frankly",
+          reason: "test",
+          confidence: "medium",
+        },
+      ],
+    }),
   });
 
   assert.equal(report.gitBranch.name, "ep-99-01");
@@ -155,6 +182,30 @@ async function main() {
   const episodeDir = path.dirname(
     path.join(report.episode.outputDirectory, "index.md"),
   );
+
+  assert.equal(report.transcriptReview.enabled, true);
+  assert.equal(report.transcriptReview.findings.length, 3);
+
+  // High-confidence review findings are applied to the written transcripts; medium
+  // ones are not (they need an explicit transcriptFixes list from the UI).
+  const writtenMd = fs.readFileSync(
+    path.join(episodeDir, "transcript.md"),
+    "utf8",
+  );
+  const writtenVtt = fs.readFileSync(
+    path.join(episodeDir, "transcript.vtt"),
+    "utf8",
+  );
+  assert.ok(writtenMd.includes("Why would somebody genuinely do that"));
+  assert.ok(writtenMd.includes("honestly"), "medium fix must not auto-apply");
+  assert.ok(writtenVtt.includes("Why would somebody do that?"));
+  assert.deepEqual(report.transcriptFixes, {
+    attempted: 2,
+    mdApplied: 2,
+    vttApplied: 1,
+    mdMissed: [],
+    vttMissed: ["actually do that"],
+  });
   const savedReport = JSON.parse(
     fs.readFileSync(path.join(episodeDir, "postprocess-report.json"), "utf8"),
   );

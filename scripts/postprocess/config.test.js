@@ -57,3 +57,56 @@ for (const [key, config] of rejected) {
 }
 
 console.log("config test passed", { rejectedCases: rejected.length });
+
+// The LLM section: defaults present, secrets overlay from the gitignored local config,
+// and validation catches a bad provider before any feature runs.
+const llmDefaults = loadPostprocessConfig(rootWith(null)).llm;
+assert.equal(llmDefaults.provider, "gemini");
+assert.ok(llmDefaults.model.length > 0);
+assert.equal(llmDefaults.apiKey, null);
+
+const llmRoot = rootWith({ llm: { model: "gemini-2.5-flash" } });
+fs.writeFileSync(
+  path.join(llmRoot, "postprocess.config.local.json"),
+  JSON.stringify({ llm: { apiKey: "secret-key" } }),
+);
+const merged = loadPostprocessConfig(llmRoot);
+assert.equal(merged.llm.model, "gemini-2.5-flash", "main config llm lost");
+assert.equal(merged.llm.apiKey, "secret-key", "local config key not merged");
+assert.equal(merged.llm.provider, "gemini", "default provider lost in merge");
+
+assert.equal(
+  loadPostprocessConfig(rootWith({ llm: { apiKey: "" } })).llm.apiKey,
+  null,
+  "empty api key should read as unset",
+);
+
+assert.throws(
+  () => loadPostprocessConfig(rootWith({ llm: { provider: "chatgpt" } })),
+  (error) => error.message.includes('"llm.provider"'),
+);
+assert.throws(
+  () => loadPostprocessConfig(rootWith({ llm: { model: "" } })),
+  (error) => error.message.includes('"llm.model"'),
+);
+
+// Host names ship as defaults, can be replaced wholesale, and must be a clean list.
+assert.deepEqual(loadPostprocessConfig(rootWith(null)).hostNames, [
+  "Al",
+  "Codey",
+  "Jonnie",
+  "Kevin",
+  "Chelsea",
+]);
+assert.deepEqual(
+  loadPostprocessConfig(rootWith({ hostNames: ["Someone"] })).hostNames,
+  ["Someone"],
+);
+assert.throws(
+  () => loadPostprocessConfig(rootWith({ hostNames: "Al" })),
+  (error) => error.message.includes('"hostNames"'),
+);
+assert.throws(
+  () => loadPostprocessConfig(rootWith({ hostNames: ["Al", ""] })),
+  (error) => error.message.includes('"hostNames"'),
+);

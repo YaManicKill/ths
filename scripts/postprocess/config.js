@@ -2,6 +2,7 @@ const path = require("node:path");
 const { DEFAULT_TIMEZONE, fileExists, readJson } = require("./utils");
 
 const CONFIG_FILE_NAME = "postprocess.config.json";
+const LOCAL_CONFIG_FILE_NAME = "postprocess.config.local.json";
 
 const DEFAULT_CONFIG = {
   defaultAuthor: "Al McKinlay",
@@ -9,6 +10,14 @@ const DEFAULT_CONFIG = {
   timezone: DEFAULT_TIMEZONE,
   outputRoot: "content/episode",
   episodesRoot: "~/Google Drive/My Drive/Projects/ths/Episodes",
+  llm: {
+    provider: "gemini",
+    model: "gemini-3.6-flash",
+    apiKey: null,
+  },
+  // Correct spellings of the recurring hosts. The AI transcript check treats any other
+  // spelling of these names as a mistranscription.
+  hostNames: ["Al", "Codey", "Jonnie", "Kevin", "Chelsea"],
   profanityWords: [
     "fuck*",
     "shit*",
@@ -54,9 +63,30 @@ function assertNonEmptyString(key, value) {
   }
 }
 
+const SUPPORTED_LLM_PROVIDERS = ["gemini"];
+
+function assertValidLlm(llm) {
+  if (!SUPPORTED_LLM_PROVIDERS.includes(llm.provider)) {
+    throw new Error(
+      `Invalid "llm.provider" in ${CONFIG_FILE_NAME}: "${llm.provider}". Supported: ${SUPPORTED_LLM_PROVIDERS.join(", ")}.`,
+    );
+  }
+  assertNonEmptyString("llm.model", llm.model);
+  if (llm.apiKey !== null && typeof llm.apiKey !== "string") {
+    throw new Error(
+      `Invalid "llm.apiKey" in ${CONFIG_FILE_NAME}: expected a string or null.`,
+    );
+  }
+}
+
 function loadPostprocessConfig(repoRoot, configPath) {
   const fullPath = configPath || path.join(repoRoot, CONFIG_FILE_NAME);
   const fileConfig = fileExists(fullPath) ? readJson(fullPath) : {};
+
+  // The main config is committed to a public repo, so secrets like the LLM API key live
+  // in a gitignored local file that overlays it.
+  const localPath = path.join(path.dirname(fullPath), LOCAL_CONFIG_FILE_NAME);
+  const localConfig = fileExists(localPath) ? readJson(localPath) : {};
 
   const configuredProfanityWords = Array.isArray(fileConfig.profanityWords)
     ? fileConfig.profanityWords
@@ -65,6 +95,12 @@ function loadPostprocessConfig(repoRoot, configPath) {
   const config = {
     ...DEFAULT_CONFIG,
     ...fileConfig,
+    ...localConfig,
+    llm: {
+      ...DEFAULT_CONFIG.llm,
+      ...(fileConfig.llm || {}),
+      ...(localConfig.llm || {}),
+    },
     profanityWords: [
       ...new Set([
         ...DEFAULT_CONFIG.profanityWords,
@@ -73,8 +109,23 @@ function loadPostprocessConfig(repoRoot, configPath) {
     ],
   };
 
+  if (config.llm.apiKey === "") {
+    config.llm.apiKey = null;
+  }
+
   assertValidTimezone(config.timezone);
   assertValidReleaseTime(config.releaseTimeLocal);
+  assertValidLlm(config.llm);
+  if (
+    !Array.isArray(config.hostNames) ||
+    config.hostNames.some(
+      (name) => typeof name !== "string" || name.trim() === "",
+    )
+  ) {
+    throw new Error(
+      `Invalid "hostNames" in ${CONFIG_FILE_NAME}: expected an array of non-empty strings.`,
+    );
+  }
   for (const key of ["defaultAuthor", "outputRoot", "episodesRoot"]) {
     assertNonEmptyString(key, config[key]);
   }
@@ -85,5 +136,6 @@ function loadPostprocessConfig(repoRoot, configPath) {
 module.exports = {
   CONFIG_FILE_NAME,
   DEFAULT_CONFIG,
+  LOCAL_CONFIG_FILE_NAME,
   loadPostprocessConfig,
 };

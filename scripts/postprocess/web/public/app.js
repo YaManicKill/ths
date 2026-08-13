@@ -21,6 +21,16 @@ const clipSuggestionsSection = document.getElementById(
   "clip-suggestions-section",
 );
 const clipSuggestionsList = document.getElementById("clip-suggestions-list");
+const transcriptReviewSection = document.getElementById(
+  "transcript-review-section",
+);
+const transcriptReviewList = document.getElementById("transcript-review-list");
+const applyTranscriptFixesButton = document.getElementById(
+  "apply-transcript-fixes-button",
+);
+const recheckTranscriptButton = document.getElementById(
+  "recheck-transcript-button",
+);
 const generateClipVideosButton = document.getElementById(
   "generate-clip-videos-button",
 );
@@ -38,6 +48,10 @@ let isGeneratingClips = false;
 let isVideoRenderInProgress = false;
 let isVideoRenderCompleted = false;
 let chapterImageOverrides = {}; // Track uploaded replacement images by chapter index
+let currentTranscriptFindings = [];
+// Keyed by quote rather than index so ticks survive the fresh discovery the approve
+// flow runs (cached findings come back identical, but order is not guaranteed).
+let mediumFixAccepted = {};
 const statusLines = [];
 let statusLineSeq = 0;
 const VIDEO_STATUS_STORAGE_KEY = "ths-postprocess-active-video-status-file";
@@ -721,6 +735,116 @@ function setStatusAlertState(enabled) {
   resultBox.style.boxShadow = "";
 }
 
+// The AI check runs during generation: the run applies high-confidence fixes to the
+// written episode transcripts itself, so only medium-confidence suggestions are kept
+// here, for the user to tick and apply. Sources are never modified.
+function renderTranscriptReview(review) {
+  if (!review || !review.enabled) {
+    return;
+  }
+
+  if (review.error) {
+    addStatus(
+      `⚠ AI transcript check failed: ${review.error} — use "Re-run Transcript Check" to try again`,
+    );
+    return;
+  }
+
+  const findings = Array.isArray(review.findings) ? review.findings : [];
+  currentTranscriptFindings = findings.filter(
+    (finding) => finding.confidence !== "high",
+  );
+
+  if (findings.length === 0) {
+    addStatus("✓ AI transcript check: no likely mistranscriptions found");
+  } else if (currentTranscriptFindings.length > 0) {
+    addStatus(
+      `⚠ AI transcript check: ${currentTranscriptFindings.length} medium-confidence suggestion(s) need review below`,
+    );
+  }
+  renderTranscriptFixSection();
+}
+
+function renderTranscriptFixSection() {
+  transcriptReviewList.innerHTML = "";
+
+  if (currentTranscriptFindings.length === 0) {
+    transcriptReviewSection.style.display = "none";
+    return;
+  }
+
+  transcriptReviewSection.style.display = "block";
+
+  currentTranscriptFindings.forEach((finding) => {
+    const row = document.createElement("div");
+    row.style.cssText = `
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      background: var(--panel-alt);
+    `;
+
+    const change = document.createElement("div");
+    change.style.marginBottom = "4px";
+    const before = document.createElement("del");
+    before.textContent = `"${finding.quote}"`;
+    before.style.color = "var(--muted)";
+    const after = document.createElement("strong");
+    after.textContent = `"${finding.correction}"`;
+    change.appendChild(before);
+    change.appendChild(document.createTextNode(" → "));
+    change.appendChild(after);
+    row.appendChild(change);
+
+    const meta = document.createElement("div");
+    meta.style.cssText = "font-size: 0.85em; color: var(--muted);";
+    meta.textContent = finding.reason || "";
+    row.appendChild(meta);
+
+    const label = document.createElement("label");
+    label.style.cssText =
+      "display: flex; gap: 6px; align-items: center; margin-top: 6px; font-size: 0.9em; cursor: pointer;";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = Boolean(mediumFixAccepted[finding.quote]);
+    checkbox.addEventListener("change", () => {
+      mediumFixAccepted[finding.quote] = checkbox.checked;
+    });
+    label.appendChild(checkbox);
+    label.appendChild(
+      document.createTextNode("Apply this fix (medium confidence)"),
+    );
+    row.appendChild(label);
+
+    transcriptReviewList.appendChild(row);
+  });
+}
+
+function getTickedTranscriptFixes() {
+  return currentTranscriptFindings
+    .filter((finding) => mediumFixAccepted[finding.quote])
+    .map((finding) => ({
+      quote: finding.quote,
+      correction: finding.correction,
+    }));
+}
+
+function renderTranscriptFixResult(fixes) {
+  if (!fixes || !fixes.attempted) {
+    return;
+  }
+  addStatus(
+    `✓ Transcript fixes applied: ${fixes.mdApplied} in transcript.md, ${fixes.vttApplied} in transcript.vtt`,
+  );
+  for (const quote of fixes.mdMissed || []) {
+    addStatus(`  ⚠ Not found in transcript.md (fix by hand): "${quote}"`);
+  }
+  for (const quote of fixes.vttMissed || []) {
+    addStatus(`  ⚠ Not found in transcript.vtt (fix by hand): "${quote}"`);
+  }
+}
+
 function renderProfanityStatus(
   transcriptChecks,
   phaseLabel = "Check",
@@ -1005,6 +1129,8 @@ async function runDiscovery() {
   resetStatus();
   isDiscovering = true;
   toggleOverridesButton.style.display = "none";
+  currentTranscriptFindings = [];
+  renderTranscriptFixSection();
 
   const stopDiscoverSpinner = startStatusSpinner("Discovering episode data...");
   previewSection.style.display = "none";
@@ -1606,6 +1732,90 @@ async function executeClipGenerationRequest(request) {
   }
 }
 
+// Both buttons hit the same endpoint against the episode's written transcripts: apply
+// sends only the ticked medium-confidence fixes; recheck also re-runs the AI review of
+// the current file contents and auto-applies any high-confidence findings.
+async function postTranscriptReview({ recheck }) {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+  const ticked = getTickedTranscriptFixes();
+  if (!recheck && ticked.length === 0) {
+    addStatus("No transcript fixes ticked.");
+    return;
+  }
+
+  applyTranscriptFixesButton.disabled = true;
+  recheckTranscriptButton.disabled = true;
+  const stopSpinner = startStatusSpinner(
+    recheck
+      ? "Re-running AI transcript check..."
+      : "Applying ticked transcript fixes...",
+  );
+
+  try {
+    const response = await fetch("/api/transcript-review", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+        recheck,
+        transcriptFixes: ticked,
+      }),
+    });
+    const body = await response.json();
+    if (!response.ok || !body.success) {
+      throw new Error(body.error || "Transcript review request failed");
+    }
+
+    stopSpinner(
+      recheck ? "✓ AI transcript check finished" : "✓ Ticked fixes applied",
+    );
+
+    const appliedQuotes = body.fixes?.appliedQuotes || [];
+    if (body.review) {
+      currentTranscriptFindings = (body.review.findings || []).filter(
+        (finding) =>
+          finding.confidence !== "high" &&
+          !appliedQuotes.includes(finding.quote),
+      );
+      if ((body.review.findings || []).length === 0) {
+        addStatus("✓ AI transcript check: no likely mistranscriptions found");
+      }
+    } else {
+      currentTranscriptFindings = currentTranscriptFindings.filter(
+        (finding) => !appliedQuotes.includes(finding.quote),
+      );
+    }
+
+    renderTranscriptFixResult(body.fixes);
+    if (currentTranscriptFindings.length > 0) {
+      addStatus(
+        `⚠ ${currentTranscriptFindings.length} medium-confidence suggestion(s) need review below`,
+      );
+    }
+    renderTranscriptFixSection();
+  } catch (error) {
+    stopSpinner();
+    addStatus(`❌ Transcript review failed: ${error.message}`);
+  } finally {
+    applyTranscriptFixesButton.disabled = false;
+    recheckTranscriptButton.disabled = false;
+  }
+}
+
+applyTranscriptFixesButton.addEventListener("click", () => {
+  postTranscriptReview({ recheck: false });
+});
+
+recheckTranscriptButton.addEventListener("click", () => {
+  postTranscriptReview({ recheck: true });
+});
+
 approveButton.addEventListener("click", async () => {
   approveButton.disabled = true;
   toggleOverridesButton.style.display = "none";
@@ -1729,6 +1939,8 @@ approveButton.addEventListener("click", async () => {
         "Run",
         runPayload.transcriptMdPath,
       );
+      renderTranscriptFixResult(result.transcriptFixes);
+      renderTranscriptReview(result.transcriptReview);
       if (result.gitBranch) {
         const verb = result.gitBranch.created ? "Created" : "Checked out";
         addStatus(`✓ ${verb} branch: ${result.gitBranch.name}`);

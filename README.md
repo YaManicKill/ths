@@ -63,6 +63,8 @@ Pressing Approve in the UI:
 - Resolves chapter images from your saved overrides, falling back to the MP3 cover art
 - Creates and checks out an `ep-SS-EE` git branch
 - Generates `index.md`, `transcript.md` and `transcript.vtt` in the episode folder
+- Runs the AI transcript check and applies its high-confidence fixes to the generated
+  transcripts (see below; the source transcripts are never modified)
 - Embeds per-chapter images into MP3 chapter metadata (via `embed_chapter_images.py`,
   keeping a `.bak` of the original alongside it)
 - Generates a 1080x1080 MP4 chapter-image video
@@ -96,9 +98,55 @@ the only reader, shared by the CLI, the pipeline and the web server, and it vali
 | `releaseTimeLocal` | `19:00:00`                    | Local time of day used for inferred publish dates.                                                               |
 | `timezone`         | `Europe/London`               | IANA zone the release time is interpreted in. The UTC offset is computed per date, so DST is handled.            |
 | `profanityWords`   | see below                     | Extra words for the warning-only transcript check. Wildcards like `shit*` match word families.                   |
+| `hostNames`        | the five regulars             | Correct spellings of the recurring hosts. The AI transcript check flags any other spelling of them as a mistake. |
+| `llm.provider`     | `gemini`                      | Which LLM backs the AI transcript check. Only `gemini` is implemented so far.                                    |
+| `llm.model`        | `gemini-3.6-flash`            | The model used for the AI transcript check.                                                                      |
+| `llm.apiKey`       | unset                         | API key for the LLM provider. **Never put this in the main config** — see below.                                 |
 
 `profanityWords` from config is unioned with a hardcoded default list, so it can only add
 words, never remove them.
+
+Secrets go in `postprocess.config.local.json` (gitignored — the main config is committed
+to a public repo). It is deep-merged over the main config, so it only needs the keys you
+are overriding:
+
+```json
+{ "llm": { "apiKey": "your-gemini-key" } }
+```
+
+`GEMINI_API_KEY` in the environment works as a fallback. With no key set, the AI
+transcript check simply doesn't run. Verify a fresh key with
+`node scripts/postprocess/llm.js`.
+
+### AI Transcript Check
+
+When an LLM key is configured, pressing Approve sends the transcript (chunked by
+chapter, so each request carries the chapter title as topic context) to the configured
+model and flags likely mistranscriptions — words the surrounding context shows are
+wrong, like "grow weight" for "grow wings". The configured `hostNames` are given to the
+model as the only correct spellings, so "Cody" or "Jonny" get flagged as
+mistranscriptions of "Codey" and "Jonnie". High-confidence findings are applied to the
+generated `transcript.md` and `transcript.vtt` automatically; the source transcripts in
+the Episodes folder are never modified. Medium-confidence findings appear in the UI with
+checkboxes — tick the ones that look right and press **Apply Ticked Fixes** to update
+the generated transcripts in place. Clip subtitles are rendered from the episode's
+written `transcript.vtt`, so they carry the same fixes.
+
+**Re-run Transcript Check** (next to the other process actions) re-reviews the episode's
+written transcripts and applies any new high-confidence findings — useful after editing
+the transcripts by hand, or when the check failed during the run (bad key, quota,
+network).
+
+Quotes the model can't point to verbatim in the transcript are discarded as
+hallucinations rather than applied or shown. Verdicts are cached per transcript content,
+so a re-check is free until the transcript actually changes; check failures surface as a
+warning and never block the run.
+
+On Gemini's free tier (a handful of requests per minute, ~20 per day) the first pass over
+a full episode costs about 3 requests — rate-limit responses are retried using the wait
+time Google's error suggests. Subsequent discoveries hit the cache and are instant. Free
+tier quotas are per model, so if you hit the daily cap, pointing `llm.model` at another
+model (e.g. `gemini-3.5-flash` or `gemini-3.5-flash-lite`) gets a fresh quota bucket.
 
 Persistent per-chapter image overrides live in `data/chapter-image-overrides.json`. That
 path is not configurable: it is defined once in `utils.js` and shared by the UI that
@@ -127,9 +175,8 @@ directory.
 - Preview clips before approving them: range-serve the MP3 so each suggestion card has a play button, instead of approving from a text summary alone.
 - Add a cancel button for in-progress clip generation. Now that ffmpeg runs async, an in-flight run can be killed instead of needing a server restart.
 - Decide how the status file should behave when a CLI run and the UI server are both open. They are separate processes writing the same `video-status.json`, and each fully overwrites it.
-- Transcript checker: an LLM pass during discovery that flags likely mistranscriptions from context (e.g. "grow weight" for "grow wings"), warning-only in the existing transcript-checks UI slot, high-confidence flags only. Corrections are applied by hand to both `transcript.md` and `transcript.vtt`; the approve flow already re-reads from disk. Needs `ANTHROPIC_API_KEY` (skip gracefully without); roughly $0.10-0.40 per episode depending on model; shares its API plumbing with the LLM clip-selection item below.
 
 ### Clip Workflow TODOs
 
 - Add a playback/progress bar overlay to clips for social-style presentation.
-- Replace the regex/keyword scoring in `clip-suggestions.js` with an LLM pass over the transcript. The current `HOOK_WORDS` heuristics are why summaries land on things like "That".
+- Replace the regex/keyword scoring in `clip-suggestions.js` with an LLM pass over the transcript. The current `HOOK_WORDS` heuristics are why summaries land on things like "That". The plumbing exists now: `llm.js` (`completeJson`) plus the `llm` config section, as used by the AI transcript check.

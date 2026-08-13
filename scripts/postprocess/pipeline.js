@@ -13,6 +13,12 @@ const { findWordMatches } = require("./transcript-check");
 const { generateVideoFromChapters } = require("./video");
 const { buildClipSuggestions } = require("./clip-suggestions");
 const { loadPostprocessConfig } = require("./config");
+const { resolveLlm } = require("./llm");
+const {
+  applyTranscriptFixes,
+  reviewTranscriptCached,
+  selectTranscriptFixes,
+} = require("./transcript-review");
 const {
   assertToolAvailable,
   chapterImageOverridesPath,
@@ -659,6 +665,54 @@ async function runPipeline(inputOptions = {}) {
     throw new Error(embedSupport.error);
   }
 
+  // The sources are re-read here rather than reusing discovery-time text, because the
+  // user may have edited them between discovery and approval.
+  const sourceTranscriptMdText = fs.readFileSync(
+    inputOptions.transcriptMdPath,
+    "utf8",
+  );
+  const sourceTranscriptVttText = fs.readFileSync(
+    inputOptions.transcriptVttPath,
+    "utf8",
+  );
+
+  // The AI check runs at generation rather than discovery, so the LLM is consulted once
+  // per approved run instead of on every input tweak. Warning-only: a missing key, a
+  // network failure, or a provider outage must never block the run.
+  let transcriptReview = { enabled: false, findings: [] };
+  const llm = resolveLlm(config);
+  if (llm) {
+    onProgress(
+      `Checking transcript for likely mistranscriptions (${llm.model})...`,
+    );
+    try {
+      const review = await reviewTranscriptCached({
+        cacheDir: path.join(
+          repoRoot,
+          ".cache",
+          "postprocess",
+          "transcript-review",
+        ),
+        transcriptMdText: sourceTranscriptMdText,
+        transcriptVttText: sourceTranscriptVttText,
+        chapters: chaptersWithImages,
+        llm,
+        hostNames: config.hostNames,
+        complete: inputOptions.llmComplete,
+      });
+      transcriptReview = { enabled: true, ...review };
+      onProgress(
+        review.fromCache
+          ? "Transcript check: using cached result for this transcript"
+          : `Transcript check: ${review.findings.length} potential issue(s) found`,
+      );
+    } catch (error) {
+      transcriptReview = { enabled: true, findings: [], error: error.message };
+      onProgress(`Warning: transcript check failed: ${error.message}`);
+    }
+  }
+  report.transcriptReview = transcriptReview;
+
   onProgress("Creating git branch...");
 
   const branchResult = createOrCheckoutEpisodeBranch(
@@ -676,16 +730,57 @@ async function runPipeline(inputOptions = {}) {
 
   ensureDir(episodeDir);
 
-  onProgress("Copying transcripts...");
+  onProgress("Writing transcripts...");
 
-  fs.copyFileSync(
-    inputOptions.transcriptMdPath,
+  // Fixes rewrite only the copies written into the episode folder; the source
+  // transcripts are never touched.
+  const transcriptFixes = selectTranscriptFixes(
+    transcriptReview,
+    inputOptions.transcriptFixes,
+  );
+  const mdFixResult = applyTranscriptFixes(
+    sourceTranscriptMdText,
+    transcriptFixes,
+  );
+  const vttFixResult = applyTranscriptFixes(
+    sourceTranscriptVttText,
+    transcriptFixes,
+  );
+
+  fs.writeFileSync(
     path.join(episodeDir, "transcript.md"),
+    mdFixResult.text,
+    "utf8",
   );
-  fs.copyFileSync(
-    inputOptions.transcriptVttPath,
+  fs.writeFileSync(
     path.join(episodeDir, "transcript.vtt"),
+    vttFixResult.text,
+    "utf8",
   );
+
+  report.transcriptFixes = {
+    attempted: transcriptFixes.length,
+    mdApplied: mdFixResult.applied.length,
+    vttApplied: vttFixResult.applied.length,
+    mdMissed: mdFixResult.missed.map((fix) => fix.quote),
+    vttMissed: vttFixResult.missed.map((fix) => fix.quote),
+  };
+
+  if (transcriptFixes.length > 0) {
+    onProgress(
+      `Applied transcript fixes: ${mdFixResult.applied.length} in transcript.md, ${vttFixResult.applied.length} in transcript.vtt`,
+    );
+  }
+  for (const fix of mdFixResult.missed) {
+    onProgress(
+      `Warning: fix not applied to transcript.md (text not found verbatim): "${fix.quote}"`,
+    );
+  }
+  for (const fix of vttFixResult.missed) {
+    onProgress(
+      `Warning: fix not applied to transcript.vtt (text not found verbatim): "${fix.quote}"`,
+    );
+  }
 
   onProgress("Updating MP3 chapter images...");
 

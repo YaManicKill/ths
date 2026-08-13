@@ -32,6 +32,9 @@
           <button type="button" id="regenerate-clips-button">
             Re-generate Clip Suggestions
           </button>
+          <button type="button" id="recheck-transcript-button">
+            Re-run Transcript Check
+          </button>
         </div>
       </section>
 
@@ -87,6 +90,18 @@
           <input name="publishDate" placeholder="2026-05-13T19:00:00+01:00" />
         </label>
       </form>
+
+      <section id="transcript-review-section" style="display: none">
+        <h2>AI Transcript Fixes</h2>
+        <div id="transcript-review-list"></div>
+        <button
+          type="button"
+          id="apply-transcript-fixes-button"
+          style="margin-top: 12px"
+        >
+          Apply Ticked Fixes
+        </button>
+      </section>
 
       <section id="image-preview-section" style="display: none">
         <h2>Chapter Images Preview</h2>

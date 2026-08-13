@@ -4,6 +4,12 @@ const path = require("node:path");
 const http = require("node:http");
 const crypto = require("node:crypto");
 const { runPipeline, discoverEpisodeData } = require("../pipeline");
+const {
+  applyTranscriptFixes,
+  reviewTranscriptCached,
+  selectTranscriptFixes,
+} = require("../transcript-review");
+const { resolveLlm } = require("../llm");
 const { generateClipVideos, generateVideoFromChapters } = require("../video");
 const { loadPostprocessConfig } = require("../config");
 const {
@@ -916,11 +922,19 @@ function startServer({ port = 4173 } = {}) {
         }
 
         const clipOutputDir = path.join(clipBaseDirectory, "clip-videos");
-        const { videoStatusFile } = deriveEpisodeOutputPaths({
+        const { episodeDir, videoStatusFile } = deriveEpisodeOutputPaths({
           repoRoot,
           discovered,
           mp3Path: resolvedMp3Path,
         });
+
+        // Clip subtitles read the episode's written transcript.vtt, which carries any
+        // applied AI fixes, falling back to discovery-time text if the run has not
+        // written it yet.
+        const episodeVttPath = path.join(episodeDir, "transcript.vtt");
+        const clipVttText = fs.existsSync(episodeVttPath)
+          ? fs.readFileSync(episodeVttPath, "utf8")
+          : discovered.transcriptVttText;
 
         await startQueuedClipGeneration({
           statusFile: videoStatusFile,
@@ -929,7 +943,7 @@ function startServer({ port = 4173 } = {}) {
           resolvedMp3Path,
           episodeTitle: discovered.episodeTitle,
           episodeDateString: discovered.dateString,
-          transcriptVttText: discovered.transcriptVttText,
+          transcriptVttText: clipVttText,
         });
 
         sendJson(res, 200, {
@@ -937,6 +951,103 @@ function startServer({ port = 4173 } = {}) {
           outputDirectory: clipBaseDirectory,
           imagePathUsed: preferredClipImagePath,
           clipStatusFile: videoStatusFile,
+        });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Operates on the episode's written transcripts, after a run has created them.
+    // With recheck it reviews the current file contents (cached by content) and applies
+    // any high-confidence findings; payload.transcriptFixes (the UI's ticked
+    // medium-confidence fixes) are applied either way.
+    if (req.method === "POST" && pathname === "/api/transcript-review") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const mdPath = path.join(episodeDir, "transcript.md");
+        const vttPath = path.join(episodeDir, "transcript.vtt");
+        if (!fs.existsSync(mdPath) || !fs.existsSync(vttPath)) {
+          sendJson(res, 400, {
+            success: false,
+            error:
+              "Episode transcripts not found - approve and generate files first",
+          });
+          return;
+        }
+
+        const mdText = fs.readFileSync(mdPath, "utf8");
+        const vttText = fs.readFileSync(vttPath, "utf8");
+
+        let review = null;
+        let fixes = Array.isArray(payload.transcriptFixes)
+          ? payload.transcriptFixes
+          : [];
+
+        if (payload.recheck) {
+          const config = loadPostprocessConfig(repoRoot);
+          const llm = resolveLlm(config);
+          if (!llm) {
+            sendJson(res, 400, {
+              success: false,
+              error: "No LLM API key configured",
+            });
+            return;
+          }
+          review = await reviewTranscriptCached({
+            cacheDir: path.join(
+              repoRoot,
+              ".cache",
+              "postprocess",
+              "transcript-review",
+            ),
+            transcriptMdText: mdText,
+            transcriptVttText: vttText,
+            chapters: discovered.chapters,
+            llm,
+            hostNames: config.hostNames,
+          });
+          fixes = [...selectTranscriptFixes(review, undefined), ...fixes];
+        }
+
+        const mdResult = applyTranscriptFixes(mdText, fixes);
+        const vttResult = applyTranscriptFixes(vttText, fixes);
+        if (mdResult.applied.length > 0) {
+          fs.writeFileSync(mdPath, mdResult.text, "utf8");
+        }
+        if (vttResult.applied.length > 0) {
+          fs.writeFileSync(vttPath, vttResult.text, "utf8");
+        }
+
+        sendJson(res, 200, {
+          success: true,
+          review,
+          fixes: {
+            attempted: fixes.length,
+            mdApplied: mdResult.applied.length,
+            vttApplied: vttResult.applied.length,
+            mdMissed: mdResult.missed.map((fix) => fix.quote),
+            vttMissed: vttResult.missed.map((fix) => fix.quote),
+            appliedQuotes: mdResult.applied.map((fix) => fix.quote),
+          },
         });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
