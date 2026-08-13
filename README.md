@@ -84,6 +84,10 @@ already on the site, using these rules:
 - max 26 episodes per season
 - the first episode published after 30 June or 31 December (in the configured timezone)
   starts a new season, even if the break skipped clean over July or January
+- one exception: when a season stands at 25 episodes and the next release lands on the
+  first Wednesday of July, that release is episode 26 of the old season (a non-leap
+  year starting on a Thursday has only 25 first-half Wednesdays, and an unbroken season
+  should reach its full 26). Nothing ever spills across a year end.
 - otherwise increment the episode number
 
 When `--episode-number` targets a future season, its inferred dates anchor on that

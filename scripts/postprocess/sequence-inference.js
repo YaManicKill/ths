@@ -101,6 +101,20 @@ function halfYearIndex(instant, timezone) {
   return parts.year * 2 + (parts.month >= 7 ? 1 : 0);
 }
 
+// The one exception to the mid-year boundary: a non-leap year starting on a Thursday
+// has only 25 first-half Wednesdays, so an unbroken winter season takes its 26th
+// episode on the first Wednesday of July rather than ending one short. The year-end
+// boundary has no such exception - the first Wednesday of a year always starts a
+// season. (A calendar date's weekday is timezone-independent.)
+function isFirstWednesdayOfJuly(instant, timezone) {
+  const parts = zonedDateParts(instant, timezone);
+  return (
+    parts.month === 7 &&
+    parts.day <= 7 &&
+    new Date(Date.UTC(parts.year, 6, parts.day)).getUTCDay() === 3
+  );
+}
+
 function episodeOrdinal(season, episode) {
   return (Number(season) - 1) * MAX_EPISODES_PER_SEASON + Number(episode);
 }
@@ -128,14 +142,32 @@ function inferPublishDateForEpisode({
     // A future season starts at the first release slot after its calendar boundary.
     // Seasons can end short of 26 episodes (a boundary rollover cuts them off), so
     // counting the old season's phantom remaining episodes would land weeks late.
+    // A spilled 26th episode sits on the first Wednesday of July but belongs to the
+    // winter season, so the season's own half is one back from its date's half.
+    const lastSeasonHalfIndex =
+      halfYearIndex(last.date, timezone) -
+      (last.episode >= MAX_EPISODES_PER_SEASON &&
+      isFirstWednesdayOfJuly(last.date, timezone)
+        ? 1
+        : 0);
     const targetHalfIndex =
-      halfYearIndex(last.date, timezone) + (Number(seasonNumber) - last.season);
+      lastSeasonHalfIndex + (Number(seasonNumber) - last.season);
     const boundaryYear = Math.floor(targetHalfIndex / 2);
     const boundaryMonth = targetHalfIndex % 2 === 0 ? 1 : 7;
     cursor = new Date(Date.UTC(boundaryYear, boundaryMonth - 1, 1));
     // Releases go out on Wednesdays (a calendar date's weekday is zone-independent).
     while (cursor.getUTCDay() !== 3) {
       cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+    // A winter season may have spilled its 26th episode onto the first Wednesday of
+    // July; the next season starts on the first Wednesday after the last episode.
+    const lastDayValue = Date.UTC(
+      lastParts.year,
+      lastParts.month - 1,
+      lastParts.day,
+    );
+    while (cursor.getTime() <= lastDayValue) {
+      cursor.setUTCDate(cursor.getUTCDate() + 7);
     }
     cursor.setUTCDate(cursor.getUTCDate() + (Number(episodeNumber) - 1) * 7);
   } else {
@@ -196,16 +228,28 @@ function inferNextSeasonEpisode({
   let nextEpisode = last.episode + 1;
   let reason = "increment";
 
+  const crossedBoundary =
+    halfYearIndex(nextPublish, timezone) > halfYearIndex(last.date, timezone);
+  const crossedYear =
+    zonedDateParts(nextPublish, timezone).year >
+    zonedDateParts(last.date, timezone).year;
+  // Episode 26 may spill onto the first Wednesday of July when the first half ran out
+  // of Wednesdays at 25; it may never spill into a new year.
+  const spillsIntoJuly =
+    last.episode === MAX_EPISODES_PER_SEASON - 1 &&
+    !crossedYear &&
+    isFirstWednesdayOfJuly(nextPublish, timezone);
+
   if (last.episode >= MAX_EPISODES_PER_SEASON) {
     nextSeason = last.season + 1;
     nextEpisode = 1;
     reason = "max-episodes";
-  } else if (
-    halfYearIndex(nextPublish, timezone) > halfYearIndex(last.date, timezone)
-  ) {
+  } else if (crossedBoundary && !spillsIntoJuly) {
     nextSeason = last.season + 1;
     nextEpisode = 1;
     reason = "calendar-boundary";
+  } else if (crossedBoundary && spillsIntoJuly) {
+    reason = "spill-into-july";
   }
 
   return {

@@ -135,6 +135,68 @@ const tzEdge = inferNextSeasonEpisode({
 assert.equal(tzEdge.seasonCode, "12");
 assert.equal(tzEdge.reason, "increment");
 
+// 2026's first half has only 25 Wednesdays (non-leap year starting Thursday), so an
+// unbroken winter season takes its 26th episode on the first Wednesday of July...
+const spillRoot = makeContentRoot([
+  { season: "12", episode: "25", date: "2026-06-24T19:00:00+01:00" },
+]);
+const spilled = inferNextSeasonEpisode({
+  contentEpisodeRoot: spillRoot,
+  publishDate: "2026-07-01T19:00:00+01:00",
+  ...options,
+});
+assert.equal(spilled.seasonCode, "12");
+assert.equal(spilled.episodeCode, "26");
+assert.equal(spilled.reason, "spill-into-july");
+
+// ...but only episode 26, only onto the first Wednesday, and never across a year end.
+const afterSpillRoot = makeContentRoot([
+  { season: "12", episode: "26", date: "2026-07-01T19:00:00+01:00" },
+]);
+const afterSpill = inferNextSeasonEpisode({
+  contentEpisodeRoot: afterSpillRoot,
+  publishDate: "2026-07-08T19:00:00+01:00",
+  ...options,
+});
+assert.equal(afterSpill.seasonCode, "13");
+assert.equal(afterSpill.episodeCode, "01");
+assert.equal(afterSpill.reason, "max-episodes");
+
+const lateSpillAttempt = inferNextSeasonEpisode({
+  contentEpisodeRoot: spillRoot,
+  publishDate: "2026-07-08T19:00:00+01:00",
+  ...options,
+});
+assert.equal(lateSpillAttempt.seasonCode, "13");
+assert.equal(lateSpillAttempt.reason, "calendar-boundary");
+
+const yearSpillRoot = makeContentRoot([
+  { season: "13", episode: "25", date: "2026-12-30T19:00:00+00:00" },
+]);
+const yearSpillAttempt = inferNextSeasonEpisode({
+  contentEpisodeRoot: yearSpillRoot,
+  publishDate: "2027-01-06T19:00:00+00:00",
+  ...options,
+});
+assert.equal(yearSpillAttempt.seasonCode, "14");
+assert.equal(
+  yearSpillAttempt.reason,
+  "calendar-boundary",
+  "episode 26 must never spill into a new year",
+);
+
+// After a spilled season, the next season's inferred dates start on the first
+// Wednesday after the spilled episode, not on the (already used) boundary Wednesday.
+assert.equal(
+  inferPublishDateForEpisode({
+    contentEpisodeRoot: afterSpillRoot,
+    seasonNumber: 13,
+    episodeNumber: 1,
+    ...options,
+  }),
+  "2026-07-08T19:00:00+01:00",
+);
+
 // A future season's dates anchor on the calendar boundary, not on 26-per-season
 // ordinal maths: season 12 ended early at e22, and 13-01 releases on the first
 // Wednesday after 1 Jul (which in 2026 is 1 Jul itself), not four phantom weeks later.
