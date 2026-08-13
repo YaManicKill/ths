@@ -2096,6 +2096,9 @@ approveButton.addEventListener("click", async () => {
     activeVideoStatusFile = null;
 
     if (runFailed) {
+      // The approve click set the in-progress state up front; without unwinding it
+      // here every action button (restart included) stays disabled until a refresh.
+      setVideoRenderUiState(false);
       addStatus(
         `❌ Error: ${result.error || `Request failed (${response.status})`}`,
       );
