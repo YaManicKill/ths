@@ -10,6 +10,11 @@ assert.equal(formatAssTimestamp(0), "0:00:00.00");
 assert.equal(formatAssTimestamp(971.28), "0:16:11.28");
 assert.equal(formatAssTimestamp(3661.5), "1:01:01.50");
 assert.equal(formatAssTimestamp(-2), "0:00:00.00");
+// Fractions that round up must roll into the next second (and minute), never emit a
+// three-digit centisecond field that reads as an earlier time.
+assert.equal(formatAssTimestamp(12.996), "0:00:13.00");
+assert.equal(formatAssTimestamp(59.999), "0:01:00.00");
+assert.equal(formatAssTimestamp(3599.995), "1:00:00.00");
 
 assert.equal(
   stripSpeakerPrefix("Codey: Do you want to tell it?"),

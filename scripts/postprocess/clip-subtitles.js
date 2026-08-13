@@ -53,13 +53,17 @@ function sliceCuesForClip({ cues, clipStartSeconds, clipEndSeconds }) {
   return sliced;
 }
 
-// ASS timestamps are H:MM:SS.cc (centiseconds).
+// ASS timestamps are H:MM:SS.cc (centiseconds). Rounding happens on the total
+// centisecond count before the fields are split out: rounding the fraction on its own
+// turns .995+ into a three-digit "100" field, producing timestamps that read earlier
+// than intended (12.996 -> "0:00:12.100", i.e. 12.10s) instead of rolling the second.
 function formatAssTimestamp(seconds) {
-  const clamped = Math.max(0, Number(seconds) || 0);
-  const hours = Math.floor(clamped / 3600);
-  const minutes = Math.floor((clamped % 3600) / 60);
-  const wholeSeconds = Math.floor(clamped % 60);
-  const centiseconds = Math.round((clamped % 1) * 100);
+  const totalCentiseconds = Math.round(Math.max(0, Number(seconds) || 0) * 100);
+  const centiseconds = totalCentiseconds % 100;
+  const totalSeconds = (totalCentiseconds - centiseconds) / 100;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const wholeSeconds = totalSeconds % 60;
   const pad = (value) => String(value).padStart(2, "0");
   return `${hours}:${pad(minutes)}:${pad(wholeSeconds)}.${pad(centiseconds)}`;
 }
