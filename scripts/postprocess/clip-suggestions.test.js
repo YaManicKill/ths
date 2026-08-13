@@ -148,6 +148,30 @@ for (const segment of fillerSegments) {
   );
 }
 
+// A parenthesized duration inside dialogue is speech, not a timestamp header: it must
+// not split the segment or invent a bogus start time. Both header shapes still parse.
+const parentheticalTranscript = `## Body
+(10s) **Al:**
+> We waited ages (about 3h) before anything happened at all.
+
+**Greg:** (30s)
+> That parenthesis nearly became a segment boundary once.
+`;
+
+const parentheticalSegments = parseTranscriptSegments(parentheticalTranscript);
+assert.equal(parentheticalSegments.length, 2);
+assert.equal(parentheticalSegments[0].startSeconds, 10);
+assert.equal(
+  parentheticalSegments[0].text,
+  "We waited ages (about 3h) before anything happened at all.",
+  "dialogue with a parenthesized duration was split or truncated",
+);
+assert.equal(
+  parentheticalSegments[1].startSeconds,
+  30,
+  "speaker-first timestamp header stopped parsing",
+);
+
 // Accepted clips must not share audio. Comparing start times alone let two clips up to a
 // minute long overlap by 20-30 seconds.
 const denseTranscript = [

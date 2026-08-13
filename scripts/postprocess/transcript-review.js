@@ -81,9 +81,11 @@ function buildSystemPrompt(hostNames = []) {
 }
 
 // Timestamps only carry the units they need, sometimes space-separated: "(30s)",
-// "(23m44s)", "(39m 1s)", "(1h 2m 3s)".
+// "(23m44s)", "(39m 1s)", "(1h 2m 3s)". They sit at the start of a header line or
+// right after the speaker label; a parenthesized duration inside dialogue ("(3h)")
+// must not start a new chunk.
 function parseMdTimestampSeconds(line) {
-  const match = /\(([0-9hms ]+)\)/.exec(line);
+  const match = /^\s*(?:\*\*[^*\n]+:\*\*\s*)?\(([0-9hms ]+)\)/.exec(line);
   if (!match || !/\d/.test(match[1])) {
     return null;
   }

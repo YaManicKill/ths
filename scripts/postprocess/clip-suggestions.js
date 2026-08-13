@@ -72,7 +72,11 @@ function parseTimestampToSeconds(value) {
     return null;
   }
 
-  const match = trimmed.match(/\(([^)]+)\)/);
+  // Timestamp headers put the parenthesized time at the start of the line ("(30s)
+  // **Codey:**") or right after the speaker label ("**Al:** (0h0m40s)"). Anchoring
+  // there keeps dialogue like "we waited ages (about 3h) for it" from being read as a
+  // segment boundary at the 3-hour mark.
+  const match = trimmed.match(/^(?:\*\*[^*\n]+:\*\*\s*)?\(([^)]+)\)/);
   if (!match) {
     return null;
   }

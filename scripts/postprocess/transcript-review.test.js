@@ -69,6 +69,10 @@ async function main() {
     "(16m 20s) **Chelsea:**",
     "",
     "> Why do female ants not grow weight?",
+    "",
+    "(17m) **Codey:**",
+    "",
+    "> They spent ages (about 3h) on that documentary, honestly.",
   ].join("\n");
   const realChunks = chunkTranscript({
     transcriptMdText: realFormat,
