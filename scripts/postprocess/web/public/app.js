@@ -2000,6 +2000,11 @@ cancelClipsButton.addEventListener("click", async () => {
     });
     const body = await response.json();
     if (!response.ok || !body.success) {
+      // Clicking Cancel just as the run completes is a benign race, not a failure.
+      if (/no clip generation in progress/i.test(body.error || "")) {
+        addStatus("ℹ Clip generation already finished; nothing to cancel.");
+        return;
+      }
       throw new Error(body.error || "Cancel request failed");
     }
     // The poller reports the actual "cancelled" state once the server has killed
