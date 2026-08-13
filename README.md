@@ -198,6 +198,25 @@ Plain `node --test` files alongside the code they cover. They need `ffmpeg` on P
 content, your Episodes folder or the repo's `.cache` — every test works in a temp
 directory.
 
-### TODOs
+### Desktop App
 
-- Electron wrapper around the UI, so the tool runs as a desktop app instead of a local server plus browser tab.
+An Electron wrapper lives in `scripts/postprocess/app/`, isolated in its own package so
+the main repo (and CI) never installs Chromium. One-time setup:
+
+```bash
+cd scripts/postprocess/app
+npm install
+npm run dist
+```
+
+That produces `dist/mac-arm64/THS Post-Process.app` with the show icon and this repo's
+location baked in — drag it to Applications (or straight onto the dock) and pin it.
+Clicking it starts the pipeline server in-process, discovers the next episode, and
+opens the prefilled UI in its own window; closing the window quits everything, server
+included.
+
+The app loads the pipeline code from this repo checkout at launch, so day-to-day
+changes to the tool are picked up without rebuilding. Rebuild only to update Electron
+itself or if the repo checkout moves. `npm start` in the same folder runs it unpackaged
+for development. The app and the terminal version share port 4173, and each tells you
+if the other is already running.
