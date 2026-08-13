@@ -1405,6 +1405,7 @@ async function pollVideoStatus(statusFile) {
   let frameIndex = 0;
   let latestPercent = 0;
   let latestDetail = "MP4 generation in progress...";
+  let missingPolls = 0;
   const spinner = setInterval(() => {
     setStatusLine(
       videoLineId,
@@ -1421,6 +1422,26 @@ async function pollVideoStatus(statusFile) {
         `/api/video-status?statusFile=${encodeURIComponent(statusFile)}`,
       );
       const data = await res.json();
+
+      // A run that is starting writes its status file within moments, so repeated
+      // misses mean the file is gone for good (deleted, or the episode folder was
+      // renamed). Without this bail-out a stale persisted status file kept the UI in
+      // "render in progress" - with every button disabled - forever.
+      if (data.status === "missing") {
+        missingPolls += 1;
+        if (missingPolls >= 3) {
+          clearInterval(spinner);
+          persistActiveVideoStatusFile("");
+          setVideoRenderUiState(false);
+          setStatusLine(
+            videoLineId,
+            "ℹ The tracked MP4 render's status file no longer exists; cleared stale tracking.",
+          );
+          return { status: "missing" };
+        }
+        continue;
+      }
+      missingPolls = 0;
 
       if (data.status === "completed") {
         clearInterval(spinner);
@@ -1508,6 +1529,7 @@ async function pollClipGenerationStatus(statusFile) {
     lineId = addStatus("⏳ Clip generation queued...");
   }
 
+  let missingPolls = 0;
   for (;;) {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -1518,9 +1540,22 @@ async function pollClipGenerationStatus(statusFile) {
       const data = await res.json();
       const clip = data.clipGeneration;
 
-      if (!clip || !clip.status) {
+      // The clip state is written before the queue endpoint even responds, so
+      // repeatedly finding no file (or no clip state in it) means the tracked run's
+      // file is gone - stop polling instead of holding the Cancel button forever.
+      if (data.status === "missing" || !clip || !clip.status) {
+        missingPolls += 1;
+        if (missingPolls >= 3) {
+          persistActiveClipStatusFile("");
+          setStatusLine(
+            lineId,
+            "ℹ The tracked clip run's status is no longer available; cleared stale tracking.",
+          );
+          return { status: "missing" };
+        }
         continue;
       }
+      missingPolls = 0;
 
       if (clip.status === "waiting") {
         setStatusLine(

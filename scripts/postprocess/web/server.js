@@ -962,14 +962,13 @@ function startServer({ port = 4173 } = {}) {
         return;
       }
       try {
-        const normalized = readNormalizedVideoStatus(statusFile);
-        if (normalized.status === "missing") {
-          sendJson(res, 200, { status: "pending" });
-          return;
-        }
-        sendJson(res, 200, normalized);
+        // "missing" is reported honestly: a run that is about to start writes the
+        // file within moments, so the poller can tell that apart from a status file
+        // that was deleted (or an episode folder renamed) and stop tracking it,
+        // instead of showing "in progress" - and locking the UI - forever.
+        sendJson(res, 200, readNormalizedVideoStatus(statusFile));
       } catch {
-        sendJson(res, 200, { status: "pending" });
+        sendJson(res, 200, { status: "missing" });
       }
       return;
     }
