@@ -142,6 +142,20 @@ hallucinations rather than applied or shown. Verdicts are cached per transcript 
 so a re-check is free until the transcript actually changes; check failures surface as a
 warning and never block the run.
 
+### AI Clip Suggestions
+
+With an LLM key configured, the run also sends the whole transcript in a single request
+and asks for up to 10 shareable moments — categorised as funny moment / hot take / story
+/ wholesome, each with a hook title and a one-line reason shown on the suggestion card.
+These replace the heuristic suggestions; the heuristics remain as the fallback when no
+key is set or the request fails.
+
+The model answers with verbatim opening/closing quotes, which are matched against the
+episode's `transcript.vtt` cues to derive precise clip timings — a clip whose quotes
+can't be located is discarded, so timings are never guessed. **Re-generate Clip
+Suggestions** re-runs the selection against the episode's written transcripts (cached by
+content, like the check, so it only costs a request after the transcript changes).
+
 On Gemini's free tier (a handful of requests per minute, ~20 per day) the first pass over
 a full episode costs about 3 requests — rate-limit responses are retried using the wait
 time Google's error suggests. Subsequent discoveries hit the cache and are instant. Free
@@ -179,4 +193,3 @@ directory.
 ### Clip Workflow TODOs
 
 - Add a playback/progress bar overlay to clips for social-style presentation.
-- Replace the regex/keyword scoring in `clip-suggestions.js` with an LLM pass over the transcript. The current `HOOK_WORDS` heuristics are why summaries land on things like "That". The plumbing exists now: `llm.js` (`completeJson`) plus the `llm` config section, as used by the AI transcript check.

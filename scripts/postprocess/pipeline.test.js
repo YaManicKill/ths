@@ -59,7 +59,19 @@ function makeEpisodeFixture() {
   const transcriptVttPath = path.join(dir, "Test Episode.vtt");
   fs.writeFileSync(
     transcriptVttPath,
-    "WEBVTT\n\n00:00:40.000 --> 00:00:45.000\nWhy would anyone do that?\n",
+    [
+      "WEBVTT",
+      "",
+      "00:00:40.000 --> 00:00:45.000",
+      "Why would anyone do that?",
+      "",
+      "00:00:45.000 --> 00:01:05.000",
+      "Al: Because it seemed like a good idea at the time, and everyone agreed with me.",
+      "",
+      "00:01:05.000 --> 00:01:12.000",
+      "Al: That was the whole story from start to finish.",
+      "",
+    ].join("\n"),
   );
 
   return { mp3Path, transcriptMdPath, transcriptVttPath };
@@ -137,9 +149,22 @@ async function main() {
   const runMp3 = path.join(runRoot, "ths-99-01.mp3");
   fs.copyFileSync(fixture.mp3Path, runMp3);
 
-  // The AI transcript check runs during generation; the fake completer stands in for
-  // Gemini so the review-and-fix path runs without a network call.
+  // The AI transcript check and clip selection both run during generation; the fake
+  // completer stands in for Gemini, answering by request schema, so both paths run
+  // without a network call.
   process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || "test-key";
+  const fakeClips = {
+    clips: [
+      {
+        openingQuote: "Because it seemed like a good idea at the time",
+        closingQuote: "the whole story from start to finish",
+        title: "A good idea at the time",
+        category: "story",
+        reason: "test",
+        score: 75,
+      },
+    ],
+  };
   const { report } = await runPipeline({
     repoRoot: runRoot,
     mp3Path: runMp3,
@@ -147,30 +172,33 @@ async function main() {
     transcriptVttPath: fixture.transcriptVttPath,
     skipVideo: true,
     onProgress: () => {},
-    llmComplete: async () => ({
-      findings: [
-        {
-          quote: "Why would anyone",
-          correction: "Why would somebody",
-          reason: "test",
-          confidence: "high",
-        },
-        // Present in the md fixture but not the vtt one, so it must be reported as
-        // missed there rather than silently dropped.
-        {
-          quote: "actually do that",
-          correction: "genuinely do that",
-          reason: "test",
-          confidence: "high",
-        },
-        {
-          quote: "honestly",
-          correction: "frankly",
-          reason: "test",
-          confidence: "medium",
-        },
-      ],
-    }),
+    llmComplete: async ({ schema }) =>
+      schema?.properties?.clips
+        ? fakeClips
+        : {
+            findings: [
+              {
+                quote: "Why would anyone",
+                correction: "Why would somebody",
+                reason: "test",
+                confidence: "high",
+              },
+              // Present in the md fixture but not the vtt one, so it must be reported
+              // as missed there rather than silently dropped.
+              {
+                quote: "actually do that",
+                correction: "genuinely do that",
+                reason: "test",
+                confidence: "high",
+              },
+              {
+                quote: "honestly",
+                correction: "frankly",
+                reason: "test",
+                confidence: "medium",
+              },
+            ],
+          },
   });
 
   assert.equal(report.gitBranch.name, "ep-99-01");
@@ -206,6 +234,14 @@ async function main() {
     mdMissed: [],
     vttMissed: ["actually do that"],
   });
+
+  // The AI clip picks replace the heuristic suggestions, grounded in the VTT timings.
+  assert.equal(report.clipSource, "llm");
+  assert.equal(report.clipSuggestions.length, 1);
+  assert.equal(report.clipSuggestions[0].startSeconds, 45);
+  assert.equal(report.clipSuggestions[0].endSeconds, 72);
+  assert.equal(report.clipSuggestions[0].summary, "A good idea at the time");
+  assert.equal(report.clipSuggestions[0].speaker, "Al");
   const savedReport = JSON.parse(
     fs.readFileSync(path.join(episodeDir, "postprocess-report.json"), "utf8"),
   );

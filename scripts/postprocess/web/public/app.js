@@ -991,6 +991,14 @@ function renderClipSuggestions(suggestions) {
       card.appendChild(reasonBadge);
     }
 
+    if (suggestion.llmReason) {
+      const why = document.createElement("div");
+      why.textContent = suggestion.llmReason;
+      why.style.cssText =
+        "font-size: 0.85em; color: var(--muted); margin-bottom: 8px;";
+      card.appendChild(why);
+    }
+
     if (suggestion.text) {
       const transcript = document.createElement("details");
       transcript.style.marginBottom = "10px";
@@ -1649,41 +1657,46 @@ regenerateClipsButton.addEventListener("click", async () => {
     return;
   }
 
-  const payload = buildDiscoverPayload();
-  if (
-    !payload.mp3Path ||
-    !payload.transcriptMdPath ||
-    !payload.transcriptVttPath
-  ) {
-    addStatus(
-      "❌ Missing MP3/transcript paths. Fill in required fields first.",
-    );
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
     return;
   }
 
   regenerateClipsButton.disabled = true;
+  const stopSpinner = startStatusSpinner("Regenerating clip suggestions...");
   try {
-    const response = await fetch("/api/discover", {
+    const response = await fetch("/api/clip-suggestions", {
       method: "POST",
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+      }),
     });
     const result = await response.json();
     if (!response.ok || !result.success) {
       throw new Error(result.error || "Failed to regenerate clip suggestions");
     }
 
-    currentDiscoveryData = {
-      discoveryData: result.discoveryData,
-    };
-    setProcessActionsVisibility();
-    renderClipSuggestions(result.discovered?.clipSuggestions || []);
+    stopSpinner("✓ Clip suggestions regenerated");
+    if (result.warning) {
+      addStatus(
+        `⚠ AI clip selection unavailable (${result.warning}) — showing heuristic suggestions`,
+      );
+    }
+    // Fresh suggestions get fresh approvals; carrying old ones over by index would
+    // approve different clips than the ones the user looked at.
+    clipApprovalState = [];
+    renderClipSuggestions(result.clipSuggestions || []);
     addStatus(
-      "✓ Clip suggestions regenerated. Review approvals before generating clips.",
+      result.source === "llm"
+        ? "✓ AI clip suggestions ready for review."
+        : "✓ Heuristic clip suggestions ready for review.",
     );
   } catch (error) {
+    stopSpinner();
     addStatus(`❌ Failed to regenerate clip suggestions: ${error.message}`);
   } finally {
     regenerateClipsButton.disabled = false;
@@ -1926,6 +1939,11 @@ approveButton.addEventListener("click", async () => {
       runFailed ? "❌ Generation failed" : "✓ Generation completed",
     );
     currentRunResult = result;
+    if (result.clipSource === "llm") {
+      addStatus(
+        `✓ Clip suggestions picked by AI (${(result.clipSuggestions || []).length})`,
+      );
+    }
     renderClipSuggestions(result.clipSuggestions || []);
     activeVideoStatusFile = null;
 

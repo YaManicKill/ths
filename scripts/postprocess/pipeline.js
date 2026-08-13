@@ -19,6 +19,7 @@ const {
   reviewTranscriptCached,
   selectTranscriptFixes,
 } = require("./transcript-review");
+const { suggestClipsLlmCached } = require("./clip-suggestions-llm");
 const {
   assertToolAvailable,
   chapterImageOverridesPath,
@@ -781,6 +782,46 @@ async function runPipeline(inputOptions = {}) {
       `Warning: fix not applied to transcript.vtt (text not found verbatim): "${fix.quote}"`,
     );
   }
+
+  // AI clip picks replace the heuristic suggestions when available, using the fixed
+  // transcripts so quotes match the burned-in subtitles. Warning-only, like the check:
+  // any failure falls back to the heuristics from discovery.
+  let clipSuggestions = discovered.clipSuggestions;
+  let clipSource = "heuristic";
+  if (llm) {
+    onProgress(`Selecting clip suggestions (${llm.model})...`);
+    try {
+      const llmClips = await suggestClipsLlmCached({
+        cacheDir: path.join(
+          repoRoot,
+          ".cache",
+          "postprocess",
+          "clip-suggestions",
+        ),
+        transcriptMdText: mdFixResult.text,
+        transcriptVttText: vttFixResult.text,
+        llm,
+        complete: inputOptions.llmComplete,
+      });
+      if (llmClips.suggestions.length > 0) {
+        clipSuggestions = llmClips.suggestions;
+        clipSource = "llm";
+        onProgress(
+          llmClips.fromCache
+            ? "Clip suggestions: using cached AI picks for this transcript"
+            : `Clip suggestions: ${llmClips.suggestions.length} picked by AI`,
+        );
+      } else {
+        onProgress(
+          "Warning: AI clip selection returned nothing usable; keeping heuristic suggestions",
+        );
+      }
+    } catch (error) {
+      onProgress(`Warning: AI clip selection failed: ${error.message}`);
+    }
+  }
+  report.clipSuggestions = clipSuggestions;
+  report.clipSource = clipSource;
 
   onProgress("Updating MP3 chapter images...");
 

@@ -10,6 +10,8 @@ const {
   selectTranscriptFixes,
 } = require("../transcript-review");
 const { resolveLlm } = require("../llm");
+const { buildClipSuggestions } = require("../clip-suggestions");
+const { suggestClipsLlmCached } = require("../clip-suggestions-llm");
 const { generateClipVideos, generateVideoFromChapters } = require("../video");
 const { loadPostprocessConfig } = require("../config");
 const {
@@ -951,6 +953,88 @@ function startServer({ port = 4173 } = {}) {
           outputDirectory: clipBaseDirectory,
           imagePathUsed: preferredClipImagePath,
           clipStatusFile: videoStatusFile,
+        });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Rebuilds clip suggestions from the episode's written (fixed) transcripts when
+    // they exist, falling back to discovery-time text before a run. AI picks when a key
+    // is configured (cached by content), heuristics otherwise or on failure.
+    if (req.method === "POST" && pathname === "/api/clip-suggestions") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const mdPath = path.join(episodeDir, "transcript.md");
+        const vttPath = path.join(episodeDir, "transcript.vtt");
+        const mdText = fs.existsSync(mdPath)
+          ? fs.readFileSync(mdPath, "utf8")
+          : discovered.transcriptMdText;
+        const vttText = fs.existsSync(vttPath)
+          ? fs.readFileSync(vttPath, "utf8")
+          : discovered.transcriptVttText;
+
+        let clipSuggestions = null;
+        let source = "heuristic";
+        let warning = null;
+
+        const llm = resolveLlm(loadPostprocessConfig(repoRoot));
+        if (llm) {
+          try {
+            const llmClips = await suggestClipsLlmCached({
+              cacheDir: path.join(
+                repoRoot,
+                ".cache",
+                "postprocess",
+                "clip-suggestions",
+              ),
+              transcriptMdText: mdText,
+              transcriptVttText: vttText,
+              llm,
+            });
+            if (llmClips.suggestions.length > 0) {
+              clipSuggestions = llmClips.suggestions;
+              source = "llm";
+            } else {
+              warning = "AI clip selection returned nothing usable";
+            }
+          } catch (error) {
+            warning = error.message;
+          }
+        }
+
+        if (!clipSuggestions) {
+          clipSuggestions = buildClipSuggestions({
+            transcriptMdText: mdText,
+            transcriptVttText: vttText,
+            maxSuggestions: 8,
+          });
+        }
+
+        sendJson(res, 200, {
+          success: true,
+          clipSuggestions,
+          source,
+          ...(warning ? { warning } : {}),
         });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
