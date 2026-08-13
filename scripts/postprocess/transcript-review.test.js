@@ -224,6 +224,30 @@ async function main() {
   });
   assert.ok(calls > callsBeforeHostChange, "changed host names must re-run");
 
+  // The VTT drives vttLine numbers and the chapters drive chunking, so both belong to
+  // the cache key.
+  const callsBeforeVttChange = calls;
+  await reviewTranscriptCached({
+    cacheDir,
+    transcriptMdText,
+    transcriptVttText: transcriptVttText + "\nedited",
+    chapters,
+    llm: LLM,
+    complete: fakeComplete,
+  });
+  assert.ok(calls > callsBeforeVttChange, "edited vtt must re-run");
+
+  const callsBeforeChapterChange = calls;
+  await reviewTranscriptCached({
+    cacheDir,
+    transcriptMdText,
+    transcriptVttText,
+    chapters: [{ title: "Renamed", startSeconds: 0 }],
+    llm: LLM,
+    complete: fakeComplete,
+  });
+  assert.ok(calls > callsBeforeChapterChange, "changed chapters must re-run");
+
   fs.rmSync(cacheDir, { recursive: true, force: true });
 
   // applyTranscriptFixes replaces every occurrence of a quote, reports quotes that no

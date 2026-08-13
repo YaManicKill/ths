@@ -263,13 +263,16 @@ async function suggestClipsLlm({
   };
 }
 
-// Same shape as the transcript check's cache: keyed by content and model, so
-// regeneration is free until the transcript actually changes.
+// Same shape as the transcript check's cache: keyed by everything that shapes the
+// output - the VTT is in the key because every cached timing is derived from its cues,
+// so an edited VTT must not serve stale cut points.
 async function suggestClipsLlmCached({ cacheDir, ...options }) {
+  const md = String(options.transcriptMdText || "");
+  const vtt = String(options.transcriptVttText || "");
   const cacheKey = crypto
     .createHash("sha1")
     .update(
-      `${CLIP_PROMPT_VERSION}:${options.llm.provider}:${options.llm.model}:${options.transcriptMdText}`,
+      `${CLIP_PROMPT_VERSION}:${options.llm.provider}:${options.llm.model}:${options.maxSuggestions || MAX_LLM_SUGGESTIONS}:${md.length}:${md}:${vtt.length}:${vtt}`,
     )
     .digest("hex");
   const cachePath = cacheDir ? path.join(cacheDir, `${cacheKey}.json`) : null;

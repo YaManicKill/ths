@@ -176,6 +176,16 @@ async function main() {
   });
   assert.equal(calls, 2, "edited transcript must re-run");
 
+  // Every cached timing derives from the VTT cues, so an edited VTT is a new key.
+  await suggestClipsLlmCached({
+    cacheDir,
+    transcriptMdText,
+    transcriptVttText: transcriptVttText.replace("10.000", "11.000"),
+    llm: LLM,
+    complete: fakeComplete,
+  });
+  assert.equal(calls, 3, "edited vtt must re-run");
+
   fs.rmSync(cacheDir, { recursive: true, force: true });
   console.log("clip-suggestions-llm test passed");
 }

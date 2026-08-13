@@ -368,12 +368,22 @@ function applyTranscriptFixes(text, fixes) {
 }
 
 // Discovery re-runs on every input change and again before each run, so verdicts are
-// cached by transcript content + model; only an edited transcript costs another pass.
+// cached by everything that shapes the request or the reported line numbers: both
+// transcripts (vtt drives vttLine), the chapters (they set chunk boundaries and the
+// "Chapters covered" prompt context), the host names, and the model.
 async function reviewTranscriptCached({ cacheDir, ...options }) {
+  const chapterKey = JSON.stringify(
+    (options.chapters || []).map((chapter) => [
+      chapter.title,
+      chapter.startSeconds,
+    ]),
+  );
+  const md = String(options.transcriptMdText || "");
+  const vtt = String(options.transcriptVttText || "");
   const cacheKey = crypto
     .createHash("sha1")
     .update(
-      `${PROMPT_VERSION}:${options.llm.provider}:${options.llm.model}:${(options.hostNames || []).join(",")}:${options.transcriptMdText}`,
+      `${PROMPT_VERSION}:${options.llm.provider}:${options.llm.model}:${(options.hostNames || []).join(",")}:${chapterKey}:${md.length}:${md}:${vtt.length}:${vtt}`,
     )
     .digest("hex");
   const cachePath = cacheDir ? path.join(cacheDir, `${cacheKey}.json`) : null;
