@@ -233,10 +233,15 @@ async function main() {
 
   const serverPath = path.join(__dirname, "web", "server.js");
   const { startServer } = require(serverPath);
-  startServer({ port });
+  const server = startServer({ port });
 
+  // Opened only once the port is actually bound: on a failed bind (another instance
+  // already running) the process should exit with its error, not first launch a
+  // browser tab pointing at the other instance's state.
   const url = buildUiLaunchUrl(port, defaults);
-  openBrowser(url);
+  server.once("listening", () => {
+    openBrowser(url);
+  });
 
   console.log(`Discovered episode folder: ${discovered.folderPath}`);
   console.log(

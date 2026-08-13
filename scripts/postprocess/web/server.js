@@ -1424,6 +1424,17 @@ function startServer({ port = 4173 } = {}) {
     res.end("Not Found");
   });
 
+  server.on("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(
+        `Port ${port} is already in use - another postprocess UI is probably running.\n` +
+          `Open http://localhost:${port} in your browser, or stop the other instance first.`,
+      );
+      process.exit(1);
+    }
+    throw error;
+  });
+
   // Loopback only. This server reads local files and runs the pipeline with no auth,
   // so it must not be reachable from the network.
   server.listen(port, "127.0.0.1", () => {
