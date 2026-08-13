@@ -115,6 +115,11 @@ button:hover {
   filter: brightness(1.04);
 }
 
+button.danger {
+  background: linear-gradient(180deg, #dc2626, #b91c1c);
+  border-color: #7f1d1d;
+}
+
 pre {
   background: #0f172a;
   color: #e2e8f0;
