@@ -176,6 +176,42 @@ function parseArgs(argv) {
   return args;
 }
 
+// Everything needed to open a prefilled UI: which episode is next, where its source
+// assets live, and the query-string defaults. Shared by the CLI below and the Electron
+// app, which has no argv.
+function prepareLaunch({ repoRoot, args = { _: [] } }) {
+  const resolved = resolveSeasonEpisode({ repoRoot, args });
+  const episodesRoot = loadPostprocessConfig(repoRoot).episodesRoot;
+  let discovered;
+  try {
+    discovered = discoverEpisodeInputs({
+      episodesRoot,
+      season: resolved.season,
+      episode: resolved.episode,
+    });
+  } catch (error) {
+    if (args["episode-number"] !== undefined) {
+      throw error;
+    }
+    discovered = discoverLatestEpisodeInputs({ episodesRoot });
+    console.warn(
+      `Requested inferred episode ths-${String(resolved.season).padStart(2, "0")}-${String(resolved.episode).padStart(2, "0")} not found; using latest available on disk instead.`,
+    );
+  }
+
+  return {
+    resolved,
+    discovered,
+    defaults: {
+      mp3Path: discovered.mp3Path,
+      transcriptMdPath: discovered.transcriptMdPath,
+      transcriptVttPath: discovered.transcriptVttPath,
+      episodeTitle: discovered.episodeTitle,
+      publishDate: resolved.publishDate,
+    },
+  };
+}
+
 async function main() {
   const repoRoot = path.resolve(__dirname, "..", "..");
   const args = parseArgs(process.argv.slice(2));
@@ -203,33 +239,8 @@ async function main() {
     process.exit(1);
   }
 
-  const resolved = resolveSeasonEpisode({ repoRoot, args });
-  const episodesRoot = loadPostprocessConfig(repoRoot).episodesRoot;
-  let discovered;
-  try {
-    discovered = discoverEpisodeInputs({
-      episodesRoot,
-      season: resolved.season,
-      episode: resolved.episode,
-    });
-  } catch (error) {
-    if (args["episode-number"] !== undefined) {
-      throw error;
-    }
-    discovered = discoverLatestEpisodeInputs({ episodesRoot });
-    console.warn(
-      `Requested inferred episode ths-${String(resolved.season).padStart(2, "0")}-${String(resolved.episode).padStart(2, "0")} not found; using latest available on disk instead.`,
-    );
-  }
+  const { resolved, discovered, defaults } = prepareLaunch({ repoRoot, args });
   const port = 4173;
-
-  const defaults = {
-    mp3Path: discovered.mp3Path,
-    transcriptMdPath: discovered.transcriptMdPath,
-    transcriptVttPath: discovered.transcriptVttPath,
-    episodeTitle: discovered.episodeTitle,
-    publishDate: resolved.publishDate,
-  };
 
   const serverPath = path.join(__dirname, "web", "server.js");
   const { startServer } = require(serverPath);
@@ -254,7 +265,14 @@ async function main() {
   console.log(`UI opened: ${url}`);
 }
 
-main().catch((error) => {
-  console.error(`Post-processing failed: ${error.message}`);
-  process.exit(1);
-});
+module.exports = {
+  buildUiLaunchUrl,
+  prepareLaunch,
+};
+
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(`Post-processing failed: ${error.message}`);
+    process.exit(1);
+  });
+}

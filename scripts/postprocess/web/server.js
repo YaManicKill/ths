@@ -381,7 +381,7 @@ function deriveEpisodeOutputPaths({ repoRoot, discovered, mp3Path }) {
   };
 }
 
-function startServer({ port = 4173 } = {}) {
+function startServer({ port = 4173, onPortConflict } = {}) {
   const publicDir = path.join(__dirname, "public");
   const repoRoot = path.resolve(__dirname, "..", "..", "..");
   const manualImageDir = path.join(
@@ -1480,6 +1480,11 @@ function startServer({ port = 4173 } = {}) {
 
   server.on("error", (error) => {
     if (error.code === "EADDRINUSE") {
+      // The Electron app shows a dialog instead of dying to a console nobody sees.
+      if (typeof onPortConflict === "function") {
+        onPortConflict(error);
+        return;
+      }
       console.error(
         `Port ${port} is already in use - another postprocess UI is probably running.\n` +
           `Open http://localhost:${port} in your browser, or stop the other instance first.`,
