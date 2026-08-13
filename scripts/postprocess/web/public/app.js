@@ -1737,6 +1737,14 @@ restartProcessButton.addEventListener("click", async () => {
     );
     return;
   }
+  // A restart mid-clip-generation would clear the UI while the server keeps rendering,
+  // orphaning a run that can no longer be watched or cancelled from here.
+  if (isGeneratingClips || activeClipStatusFile) {
+    addStatus(
+      "Clip generation is in progress. Cancel it or wait for it to finish before restarting.",
+    );
+    return;
+  }
 
   const confirmed = window.confirm(
     "Clear and restart process? This will reset current review state (approvals, suggestions, and temporary overrides in this session).",
@@ -1750,7 +1758,11 @@ restartProcessButton.addEventListener("click", async () => {
   currentClipSuggestions = [];
   clipApprovalState = [];
   chapterImageOverrides = {};
+  currentTranscriptFindings = [];
+  mediumFixAccepted = {};
+  renderTranscriptFixSection();
   persistActiveVideoStatusFile("");
+  persistActiveClipStatusFile("");
   resetStatus();
   addStatus("↺ Process state cleared. Re-running discovery...");
   await runDiscovery();
