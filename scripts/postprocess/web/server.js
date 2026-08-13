@@ -1019,20 +1019,6 @@ function startServer({ port = 4173 } = {}) {
           return;
         }
 
-        const clipBaseDirectory = path.dirname(resolvedMp3Path);
-        const preferredClipImagePath = resolvePreferredClipImagePath({
-          resolvedMp3Path,
-          resolvedImagePath,
-        });
-
-        if (!preferredClipImagePath || !fs.existsSync(preferredClipImagePath)) {
-          sendJson(res, 400, {
-            success: false,
-            error: "Missing or invalid imagePath",
-          });
-          return;
-        }
-
         const discovered = payload.discoveryData
           ? JSON.parse(payload.discoveryData)
           : null;
@@ -1040,6 +1026,29 @@ function startServer({ port = 4173 } = {}) {
           sendJson(res, 400, {
             success: false,
             error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+
+        // After a page refresh the client no longer holds the run's cover path; the
+        // discovery snapshot still carries the cover art extracted at discovery, so
+        // clip generation works even without the Assets logo fallback.
+        const fallbackCoverPath =
+          discovered.fallbackCoverPath &&
+          fs.existsSync(discovered.fallbackCoverPath)
+            ? discovered.fallbackCoverPath
+            : null;
+
+        const clipBaseDirectory = path.dirname(resolvedMp3Path);
+        const preferredClipImagePath = resolvePreferredClipImagePath({
+          resolvedMp3Path,
+          resolvedImagePath: resolvedImagePath || fallbackCoverPath,
+        });
+
+        if (!preferredClipImagePath || !fs.existsSync(preferredClipImagePath)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid imagePath",
           });
           return;
         }
