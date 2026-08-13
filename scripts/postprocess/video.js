@@ -29,6 +29,13 @@ const RULE_WIDTH = 220;
 const RULE_HEIGHT = 8;
 const BRAND_ORANGE = "0xeb8807"; // sampled from HarvestSeason-FullLogo-FullColor-01.png
 
+// The clip progress bar: an inset, scrubber-style track floating above the bottom
+// edge, filling with brand orange over the clip's duration.
+const PROGRESS_BAR_MARGIN_X = 48;
+const PROGRESS_BAR_BOTTOM_OFFSET = 40;
+const PROGRESS_BAR_HEIGHT = 16;
+const PROGRESS_TRACK_COLOR = "black@0.45";
+
 let cachedFilters = null;
 
 function availableFfmpegFilters() {
@@ -83,7 +90,12 @@ function escapeFilterValue(value) {
     .replace(/\]/g, "\\]");
 }
 
-function buildClipVisualFilter({ overlay, subtitlesFile, fontsDir } = {}) {
+function buildClipVisualFilter({
+  overlay,
+  subtitlesFile,
+  fontsDir,
+  progressBarDurationSeconds,
+} = {}) {
   // format=yuv420p: the cover PNG carries an alpha channel through the whole chain, and
   // drawbox silently draws nothing on alpha frames.
   let graph =
@@ -128,6 +140,23 @@ function buildClipVisualFilter({ overlay, subtitlesFile, fontsDir } = {}) {
     graph += `,subtitles=filename=${escapeFilterValue(subtitlesFile)}${
       fontsDir ? `:fontsdir=${escapeFilterValue(fontsDir)}` : ""
     }`;
+  }
+
+  const barDuration = Number(progressBarDurationSeconds || 0);
+  if (barDuration > 1) {
+    const barWidth = CLIP_WIDTH - PROGRESS_BAR_MARGIN_X * 2;
+    const barY = CLIP_HEIGHT - PROGRESS_BAR_BOTTOM_OFFSET;
+    // drawbox cannot animate (its expressions evaluate once), so the fill is a solid
+    // strip slid rightward by overlay, whose position IS evaluated per frame. The
+    // sliding strip would bleed past the inset's left edge, so that margin is patched
+    // back over the top with a copy of the untouched frame region.
+    const slide = `${PROGRESS_BAR_MARGIN_X}-w+w*min(t/${barDuration.toFixed(3)}\\,1)`;
+    graph +=
+      `,drawbox=x=${PROGRESS_BAR_MARGIN_X}:y=${barY}:w=${barWidth}:h=${PROGRESS_BAR_HEIGHT}:color=${PROGRESS_TRACK_COLOR}:t=fill,split[base][patchsrc];` +
+      `color=c=${BRAND_ORANGE}:s=${barWidth}x${PROGRESS_BAR_HEIGHT},format=yuv420p[bar];` +
+      `[patchsrc]crop=${PROGRESS_BAR_MARGIN_X}:${PROGRESS_BAR_HEIGHT}:0:${barY}[patch];` +
+      `[base][bar]overlay=x='${slide}':y=${barY}:shortest=1[withbar];` +
+      `[withbar][patch]overlay=x=0:y=${barY}`;
   }
 
   return `${graph}[vout]`;
@@ -351,7 +380,12 @@ async function createStaticClipVideo({
       "-r",
       "30",
       "-filter_complex",
-      buildClipVisualFilter({ overlay, subtitlesFile, fontsDir }),
+      buildClipVisualFilter({
+        overlay,
+        subtitlesFile,
+        fontsDir,
+        progressBarDurationSeconds: duration,
+      }),
       "-map",
       "[vout]",
       "-pix_fmt",
@@ -436,7 +470,14 @@ async function createClipVideoWithAudio({
   // Streamed (async) spawn keeps the UI server's event loop free while ffmpeg runs.
   const result = await runCommandStream(
     "ffmpeg",
-    args(buildClipVisualFilter({ overlay, subtitlesFile, fontsDir })),
+    args(
+      buildClipVisualFilter({
+        overlay,
+        subtitlesFile,
+        fontsDir,
+        progressBarDurationSeconds: duration,
+      }),
+    ),
     {
       signal,
       onStderr: makeFfmpegProgressParser({
@@ -766,6 +807,7 @@ async function generateClipVideos({
 
 module.exports = {
   buildClipVideoOutputName,
+  buildClipVisualFilter,
   generateClipVideos,
   generateVideoFromChapters,
 };

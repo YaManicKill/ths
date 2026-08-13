@@ -72,7 +72,9 @@ Pressing Approve in the UI:
 
 Per-chapter images are used for the MP3 chapter metadata and the full-episode MP4. Clip
 videos deliberately do not use them: they use the show logo from the project `Assets`
-folder, falling back to the MP3 cover art.
+folder, falling back to the MP3 cover art. Each clip carries the episode title and date
+at the top, burned-in subtitles at the bottom, and an inset progress bar along the
+bottom edge that fills in brand orange over the clip's duration.
 
 ### Episode Number Inference
 
@@ -186,7 +188,3 @@ directory.
 ### TODOs
 
 - Electron wrapper around the UI, so the tool runs as a desktop app instead of a local server plus browser tab.
-
-### Clip Workflow TODOs
-
-- Add a playback/progress bar overlay to clips for social-style presentation.

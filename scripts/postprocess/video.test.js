@@ -2,8 +2,29 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { generateClipVideos } = require("./video");
+const { buildClipVisualFilter, generateClipVideos } = require("./video");
 const { runCommand } = require("./utils");
+
+// The progress bar rides on a per-frame overlay slide (drawbox cannot animate): the
+// fill must be driven by the clip duration, patched at the inset's left edge, and
+// absent entirely when no duration is known.
+const barFilter = buildClipVisualFilter({ progressBarDurationSeconds: 42.5 });
+assert.ok(
+  barFilter.includes("overlay=x='48-w+w*min(t/42.500\\,1)':y=1880:shortest=1"),
+  "progress fill is not slid by clip duration",
+);
+assert.ok(
+  barFilter.includes("drawbox=x=48:y=1880:w=984:h=16"),
+  "progress track missing or mis-sized",
+);
+assert.ok(barFilter.includes("crop=48:16:0:1880"), "left-margin patch missing");
+assert.ok(barFilter.endsWith("[vout]"));
+
+const bareFilter = buildClipVisualFilter({});
+assert.ok(
+  !bareFilter.includes("split") && !bareFilter.includes("overlay=x='"),
+  "progress bar must not render without a duration",
+);
 
 // Real episode folders live under "Google Drive/My Drive", so exercise a path with
 // spaces to keep the filtergraph escaping honest.
