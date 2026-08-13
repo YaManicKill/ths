@@ -1458,6 +1458,10 @@ async function pollVideoStatus(statusFile) {
         persistActiveVideoStatusFile("");
         setVideoRenderUiState(false);
         setVideoRenderCompletedUiState(false);
+        // Approve is enabled again after a failure, so what it acts on must be
+        // visible too - otherwise the re-approve happens blind.
+        previewSection.style.display = "block";
+        toggleOverridesButton.style.display = "inline-block";
         const interruptedByRestart =
           /interrupted \(server process restarted or exited\)/i.test(
             String(data.error || ""),
