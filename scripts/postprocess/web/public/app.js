@@ -1907,15 +1907,16 @@ async function executeClipGenerationRequest(request) {
   }
 }
 
-// Both buttons hit the same endpoint against the episode's written transcripts: apply
-// sends only the ticked medium-confidence fixes; recheck also re-runs the AI review of
-// the current file contents and auto-applies any high-confidence findings.
+// Both buttons hit the same endpoint against the episode's written transcripts, but
+// each does exactly what its label says: apply sends only the ticked
+// medium-confidence fixes; recheck re-runs the AI review of the current file contents
+// (auto-applying high-confidence findings) and leaves the ticks for the apply button.
 async function postTranscriptReview({ recheck }) {
   if (!currentDiscoveryData?.discoveryData) {
     addStatus("Run discovery first.");
     return;
   }
-  const ticked = getTickedTranscriptFixes();
+  const ticked = recheck ? [] : getTickedTranscriptFixes();
   if (!recheck && ticked.length === 0) {
     addStatus("No transcript fixes ticked.");
     return;
