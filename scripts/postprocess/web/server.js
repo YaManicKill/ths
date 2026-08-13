@@ -834,6 +834,17 @@ function startServer({ port = 4173 } = {}) {
           derivedVideoStatusFile,
         );
 
+        // Clip suggestions from a previous run/regenerate, so the cards (and the
+        // generate button) come back after a page refresh instead of requiring a
+        // fresh - and differently-picked - regeneration.
+        const episodeReportPath = path.join(
+          path.dirname(derivedVideoStatusFile),
+          "postprocess-report.json",
+        );
+        const episodeReport = fs.existsSync(episodeReportPath)
+          ? readJson(episodeReportPath, {})
+          : null;
+
         sendJson(res, 200, {
           success: true,
           progress: progressMessages,
@@ -861,6 +872,11 @@ function startServer({ port = 4173 } = {}) {
               transcriptVtt: discovered.profanityMatches.transcriptVtt,
             },
             videoStatus: discoveredVideoStatus,
+            existingClipSuggestions: Array.isArray(
+              episodeReport?.clipSuggestions,
+            )
+              ? episodeReport.clipSuggestions
+              : [],
           },
           discoveryData: JSON.stringify(discovered),
         });
@@ -1134,6 +1150,16 @@ function startServer({ port = 4173 } = {}) {
             transcriptVttText: vttText,
             maxSuggestions: 8,
           });
+        }
+
+        // The report is what discovery reads to restore the cards after a page
+        // refresh, so it must always hold the set the user last saw.
+        const reportPath = path.join(episodeDir, "postprocess-report.json");
+        if (fs.existsSync(reportPath)) {
+          const report = readJson(reportPath, {});
+          report.clipSuggestions = clipSuggestions;
+          report.clipSource = source;
+          writeJson(reportPath, report);
         }
 
         sendJson(res, 200, {

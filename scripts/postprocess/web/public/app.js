@@ -1272,7 +1272,6 @@ async function runDiscovery() {
     };
     setProcessActionsVisibility();
     currentRunResult = null;
-    renderClipSuggestions([]);
 
     const videoStatusState = String(
       result.discovered?.videoStatus?.status || "",
@@ -1284,6 +1283,20 @@ async function runDiscovery() {
     setVideoRenderUiState(hasActiveVideoRun);
     if (hasCompletedVideoRun) {
       setVideoRenderCompletedUiState(true);
+    }
+
+    // Suggestions the user already saw (from the last run or regenerate) come back
+    // rather than forcing a regeneration, which re-picks and loses the old set. This
+    // must run after the video-state calls above: setVideoRenderCompletedUiState hides
+    // the whole clip section, and renderClipSuggestions re-shows it.
+    const existingSuggestions =
+      result.discovered?.existingClipSuggestions || [];
+    clipApprovalState = [];
+    renderClipSuggestions(existingSuggestions);
+    if (existingSuggestions.length > 0 && !hasActiveVideoRun) {
+      addStatus(
+        `✓ Restored ${existingSuggestions.length} clip suggestion(s) from the last run`,
+      );
     }
 
     if (hasActiveVideoRun) {

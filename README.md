@@ -158,6 +158,10 @@ can't be located is discarded, so timings are never guessed. **Re-generate Clip
 Suggestions** re-runs the selection against the episode's written transcripts (cached by
 content, like the check, so it only costs a request after the transcript changes).
 
+The suggestion set you last saw is kept in the episode's `postprocess-report.json`, and
+discovery restores it after a page refresh or restart — regenerating is never required
+just to get the cards back, only to ask for a fresh set.
+
 On Gemini's free tier (a handful of requests per minute, ~20 per day) the first pass over
 a full episode costs about 3 requests — rate-limit responses are retried using the wait
 time Google's error suggests. Subsequent discoveries hit the cache and are instant. Free
