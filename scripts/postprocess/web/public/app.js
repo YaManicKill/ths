@@ -1494,15 +1494,36 @@ async function pollVideoStatus(statusFile) {
   // unreachable: loop returns on completion/failure states
 }
 
-function resumeVideoStatusPollingIfNeeded() {
+// Checks the real status before claiming anything: a render that finished while the
+// tab was closed used to greet the user with "Reconnected to in-progress MP4
+// generation" and only correct itself after the first poll interval.
+async function resumeVideoStatusPollingIfNeeded() {
   const statusFile = readPersistedVideoStatusFile();
   if (!statusFile) {
     return;
   }
 
-  startVideoStatusPolling(statusFile, {
-    startMessage: "⏳ Reconnected to in-progress MP4 generation after refresh",
-  });
+  let status = null;
+  try {
+    const res = await fetch(
+      `/api/video-status?statusFile=${encodeURIComponent(statusFile)}`,
+    );
+    status = await res.json();
+  } catch {
+    // Server briefly unreachable; the poller's own handling can sort it out.
+  }
+
+  if (!status || status.status === "started" || status.status === "pending") {
+    startVideoStatusPolling(statusFile, {
+      startMessage:
+        "⏳ Reconnected to in-progress MP4 generation after refresh",
+    });
+    return;
+  }
+
+  // Terminal or missing: nothing to reconnect to. Discovery reads the same status
+  // file for the current episode and reports it, so no extra message is needed.
+  persistActiveVideoStatusFile("");
 }
 
 function resumeVideoStatusPollingFromDiscover(videoStatus) {
@@ -1655,16 +1676,43 @@ function startClipStatusPolling(statusFile, { startMessage = "" } = {}) {
   return pollPromise;
 }
 
-function resumeClipStatusPollingIfNeeded() {
+async function resumeClipStatusPollingIfNeeded() {
   const statusFile = readPersistedClipStatusFile();
   if (!statusFile) {
     return;
   }
 
-  startClipStatusPolling(statusFile, {
-    startMessage:
-      "⏳ Reconnected to queued/in-progress clip generation after refresh",
-  });
+  let data = null;
+  try {
+    const res = await fetch(
+      `/api/video-status?statusFile=${encodeURIComponent(statusFile)}`,
+    );
+    data = await res.json();
+  } catch {
+    // Server briefly unreachable; the poller's own handling can sort it out.
+  }
+
+  const clip = data?.clipGeneration;
+  if (!data || (clip && ["waiting", "started"].includes(clip.status))) {
+    startClipStatusPolling(statusFile, {
+      startMessage:
+        "⏳ Reconnected to queued/in-progress clip generation after refresh",
+    });
+    return;
+  }
+
+  persistActiveClipStatusFile("");
+  if (clip?.status === "completed") {
+    addStatus(
+      `✓ Clip generation finished while the tab was closed (${clip.current || 0}/${clip.total || 0} clips).`,
+    );
+  } else if (clip?.status === "failed") {
+    addStatus(
+      `❌ The tracked clip generation failed: ${clip.error || "unknown error"}`,
+    );
+  } else if (clip?.status === "cancelled") {
+    addStatus("⏹ The tracked clip generation was cancelled.");
+  }
 }
 
 function resumeClipStatusPollingFromDiscover(videoStatus) {
