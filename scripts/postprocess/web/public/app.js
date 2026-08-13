@@ -44,7 +44,6 @@ let activeVideoStatusFile = null;
 let activeVideoStatusPoll = null;
 let activeClipStatusFile = null;
 let activeClipStatusPoll = null;
-let pendingClipGenerationRequest = null;
 let isGeneratingClips = false;
 let isVideoRenderInProgress = false;
 let isVideoRenderCompleted = false;
@@ -1877,7 +1876,6 @@ async function executeClipGenerationRequest(request) {
     : [];
   if (!suggestions.length) {
     addStatus("No approved clip suggestions to generate.");
-    pendingClipGenerationRequest = null;
     return;
   }
 
