@@ -104,6 +104,28 @@ assert.equal(
   "/repo/data/chapter-image-overrides.json",
 );
 
+// writeJson goes through a temp file and rename; the write must land, overwrite
+// existing content, and leave no temp file behind.
+{
+  const fsLocal = require("node:fs");
+  const osLocal = require("node:os");
+  const pathLocal = require("node:path");
+  const { readJson, writeJson } = require("./utils");
+  const dir = fsLocal.mkdtempSync(
+    pathLocal.join(osLocal.tmpdir(), "ths-json-"),
+  );
+  const target = pathLocal.join(dir, "nested", "state.json");
+  writeJson(target, { a: 1 });
+  writeJson(target, { a: 2 });
+  assert.deepEqual(readJson(target), { a: 2 });
+  assert.deepEqual(
+    fsLocal.readdirSync(pathLocal.dirname(target)),
+    ["state.json"],
+    "temp file left behind",
+  );
+  fsLocal.rmSync(dir, { recursive: true, force: true });
+}
+
 // Byte ranges for audio serving: the three header forms, clamping past EOF, and the
 // unsatisfiable cases that must produce a 416 rather than a broken stream.
 assert.deepEqual(parseByteRange("bytes=0-499", 1000), { start: 0, end: 499 });

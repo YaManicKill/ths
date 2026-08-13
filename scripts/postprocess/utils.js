@@ -21,9 +21,17 @@ function readJson(filePath, fallbackValue = null) {
   }
 }
 
+let writeJsonSequence = 0;
+
+// Write-then-rename, so readers polling the same file (the video status file, the
+// episode report) can never observe a truncated half-write - readJson would silently
+// hand its fallback back for one, resetting whatever state was being tracked.
 function writeJson(filePath, value) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  writeJsonSequence += 1;
+  const tempPath = `${filePath}.${process.pid}.${writeJsonSequence}.tmp`;
+  fs.writeFileSync(tempPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  fs.renameSync(tempPath, filePath);
 }
 
 function ensureDir(dirPath) {
