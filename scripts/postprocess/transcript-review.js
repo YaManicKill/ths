@@ -406,6 +406,7 @@ module.exports = {
   applyTranscriptFixes,
   chunkTranscript,
   mergeChunks,
+  quoteOccursIn,
   reviewTranscript,
   reviewTranscriptCached,
   selectTranscriptFixes,

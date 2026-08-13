@@ -6,6 +6,7 @@ const crypto = require("node:crypto");
 const { runPipeline, discoverEpisodeData } = require("../pipeline");
 const {
   applyTranscriptFixes,
+  quoteOccursIn,
   reviewTranscriptCached,
   selectTranscriptFixes,
 } = require("../transcript-review");
@@ -845,6 +846,27 @@ function startServer({ port = 4173 } = {}) {
           ? readJson(episodeReportPath, {})
           : null;
 
+        // Medium-confidence review findings come back too, minus any whose quote no
+        // longer appears in the episode transcript - those were applied (or hand-
+        // fixed) and would only offer a fix that cannot land.
+        const episodeMdPath = path.join(
+          path.dirname(derivedVideoStatusFile),
+          "transcript.md",
+        );
+        const episodeMdText =
+          episodeReport && fs.existsSync(episodeMdPath)
+            ? fs.readFileSync(episodeMdPath, "utf8")
+            : null;
+        const existingTranscriptFindings =
+          episodeMdText &&
+          Array.isArray(episodeReport?.transcriptReview?.findings)
+            ? episodeReport.transcriptReview.findings.filter(
+                (finding) =>
+                  finding.confidence !== "high" &&
+                  quoteOccursIn(episodeMdText, finding.quote),
+              )
+            : [];
+
         sendJson(res, 200, {
           success: true,
           progress: progressMessages,
@@ -877,6 +899,7 @@ function startServer({ port = 4173 } = {}) {
             )
               ? episodeReport.clipSuggestions
               : [],
+            existingTranscriptFindings,
           },
           discoveryData: JSON.stringify(discovered),
         });

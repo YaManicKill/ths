@@ -1298,6 +1298,18 @@ async function runDiscovery() {
       );
     }
 
+    // Unapplied medium-confidence findings come back the same way; ticks are keyed by
+    // quote, so any made before the refresh carry over.
+    const existingFindings =
+      result.discovered?.existingTranscriptFindings || [];
+    if (existingFindings.length > 0) {
+      currentTranscriptFindings = existingFindings;
+      renderTranscriptFixSection();
+      addStatus(
+        `⚠ Restored ${existingFindings.length} medium-confidence transcript suggestion(s) from the last run - review below`,
+      );
+    }
+
     if (hasActiveVideoRun) {
       addStatus(
         "⏳ MP4 render is already in progress; clip generation will be available when it completes.",
