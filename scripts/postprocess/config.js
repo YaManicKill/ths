@@ -88,9 +88,16 @@ function loadPostprocessConfig(repoRoot, configPath) {
   const localPath = path.join(path.dirname(fullPath), LOCAL_CONFIG_FILE_NAME);
   const localConfig = fileExists(localPath) ? readJson(localPath) : {};
 
-  const configuredProfanityWords = Array.isArray(fileConfig.profanityWords)
-    ? fileConfig.profanityWords
-    : [];
+  // Words from both files count: the local overlay is where words too crude for the
+  // public repo's committed config would go.
+  const configuredProfanityWords = [
+    ...(Array.isArray(fileConfig.profanityWords)
+      ? fileConfig.profanityWords
+      : []),
+    ...(Array.isArray(localConfig.profanityWords)
+      ? localConfig.profanityWords
+      : []),
+  ];
 
   const config = {
     ...DEFAULT_CONFIG,

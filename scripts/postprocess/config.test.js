@@ -37,6 +37,17 @@ const words = loadPostprocessConfig(
 assert.ok(words.includes("bananas*"), "configured word missing");
 assert.ok(words.includes("fuck*"), "default word was dropped");
 
+// Words in the gitignored local overlay count too.
+const localWordsRoot = rootWith({ profanityWords: ["mainword*"] });
+fs.writeFileSync(
+  path.join(localWordsRoot, "postprocess.config.local.json"),
+  JSON.stringify({ profanityWords: ["localword*"] }),
+);
+const overlayWords = loadPostprocessConfig(localWordsRoot).profanityWords;
+assert.ok(overlayWords.includes("localword*"), "local overlay word dropped");
+assert.ok(overlayWords.includes("mainword*"), "main config word dropped");
+assert.ok(overlayWords.includes("fuck*"), "default word dropped in overlay");
+
 // Bad values must fail at load with a message naming the key, not silently or deep in Intl.
 const rejected = [
   ["timezone", { timezone: "Europe/Lundon" }],
