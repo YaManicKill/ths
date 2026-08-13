@@ -135,6 +135,14 @@ async function main() {
             reason: "hallucinated",
             confidence: "high",
           },
+          // Only present as a substring of "grow weight"; the word-boundary guard
+          // must reject it like any other hallucination.
+          {
+            quote: "row weight",
+            correction: "row wait",
+            reason: "substring-only",
+            confidence: "high",
+          },
         ],
       };
     },
@@ -235,6 +243,29 @@ async function main() {
     { quote: "grow weight", correction: "grow wings and gain weight" },
   ]);
   assert.equal(growResult.text, "ants grow wings and gain weight fast");
+
+  // Quotes match on word boundaries: a "Cody" -> "Codey" fix must correct the
+  // misspelling without rewriting the already-correct name into "Codeyey", and a quote
+  // that only exists inside a longer word is a miss, not a match.
+  const nameResult = applyTranscriptFixes(
+    "Cody: I agree with Codey. **Cody:** said so.",
+    [{ quote: "Cody", correction: "Codey" }],
+  );
+  assert.equal(
+    nameResult.text,
+    "Codey: I agree with Codey. **Codey:** said so.",
+  );
+  const substringResult = applyTranscriptFixes("Only Codey is here.", [
+    { quote: "Cody", correction: "Codey" },
+  ]);
+  assert.equal(substringResult.text, "Only Codey is here.");
+  assert.equal(substringResult.missed.length, 1);
+
+  // Regex metacharacters in quotes and "$" sequences in corrections are literal.
+  const metaResult = applyTranscriptFixes("cost is $10 (roughly).", [
+    { quote: "$10 (roughly)", correction: "$20 ($& exactly)" },
+  ]);
+  assert.equal(metaResult.text, "cost is $20 ($& exactly).");
 
   // Default selection is high-confidence only; an explicit list wins outright.
   const mixedReview = {

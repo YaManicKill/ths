@@ -208,12 +208,29 @@ function mergeChunks(chunks, mergeBudgetChars) {
   }));
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// All quote matching is word-bounded: a quote that starts or ends mid-letter must not
+// match inside a longer word, or a high-confidence "Cody" -> "Codey" finding would
+// silently rewrite every correct "Codey" into "Codeyey" across both transcripts.
+function quotePattern(quote) {
+  const leading = /^[a-z0-9]/i.test(quote) ? "(?<![A-Za-z0-9])" : "";
+  const trailing = /[a-z0-9]$/i.test(quote) ? "(?![A-Za-z0-9])" : "";
+  return new RegExp(`${leading}${escapeRegExp(quote)}${trailing}`, "g");
+}
+
+function quoteOccursIn(text, quote) {
+  return quotePattern(quote).test(text);
+}
+
 function lineNumberOf(haystack, needle) {
-  const index = haystack.indexOf(needle);
-  if (index === -1) {
+  const match = quotePattern(needle).exec(haystack);
+  if (!match) {
     return null;
   }
-  return haystack.slice(0, index).split("\n").length;
+  return haystack.slice(0, match.index).split("\n").length;
 }
 
 async function mapWithConcurrency(items, limit, worker) {
@@ -288,7 +305,7 @@ async function reviewTranscript({
       }
       // The model must quote verbatim; anything not present in the transcript is a
       // hallucination and gets dropped rather than shown as a bogus warning.
-      if (!transcriptMdText.includes(quote)) {
+      if (!quoteOccursIn(transcriptMdText, quote)) {
         continue;
       }
       seenQuotes.add(quote);
@@ -336,11 +353,12 @@ function applyTranscriptFixes(text, fixes) {
     if (!quote || !correction || quote === correction) {
       continue;
     }
-    if (!result.includes(quote)) {
+    if (!quoteOccursIn(result, quote)) {
       missed.push(fix);
       continue;
     }
-    result = result.split(quote).join(correction);
+    // Function replacement so "$" sequences in a correction are inserted literally.
+    result = result.replace(quotePattern(quote), () => correction);
     applied.push(fix);
   }
 
