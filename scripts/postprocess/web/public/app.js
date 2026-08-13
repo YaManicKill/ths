@@ -21,6 +21,7 @@ const clipSuggestionsSection = document.getElementById(
   "clip-suggestions-section",
 );
 const clipSuggestionsList = document.getElementById("clip-suggestions-list");
+const clipQueueNote = document.getElementById("clip-queue-note");
 const transcriptReviewSection = document.getElementById(
   "transcript-review-section",
 );
@@ -46,6 +47,10 @@ let activeClipStatusFile = null;
 let activeClipStatusPoll = null;
 let isGeneratingClips = false;
 let isVideoRenderInProgress = false;
+// True only while the /api/run request itself is outstanding: the run rewrites the MP3
+// (chapter-image embed) that clip generation reads, so queueing must wait for the
+// response even though the clip section stays visible.
+let isRunRequestInFlight = false;
 let isVideoRenderCompleted = false;
 let chapterImageOverrides = {}; // Track uploaded replacement images by chapter index
 let currentTranscriptFindings = [];
@@ -67,19 +72,18 @@ function setVideoRenderUiState(inProgress) {
   if (isVideoRenderInProgress) {
     toggleOverridesButton.style.display = "none";
     previewSection.style.display = "none";
-    clipSuggestionsSection.style.display = "none";
     approveButton.disabled = true;
-    generateClipVideosButton.style.display = "none";
     rerenderMp4Button.disabled = true;
     restartProcessButton.disabled = true;
-    regenerateClipsButton.disabled = true;
-    return;
+  } else {
+    approveButton.disabled = false;
+    rerenderMp4Button.disabled = false;
+    restartProcessButton.disabled = false;
   }
 
-  approveButton.disabled = false;
-  rerenderMp4Button.disabled = false;
-  restartProcessButton.disabled = false;
-  regenerateClipsButton.disabled = false;
+  // The clip section stays usable either way; re-render so the queue note and the
+  // generate button reflect the new state.
+  renderClipSuggestions(currentClipSuggestions);
 }
 
 function setVideoRenderCompletedUiState(completed) {
@@ -997,13 +1001,13 @@ function renderClipSuggestions(suggestions) {
   clipApprovalState = nextApprovalState;
   clipSuggestionsList.innerHTML = "";
 
-  if (isVideoRenderInProgress) {
-    clipSuggestionsSection.style.display = "none";
-    return;
-  }
-
+  // The cards stay on screen during an MP4 render - the server queues generation
+  // behind the render ("waiting" state), so clips can be reviewed and queued instead
+  // of waiting for the render to finish. Only while the Approve request itself is in
+  // flight is generation held back: the run rewrites the MP3 clips read from.
+  clipQueueNote.style.display = isVideoRenderInProgress ? "block" : "none";
   generateClipVideosButton.style.display = "inline-block";
-  generateClipVideosButton.disabled = false;
+  generateClipVideosButton.disabled = isRunRequestInFlight;
 
   if (currentClipSuggestions.length === 0) {
     clipSuggestionsSection.style.display = "none";
@@ -1877,13 +1881,6 @@ rerenderMp4Button.addEventListener("click", async () => {
 });
 
 regenerateClipsButton.addEventListener("click", async () => {
-  if (isVideoRenderInProgress) {
-    addStatus(
-      "MP4 render is in progress. Clip suggestions will be available after completion.",
-    );
-    return;
-  }
-
   if (!currentDiscoveryData?.discoveryData) {
     addStatus("Run discovery first.");
     return;
@@ -2092,6 +2089,7 @@ recheckTranscriptButton.addEventListener("click", () => {
 approveButton.addEventListener("click", async () => {
   approveButton.disabled = true;
   toggleOverridesButton.style.display = "none";
+  isRunRequestInFlight = true;
   setVideoRenderUiState(true);
   resetStatus();
   const runFormData = new FormData(form);
@@ -2259,6 +2257,8 @@ approveButton.addEventListener("click", async () => {
     }
     addStatus(`❌ Request failed: ${error.message}`);
   } finally {
+    isRunRequestInFlight = false;
+    renderClipSuggestions(currentClipSuggestions);
     if (!isVideoRenderInProgress) {
       approveButton.disabled = false;
     }
@@ -2274,6 +2274,13 @@ toggleOverridesButton.addEventListener("click", () => {
 });
 
 generateClipVideosButton.addEventListener("click", async () => {
+  // Checked before the panel is cleared below - executeClipGenerationRequest's own
+  // guard returns silently, which would eat the suggestions with no feedback.
+  if (isGeneratingClips) {
+    addStatus("Clip generation is already in progress.");
+    return;
+  }
+
   const approvedSuggestions = getApprovedClipSuggestions();
   if (!approvedSuggestions.length) {
     addStatus("No approved clip suggestions to generate.");
