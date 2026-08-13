@@ -392,6 +392,7 @@ function startServer({ port = 4173 } = {}) {
   const chapterOverridesPath = chapterImageOverridesPath(repoRoot);
   const activeVideoStatusFiles = new Set();
   const activeClipGenerationStatusFiles = new Set();
+  const clipGenerationAbortControllers = new Map();
 
   function saveChapterOverride(chapterTitle, filePath) {
     const key = normalizeTitle(chapterTitle);
@@ -464,8 +465,13 @@ function startServer({ port = 4173 } = {}) {
     return existing.clipGeneration;
   }
 
-  async function waitForVideoCompletion(statusFile) {
+  async function waitForVideoCompletion(statusFile, signal) {
     for (;;) {
+      if (signal?.aborted) {
+        const error = new Error("Clip generation cancelled");
+        error.name = "AbortError";
+        throw error;
+      }
       const current = readNormalizedVideoStatus(statusFile);
       if (current.status === "completed" || current.status === "skipped") {
         return current;
@@ -516,6 +522,8 @@ function startServer({ port = 4173 } = {}) {
     transcriptVttText,
   }) {
     activeClipGenerationStatusFiles.add(statusFile);
+    const abortController = new AbortController();
+    clipGenerationAbortControllers.set(statusFile, abortController);
 
     const total = clipSuggestions.length;
     const initialVideoStatus = readNormalizedVideoStatus(statusFile);
@@ -542,7 +550,7 @@ function startServer({ port = 4173 } = {}) {
 
       try {
         if (shouldWaitForVideo) {
-          await waitForVideoCompletion(statusFile);
+          await waitForVideoCompletion(statusFile, abortController.signal);
           updateClipGenerationStatus(
             statusFile,
             buildClipGenerationState({
@@ -564,6 +572,7 @@ function startServer({ port = 4173 } = {}) {
           episodeTitle,
           episodeDateString,
           transcriptVttText,
+          signal: abortController.signal,
           onProgress: (progress) => {
             lastProgress = progress;
             updateClipGenerationStatus(
@@ -591,20 +600,35 @@ function startServer({ port = 4173 } = {}) {
           completedAt: new Date().toISOString(),
         });
       } catch (error) {
-        updateClipGenerationStatus(statusFile, {
-          ...buildClipGenerationState({
-            status: "failed",
-            total,
-            current: lastProgress.current,
-            percent: lastProgress.percent,
-            outputs: [],
-            waitingForVideo: false,
-            error: error.message,
-          }),
-          failedAt: new Date().toISOString(),
-        });
+        if (abortController.signal.aborted) {
+          updateClipGenerationStatus(statusFile, {
+            ...buildClipGenerationState({
+              status: "cancelled",
+              total,
+              current: lastProgress.current,
+              percent: lastProgress.percent,
+              outputs: [],
+              waitingForVideo: false,
+            }),
+            cancelledAt: new Date().toISOString(),
+          });
+        } else {
+          updateClipGenerationStatus(statusFile, {
+            ...buildClipGenerationState({
+              status: "failed",
+              total,
+              current: lastProgress.current,
+              percent: lastProgress.percent,
+              outputs: [],
+              waitingForVideo: false,
+              error: error.message,
+            }),
+            failedAt: new Date().toISOString(),
+          });
+        }
       } finally {
         activeClipGenerationStatusFiles.delete(statusFile);
+        clipGenerationAbortControllers.delete(statusFile);
       }
     });
   }
@@ -930,6 +954,29 @@ function startServer({ port = 4173 } = {}) {
         sendJson(res, 200, normalized);
       } catch {
         sendJson(res, 200, { status: "pending" });
+      }
+      return;
+    }
+
+    // Aborts an in-flight clip generation: the signal kills the current ffmpeg child,
+    // the truncated output file is removed, and the status file records "cancelled".
+    if (req.method === "POST" && pathname === "/api/cancel-clip-generation") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+        const statusFile = String(payload.statusFile || "").trim();
+        const controller = clipGenerationAbortControllers.get(statusFile);
+        if (!controller) {
+          sendJson(res, 400, {
+            success: false,
+            error: "No clip generation in progress for that status file",
+          });
+          return;
+        }
+        controller.abort();
+        sendJson(res, 200, { success: true });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
       }
       return;
     }

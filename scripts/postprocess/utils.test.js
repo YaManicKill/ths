@@ -4,6 +4,7 @@ const {
   formatZonedTimestamp,
   getUpcomingWednesdayDateString,
   parseByteRange,
+  runCommandStream,
 } = require("./utils");
 
 function realOffsetFor(stamp, timezone) {
@@ -121,4 +122,27 @@ assert.equal(parseByteRange("bytes=0-", 0), null);
 
 console.log("utils test passed", {
   wednesdaysChecked: wednesdaySamples.length,
+});
+
+// Aborting the signal must kill the spawned process and reject, rather than waiting
+// out the command - this is what the clip generation cancel button relies on.
+(async () => {
+  const controller = new AbortController();
+  const startedAt = Date.now();
+  const pending = runCommandStream(
+    "node",
+    ["-e", "setTimeout(() => {}, 30000)"],
+    { signal: controller.signal },
+  );
+  setTimeout(() => controller.abort(), 100);
+
+  await assert.rejects(pending, (error) => error.name === "AbortError");
+  assert.ok(
+    Date.now() - startedAt < 10_000,
+    "abort should not wait for the command to finish",
+  );
+  console.log("runCommandStream abort test passed");
+})().catch((error) => {
+  console.error("runCommandStream abort test failed:", error.message);
+  process.exit(1);
 });

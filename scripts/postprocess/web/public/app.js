@@ -31,6 +31,7 @@ const applyTranscriptFixesButton = document.getElementById(
 const recheckTranscriptButton = document.getElementById(
   "recheck-transcript-button",
 );
+const cancelClipsButton = document.getElementById("cancel-clips-button");
 const generateClipVideosButton = document.getElementById(
   "generate-clip-videos-button",
 );
@@ -1540,6 +1541,15 @@ async function pollClipGenerationStatus(statusFile) {
         );
         return { status: "failed", clipGeneration: clip };
       }
+
+      if (clip.status === "cancelled") {
+        persistActiveClipStatusFile("");
+        setStatusLine(
+          lineId,
+          `⏹ Clip generation cancelled after ${clip.current || 0}/${clip.total || 0} clip(s) finished`,
+        );
+        return { status: "cancelled", clipGeneration: clip };
+      }
     } catch {
       // keep polling
     }
@@ -1560,6 +1570,8 @@ function startClipStatusPolling(statusFile, { startMessage = "" } = {}) {
   }
 
   activeClipStatusFile = normalizedStatusFile;
+  cancelClipsButton.style.display = "inline-block";
+  cancelClipsButton.disabled = false;
   if (startMessage) {
     addStatus(startMessage);
   }
@@ -1574,6 +1586,7 @@ function startClipStatusPolling(statusFile, { startMessage = "" } = {}) {
       }
       if (activeClipStatusFile === normalizedStatusFile) {
         activeClipStatusFile = null;
+        cancelClipsButton.style.display = "none";
       }
       isGeneratingClips = false;
     },
@@ -1907,6 +1920,34 @@ async function postTranscriptReview({ recheck }) {
     recheckTranscriptButton.disabled = false;
   }
 }
+
+cancelClipsButton.addEventListener("click", async () => {
+  if (!activeClipStatusFile) {
+    addStatus("No clip generation in progress.");
+    return;
+  }
+
+  cancelClipsButton.disabled = true;
+  try {
+    const response = await fetch("/api/cancel-clip-generation", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ statusFile: activeClipStatusFile }),
+    });
+    const body = await response.json();
+    if (!response.ok || !body.success) {
+      throw new Error(body.error || "Cancel request failed");
+    }
+    // The poller reports the actual "cancelled" state once the server has killed
+    // ffmpeg and written it; this line just acknowledges the click immediately.
+    addStatus("⏹ Cancelling clip generation...");
+  } catch (error) {
+    cancelClipsButton.disabled = false;
+    addStatus(`❌ Cancel failed: ${error.message}`);
+  }
+});
 
 applyTranscriptFixesButton.addEventListener("click", () => {
   postTranscriptReview({ recheck: false });

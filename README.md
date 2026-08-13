@@ -186,7 +186,6 @@ directory.
 ### TODOs
 
 - Electron wrapper around the UI, so the tool runs as a desktop app instead of a local server plus browser tab.
-- Add a cancel button for in-progress clip generation. Now that ffmpeg runs async, an in-flight run can be killed instead of needing a server restart.
 
 ### Clip Workflow TODOs
 

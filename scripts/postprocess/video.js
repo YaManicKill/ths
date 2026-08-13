@@ -333,6 +333,7 @@ async function createStaticClipVideo({
   overlay,
   subtitlesFile,
   fontsDir,
+  signal,
   onProgress = () => {},
 }) {
   const duration = Math.max(0.2, Number(durationSeconds || 0));
@@ -361,6 +362,7 @@ async function createStaticClipVideo({
       outputPath,
     ],
     {
+      signal,
       onStderr: makeFfmpegProgressParser({
         durationSeconds: duration,
         onSeconds: onProgress,
@@ -384,6 +386,7 @@ async function createClipVideoWithAudio({
   overlay,
   subtitlesFile,
   fontsDir,
+  signal,
   onProgress = () => {},
 }) {
   const duration = Math.max(0.2, Number(durationSeconds || 0));
@@ -435,6 +438,7 @@ async function createClipVideoWithAudio({
     "ffmpeg",
     args(buildClipVisualFilter({ overlay, subtitlesFile, fontsDir })),
     {
+      signal,
       onStderr: makeFfmpegProgressParser({
         durationSeconds: duration,
         onSeconds: onProgress,
@@ -609,6 +613,12 @@ async function generateVideoFromChapters({
   return outputPath;
 }
 
+function clipCancelledError() {
+  const error = new Error("Clip generation cancelled");
+  error.name = "AbortError";
+  return error;
+}
+
 async function generateClipVideos({
   clipSuggestions,
   imagePath,
@@ -619,6 +629,7 @@ async function generateClipVideos({
   episodeDateString,
   transcriptVttText,
   startIndex = 0,
+  signal,
   onProgress = () => {},
 }) {
   if (!Array.isArray(clipSuggestions) || clipSuggestions.length === 0) {
@@ -693,28 +704,44 @@ async function generateClipVideos({
       name: `subs-${String(absoluteIndex + 1).padStart(3, "0")}`,
     });
 
-    if (mp3Path) {
-      await createClipVideoWithAudio({
-        imagePath,
-        mp3Path,
-        startSeconds,
-        durationSeconds,
-        outputPath,
-        overlay,
-        subtitlesFile,
-        fontsDir,
-        onProgress: onRenderProgress,
-      });
-    } else {
-      await createStaticClipVideo({
-        imagePath,
-        durationSeconds,
-        outputPath,
-        overlay,
-        subtitlesFile,
-        fontsDir,
-        onProgress: onRenderProgress,
-      });
+    if (signal?.aborted) {
+      throw clipCancelledError();
+    }
+
+    try {
+      if (mp3Path) {
+        await createClipVideoWithAudio({
+          imagePath,
+          mp3Path,
+          startSeconds,
+          durationSeconds,
+          outputPath,
+          overlay,
+          subtitlesFile,
+          fontsDir,
+          signal,
+          onProgress: onRenderProgress,
+        });
+      } else {
+        await createStaticClipVideo({
+          imagePath,
+          durationSeconds,
+          outputPath,
+          overlay,
+          subtitlesFile,
+          fontsDir,
+          signal,
+          onProgress: onRenderProgress,
+        });
+      }
+    } catch (error) {
+      // Aborting kills ffmpeg mid-write; remove the truncated file so a cancelled run
+      // never leaves an unplayable clip lying next to the finished ones.
+      if (signal?.aborted) {
+        fs.rmSync(outputPath, { force: true });
+        throw clipCancelledError();
+      }
+      throw error;
     }
 
     const summary =
