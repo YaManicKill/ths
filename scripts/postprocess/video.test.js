@@ -27,8 +27,9 @@ assert.ok(
 );
 
 // Real episode folders live under "Google Drive/My Drive", so exercise a path with
-// spaces to keep the filtergraph escaping honest.
-const base = fs.mkdtempSync(path.join(os.tmpdir(), "ths video test "));
+// spaces - plus an apostrophe, comma, semicolon and colon, every character the two
+// levels of filtergraph parsing treat as special - to keep the escaping honest.
+const base = fs.mkdtempSync(path.join(os.tmpdir(), "ths video's,;:test "));
 
 const imagePath = path.join(base, "img.png");
 const mp3Path = path.join(base, "audio.mp3");

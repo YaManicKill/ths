@@ -77,17 +77,16 @@ function assertFfmpegFilters(required) {
   );
 }
 
-// Paths reach ffmpeg inside a filtergraph, where ":" separates options and "," separates
-// filters. Episode work dirs live under "Google Drive/My Drive/...", and Windows font
-// paths contain both a colon and backslashes, so values have to be escaped.
+// Filtergraph values pass through two parsers: the graph tokenizer (which splits on
+// ":" "," ";" "[" "]" and honors '...' quoting) and then the option parser (where
+// backslash, quote and colon are special). One round of backslash escaping satisfies
+// only the first parser, which then hands the second a bare separator - an apostrophe
+// in a path ("Al's Drive") broke renders that way. So: escape for the option parser
+// first, then single-quote the whole value for the tokenizer; quoting protects every
+// separator, and an embedded quote is written by closing, escaping, reopening ('\'').
 function escapeFilterValue(value) {
-  return String(value)
-    .replace(/\\/g, "\\\\")
-    .replace(/'/g, "\\'")
-    .replace(/:/g, "\\:")
-    .replace(/,/g, "\\,")
-    .replace(/\[/g, "\\[")
-    .replace(/\]/g, "\\]");
+  const optionEscaped = String(value).replace(/[\\':]/g, (c) => `\\${c}`);
+  return `'${optionEscaped.split("'").join("'\\''")}'`;
 }
 
 function buildClipVisualFilter({
