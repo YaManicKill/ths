@@ -224,6 +224,38 @@ function getUpcomingWednesdayDateString({
   return formatZonedTimestamp({ ...target, time, timezone });
 }
 
+// Parses an HTTP Range header against a file size. Returns {start, end} (inclusive
+// byte offsets), null when there is no usable range (serve the whole file with 200),
+// or "unsatisfiable" (respond 416). Only single ranges are supported; multipart
+// ranges are treated as no range, which is a legal downgrade.
+function parseByteRange(rangeHeader, size) {
+  const match = /^bytes=(\d*)-(\d*)$/.exec(String(rangeHeader || "").trim());
+  if (!match || size <= 0) {
+    return null;
+  }
+
+  const [, rawStart, rawEnd] = match;
+  if (rawStart === "" && rawEnd === "") {
+    return null;
+  }
+
+  if (rawStart === "") {
+    // Suffix form "bytes=-N": the final N bytes.
+    const suffixLength = Number(rawEnd);
+    if (suffixLength === 0) {
+      return "unsatisfiable";
+    }
+    return { start: Math.max(0, size - suffixLength), end: size - 1 };
+  }
+
+  const start = Number(rawStart);
+  const end = rawEnd === "" ? size - 1 : Math.min(Number(rawEnd), size - 1);
+  if (start >= size || start > end) {
+    return "unsatisfiable";
+  }
+  return { start, end };
+}
+
 function createOrCheckoutEpisodeBranch(repoRoot, seasonCode, episodeCode) {
   const branchName = `ep-${seasonCode}-${episodeCode}`;
 
@@ -268,6 +300,7 @@ module.exports = {
   formatZonedTimestamp,
   getUpcomingWednesdayDateString,
   normalizeTitle,
+  parseByteRange,
   readJson,
   runCommand,
   runCommandStream,

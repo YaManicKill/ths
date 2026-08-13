@@ -3,6 +3,7 @@ const {
   chapterImageOverridesPath,
   formatZonedTimestamp,
   getUpcomingWednesdayDateString,
+  parseByteRange,
 } = require("./utils");
 
 function realOffsetFor(stamp, timezone) {
@@ -101,6 +102,22 @@ assert.equal(
   chapterImageOverridesPath("/repo"),
   "/repo/data/chapter-image-overrides.json",
 );
+
+// Byte ranges for audio serving: the three header forms, clamping past EOF, and the
+// unsatisfiable cases that must produce a 416 rather than a broken stream.
+assert.deepEqual(parseByteRange("bytes=0-499", 1000), { start: 0, end: 499 });
+assert.deepEqual(parseByteRange("bytes=500-", 1000), { start: 500, end: 999 });
+assert.deepEqual(parseByteRange("bytes=-200", 1000), { start: 800, end: 999 });
+assert.deepEqual(parseByteRange("bytes=0-9999", 1000), { start: 0, end: 999 });
+assert.deepEqual(parseByteRange("bytes=-9999", 1000), { start: 0, end: 999 });
+assert.equal(parseByteRange("bytes=1000-", 1000), "unsatisfiable");
+assert.equal(parseByteRange("bytes=700-600", 1000), "unsatisfiable");
+assert.equal(parseByteRange("bytes=-0", 1000), "unsatisfiable");
+assert.equal(parseByteRange(undefined, 1000), null);
+assert.equal(parseByteRange("bytes=-", 1000), null);
+assert.equal(parseByteRange("bytes=0-100,200-300", 1000), null);
+assert.equal(parseByteRange("items=0-100", 1000), null);
+assert.equal(parseByteRange("bytes=0-", 0), null);
 
 console.log("utils test passed", {
   wednesdaysChecked: wednesdaySamples.length,

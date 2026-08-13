@@ -186,9 +186,7 @@ directory.
 ### TODOs
 
 - Electron wrapper around the UI, so the tool runs as a desktop app instead of a local server plus browser tab.
-- Preview clips before approving them: range-serve the MP3 so each suggestion card has a play button, instead of approving from a text summary alone.
 - Add a cancel button for in-progress clip generation. Now that ffmpeg runs async, an in-flight run can be killed instead of needing a server restart.
-- Decide how the status file should behave when a CLI run and the UI server are both open. They are separate processes writing the same `video-status.json`, and each fully overwrites it.
 
 ### Clip Workflow TODOs
 

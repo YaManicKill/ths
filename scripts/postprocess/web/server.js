@@ -17,6 +17,7 @@ const { loadPostprocessConfig } = require("../config");
 const {
   chapterImageOverridesPath,
   normalizeTitle,
+  parseByteRange,
   readJson,
   runCommand,
   writeJson,
@@ -714,6 +715,64 @@ function startServer({ port = 4173 } = {}) {
         res.setHeader("Content-Type", contentTypeForImage(imagePath));
         res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
         fs.createReadStream(imagePath).pipe(res);
+      } catch {
+        res.statusCode = 404;
+        res.end("Not Found");
+      }
+      return;
+    }
+
+    // Streams the episode MP3 with Range support so the browser can seek straight to a
+    // clip's start time for in-card preview, without any pre-generated audio files.
+    if (req.method === "GET" && pathname === "/api/audio") {
+      const audioPath = parsedUrl.searchParams.get("path");
+      if (
+        !audioPath ||
+        !path.isAbsolute(audioPath) ||
+        path.extname(audioPath).toLowerCase() !== ".mp3"
+      ) {
+        res.statusCode = 400;
+        res.end("Bad audio path");
+        return;
+      }
+
+      try {
+        const stat = fs.statSync(audioPath);
+        if (!stat.isFile()) {
+          res.statusCode = 404;
+          res.end("Not Found");
+          return;
+        }
+
+        const range = parseByteRange(req.headers.range, stat.size);
+        res.setHeader("Accept-Ranges", "bytes");
+        res.setHeader("Content-Type", "audio/mpeg");
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+
+        if (range === "unsatisfiable") {
+          res.statusCode = 416;
+          res.setHeader("Content-Range", `bytes */${stat.size}`);
+          res.end();
+          return;
+        }
+
+        if (range) {
+          res.statusCode = 206;
+          res.setHeader(
+            "Content-Range",
+            `bytes ${range.start}-${range.end}/${stat.size}`,
+          );
+          res.setHeader("Content-Length", range.end - range.start + 1);
+          fs.createReadStream(audioPath, {
+            start: range.start,
+            end: range.end,
+          }).pipe(res);
+          return;
+        }
+
+        res.statusCode = 200;
+        res.setHeader("Content-Length", stat.size);
+        fs.createReadStream(audioPath).pipe(res);
       } catch {
         res.statusCode = 404;
         res.end("Not Found");

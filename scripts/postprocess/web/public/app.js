@@ -914,7 +914,79 @@ function renderDiscoverySummary(discovered) {
   discoverySummaryContent.textContent = lines.join("\n");
 }
 
+// One shared player: starting a preview stops any other, and playback pauses itself
+// once it passes the clip's end time. The source MP3 is range-served, so seeking to a
+// clip deep into the episode is immediate.
+let clipPreviewAudio = null;
+let clipPreviewSrcPath = null;
+let clipPreviewStopAt = Infinity;
+let clipPreviewButton = null;
+
+function stopClipPreview() {
+  if (clipPreviewAudio) {
+    clipPreviewAudio.pause();
+  }
+  if (clipPreviewButton) {
+    clipPreviewButton.textContent = "▶ Preview";
+    clipPreviewButton = null;
+  }
+}
+
+function playClipPreview(suggestion, button) {
+  if (clipPreviewButton === button) {
+    stopClipPreview();
+    return;
+  }
+
+  const mp3Path = buildDiscoverPayload().mp3Path;
+  if (!mp3Path) {
+    addStatus("❌ No MP3 path set; cannot preview audio.");
+    return;
+  }
+
+  stopClipPreview();
+
+  if (!clipPreviewAudio) {
+    clipPreviewAudio = new Audio();
+    clipPreviewAudio.addEventListener("timeupdate", () => {
+      if (clipPreviewAudio.currentTime >= clipPreviewStopAt) {
+        stopClipPreview();
+      }
+    });
+    clipPreviewAudio.addEventListener("ended", stopClipPreview);
+  }
+
+  const startSeconds = Math.max(0, Number(suggestion.startSeconds) || 0);
+  clipPreviewStopAt = Number(suggestion.endSeconds)
+    ? Number(suggestion.endSeconds)
+    : startSeconds + (Number(suggestion.durationSeconds) || 60);
+
+  const src = `/api/audio?path=${encodeURIComponent(mp3Path)}`;
+  const seekAndPlay = () => {
+    clipPreviewAudio.currentTime = startSeconds;
+    clipPreviewAudio
+      .play()
+      .catch((error) => addStatus(`❌ Audio preview failed: ${error.message}`));
+  };
+
+  if (clipPreviewSrcPath === mp3Path && clipPreviewAudio.readyState >= 1) {
+    seekAndPlay();
+  } else {
+    clipPreviewSrcPath = mp3Path;
+    clipPreviewAudio.src = src;
+    clipPreviewAudio.addEventListener("loadedmetadata", seekAndPlay, {
+      once: true,
+    });
+  }
+
+  button.textContent = "■ Stop";
+  clipPreviewButton = button;
+}
+
 function renderClipSuggestions(suggestions) {
+  // Re-rendering replaces the card nodes, which would orphan a playing preview's
+  // Stop button.
+  stopClipPreview();
   currentClipSuggestions = Array.isArray(suggestions) ? suggestions : [];
   const nextApprovalState = [];
 
@@ -1023,6 +1095,21 @@ function renderClipSuggestions(suggestions) {
 
     const controls = document.createElement("div");
     controls.style.cssText = "display:flex; gap:8px;";
+
+    const previewButton = document.createElement("button");
+    previewButton.type = "button";
+    previewButton.textContent = "▶ Preview";
+    previewButton.style.cssText = `
+      padding: 8px 10px;
+      cursor: pointer;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    `;
+    previewButton.addEventListener("click", () => {
+      playClipPreview(suggestion, previewButton);
+    });
+    controls.appendChild(previewButton);
 
     const approved = clipApprovalState[index] !== false;
     const approveButton = document.createElement("button");
