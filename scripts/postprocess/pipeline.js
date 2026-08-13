@@ -788,7 +788,14 @@ async function runPipeline(inputOptions = {}) {
   // any failure falls back to the heuristics from discovery.
   let clipSuggestions = discovered.clipSuggestions;
   let clipSource = "heuristic";
-  if (llm) {
+  // A 429 from the check means the quota is gone for every request in this run;
+  // asking again for clips would just re-walk the retry waits before failing too.
+  const quotaExhausted = /\(429\)/.test(transcriptReview.error || "");
+  if (llm && quotaExhausted) {
+    onProgress(
+      "Skipping AI clip selection: the transcript check already hit the API quota limit; keeping heuristic suggestions",
+    );
+  } else if (llm) {
     onProgress(`Selecting clip suggestions (${llm.model})...`);
     try {
       const llmClips = await suggestClipsLlmCached({

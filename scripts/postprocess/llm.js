@@ -55,6 +55,7 @@ async function geminiCompleteJson({
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   let response;
+  let bodyText;
   try {
     response = await fetchImpl(GEMINI_ENDPOINT, {
       method: "POST",
@@ -74,6 +75,9 @@ async function geminiCompleteJson({
         },
       }),
     });
+    // Read the body under the same timer: a response whose body stalls would
+    // otherwise hang here forever, since the timeout only covered the handshake.
+    bodyText = await response.text();
   } catch (error) {
     if (error?.name === "AbortError") {
       throw new Error(`Gemini request timed out after ${timeoutMs}ms`);
@@ -82,8 +86,6 @@ async function geminiCompleteJson({
   } finally {
     clearTimeout(timer);
   }
-
-  const bodyText = await response.text();
   if (!response.ok) {
     let message = bodyText.slice(0, 300);
     try {
@@ -117,20 +119,29 @@ async function geminiCompleteJson({
   }
 }
 
-// Rate limits and transient server errors are retried with patience: the free Gemini
-// tier allows only a handful of requests per minute, and its 429s name the exact wait
-// ("Please retry in 36.4s"), so honoring that hint is what makes a multi-chunk review
-// complete instead of failing. Auth and request-shape errors surface immediately.
+// Rate limits, transient server errors and timeouts are retried with patience: the
+// free Gemini tier allows only a handful of requests per minute, and its 429s name the
+// exact wait ("Please retry in 36.4s"), so honoring that hint is what makes a
+// multi-chunk review complete instead of failing. Auth and request-shape errors
+// surface immediately, and so does a hint beyond the per-wait cap - that means quota
+// that will not recover within this run (daily limits hint hours), where retrying
+// would only stall the pipeline. The total-wait budget bounds the pathological case
+// the caps cannot see: a daily-quota 429 whose hint looks like a per-minute one.
 const MAX_ATTEMPTS = 4;
 const MAX_RETRY_WAIT_MS = 70_000;
+const MAX_TOTAL_RETRY_WAIT_MS = 150_000;
 
 function retryDelayFromError(error, fallbackMs, attempt) {
-  if (!/\((429|500|502|503|529)\)/.test(error.message)) {
+  const retryable =
+    /\((429|500|502|503|529)\)/.test(error.message) ||
+    /timed out after \d+ms/.test(error.message);
+  if (!retryable) {
     return null;
   }
   const hint = /retry in (\d+(?:\.\d+)?)s/i.exec(error.message);
   if (hint) {
-    return Math.min(Number(hint[1]) * 1000 + 1000, MAX_RETRY_WAIT_MS);
+    const hintMs = Number(hint[1]) * 1000 + 1000;
+    return hintMs > MAX_RETRY_WAIT_MS ? null : hintMs;
   }
   return Math.min(fallbackMs * attempt, MAX_RETRY_WAIT_MS);
 }
@@ -142,12 +153,14 @@ async function completeJson({
   schema,
   timeoutMs = REQUEST_TIMEOUT_MS,
   retryDelayMs = 2000,
+  maxTotalRetryWaitMs = MAX_TOTAL_RETRY_WAIT_MS,
   fetchImpl = fetch,
 }) {
   if (llm.provider !== "gemini") {
     throw new Error(`Unsupported LLM provider: ${llm.provider}`);
   }
 
+  let totalWaitedMs = 0;
   for (let attempt = 1; ; attempt += 1) {
     try {
       return await geminiCompleteJson({
@@ -160,9 +173,14 @@ async function completeJson({
       });
     } catch (error) {
       const delay = retryDelayFromError(error, retryDelayMs, attempt);
-      if (delay === null || attempt >= MAX_ATTEMPTS) {
+      if (
+        delay === null ||
+        attempt >= MAX_ATTEMPTS ||
+        totalWaitedMs + delay > maxTotalRetryWaitMs
+      ) {
         throw error;
       }
+      totalWaitedMs += delay;
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }

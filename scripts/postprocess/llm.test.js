@@ -154,6 +154,71 @@ async function main() {
   );
   assert.equal(exhaustedAttempts, 4, "should stop after the attempt cap");
 
+  // A hint beyond the per-wait cap means daily quota - retrying cannot succeed within
+  // this run, so it must fail immediately instead of stalling through capped waits.
+  let dailyQuotaAttempts = 0;
+  await assert.rejects(
+    completeJson({
+      llm: LLM,
+      system: "s",
+      prompt: "p",
+      schema: SCHEMA,
+      retryDelayMs: 1,
+      fetchImpl: async () => {
+        dailyQuotaAttempts += 1;
+        return fakeResponse(429, {
+          error: { message: "Quota exceeded. Please retry in 57600s." },
+        });
+      },
+    }),
+    /429/,
+  );
+  assert.equal(dailyQuotaAttempts, 1, "huge retry hints must fail fast");
+
+  // The cumulative wait budget stops retry sequences whose individual hints look
+  // per-minute but never recover (daily quota disguised with a small hint).
+  let budgetAttempts = 0;
+  await assert.rejects(
+    completeJson({
+      llm: LLM,
+      system: "s",
+      prompt: "p",
+      schema: SCHEMA,
+      retryDelayMs: 1,
+      maxTotalRetryWaitMs: 1500,
+      fetchImpl: async () => {
+        budgetAttempts += 1;
+        return fakeResponse(429, {
+          error: { message: "Quota exceeded. Please retry in 0.001s." },
+        });
+      },
+    }),
+    /429/,
+  );
+  // Each hinted wait is ~1s, so a 1.5s budget allows exactly one retry.
+  assert.equal(budgetAttempts, 2, "total wait budget was not enforced");
+
+  // Timeouts are transient: they retry like a 5xx instead of surfacing immediately.
+  let timeoutAttempts = 0;
+  const afterTimeout = await completeJson({
+    llm: LLM,
+    system: "s",
+    prompt: "p",
+    schema: SCHEMA,
+    retryDelayMs: 1,
+    fetchImpl: async () => {
+      timeoutAttempts += 1;
+      if (timeoutAttempts === 1) {
+        const abort = new Error("This operation was aborted");
+        abort.name = "AbortError";
+        throw abort;
+      }
+      return fakeResponse(200, { output_text: '{"ok": true}' });
+    },
+  });
+  assert.equal(timeoutAttempts, 2, "timeout should be retried");
+  assert.deepEqual(afterTimeout, { ok: true });
+
   // A bad key (401/403) must not be retried.
   let badKeyAttempts = 0;
   await assert.rejects(
