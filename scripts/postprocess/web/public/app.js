@@ -1427,6 +1427,10 @@ async function pollVideoStatus(statusFile) {
         persistActiveVideoStatusFile("");
         setVideoRenderUiState(false);
         setVideoRenderCompletedUiState(true);
+        // The completed-state call above hides the clip section, and the suggestions
+        // from the run were stored (not shown) while the render was in flight - this
+        // re-render is what puts the cards and the generate button on screen.
+        renderClipSuggestions(currentClipSuggestions);
         setStatusLine(videoLineId, "✓ MP4 generation complete");
         return { status: "completed" };
       } else if (data.status === "failed") {
@@ -2085,6 +2089,9 @@ approveButton.addEventListener("click", async () => {
         `✓ Clip suggestions picked by AI (${(result.clipSuggestions || []).length})`,
       );
     }
+    // The run's suggestions replace whatever set was on screen before, so approvals
+    // must not carry over by index onto different clips.
+    clipApprovalState = [];
     renderClipSuggestions(result.clipSuggestions || []);
     activeVideoStatusFile = null;
 
@@ -2113,6 +2120,9 @@ approveButton.addEventListener("click", async () => {
       if (result.videoStatus && result.videoStatus.skipped) {
         persistActiveVideoStatusFile("");
         setVideoRenderUiState(false);
+        // The earlier render happened while the video-in-progress state still hid the
+        // section; with no render coming, show the cards now.
+        renderClipSuggestions(currentClipSuggestions);
         addStatus("✓ MP4 generation skipped");
       } else if (result.videoStatus && result.videoStatus.statusFile) {
         activeVideoStatusFile = result.videoStatus.statusFile;
