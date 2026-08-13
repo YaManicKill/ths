@@ -1052,6 +1052,19 @@ function startServer({ port = 4173 } = {}) {
           mp3Path: resolvedMp3Path,
         });
 
+        // A second run for the same episode would overwrite the first's abort
+        // controller (making it uncancellable), race it over identical output and
+        // work-dir file names, and be marked "interrupted" the moment the first run's
+        // cleanup removes the status file from the active set.
+        if (activeClipGenerationStatusFiles.has(videoStatusFile)) {
+          sendJson(res, 409, {
+            success: false,
+            error:
+              "Clip generation is already in progress for this episode - cancel it or wait for it to finish",
+          });
+          return;
+        }
+
         // Clip subtitles read the episode's written transcript.vtt, which carries any
         // applied AI fixes, falling back to discovery-time text if the run has not
         // written it yet.
