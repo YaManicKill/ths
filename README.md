@@ -82,8 +82,13 @@ If you don't pass `--episode-number`, the next episode code is inferred from the
 already on the site, using these rules:
 
 - max 26 episodes per season
-- the first episode published in January or July starts a new season
+- the first episode published after 30 June or 31 December (in the configured timezone)
+  starts a new season, even if the break skipped clean over July or January
 - otherwise increment the episode number
+
+When `--episode-number` targets a future season, its inferred dates anchor on that
+season's calendar boundary (first Wednesday on or after 1 January / 1 July) rather than
+assuming the previous season ran its full 26 episodes.
 
 ### Configuration
 

@@ -107,4 +107,67 @@ assert.equal(boundary.seasonCode, "13");
 assert.equal(boundary.episodeCode, "01");
 assert.equal(boundary.reason, "calendar-boundary");
 
+// A break that skips clean over the boundary month must still roll the season: the
+// rule is "first episode released after 30 Jun / 31 Dec", not "released in Jul/Jan".
+const hiatusRoot = makeContentRoot([
+  { season: "12", episode: "22", date: "2026-06-24T19:00:00+01:00" },
+]);
+const afterHiatus = inferNextSeasonEpisode({
+  contentEpisodeRoot: hiatusRoot,
+  publishDate: "2026-08-12T19:00:00+01:00",
+  ...options,
+});
+assert.equal(afterHiatus.seasonCode, "13");
+assert.equal(afterHiatus.episodeCode, "01");
+assert.equal(afterHiatus.reason, "calendar-boundary");
+
+// Boundary detection uses the configured timezone, not the machine's. 1 Jan 03:00
+// Auckland time is still 31 Dec in London, so a London-configured show has not
+// crossed the boundary yet - regardless of where the tool runs.
+const tzEdgeRoot = makeContentRoot([
+  { season: "12", episode: "10", date: "2026-12-23T19:00:00+00:00" },
+]);
+const tzEdge = inferNextSeasonEpisode({
+  contentEpisodeRoot: tzEdgeRoot,
+  publishDate: "2027-01-01T03:00:00+13:00",
+  ...options,
+});
+assert.equal(tzEdge.seasonCode, "12");
+assert.equal(tzEdge.reason, "increment");
+
+// A future season's dates anchor on the calendar boundary, not on 26-per-season
+// ordinal maths: season 12 ended early at e22, and 13-01 releases on the first
+// Wednesday after 1 Jul (which in 2026 is 1 Jul itself), not four phantom weeks later.
+const shortSeasonRoot = makeContentRoot([
+  { season: "12", episode: "22", date: "2026-06-24T19:00:00+01:00" },
+]);
+assert.equal(
+  inferPublishDateForEpisode({
+    contentEpisodeRoot: shortSeasonRoot,
+    seasonNumber: 13,
+    episodeNumber: 1,
+    ...options,
+  }),
+  "2026-07-01T19:00:00+01:00",
+);
+assert.equal(
+  inferPublishDateForEpisode({
+    contentEpisodeRoot: shortSeasonRoot,
+    seasonNumber: 13,
+    episodeNumber: 3,
+    ...options,
+  }),
+  "2026-07-15T19:00:00+01:00",
+);
+// Two seasons ahead lands on the first Wednesday of the following January.
+assert.equal(
+  inferPublishDateForEpisode({
+    contentEpisodeRoot: shortSeasonRoot,
+    seasonNumber: 14,
+    episodeNumber: 1,
+    ...options,
+  }),
+  "2027-01-06T19:00:00+00:00",
+);
+
 console.log("sequence-inference test passed", { acrossDst });

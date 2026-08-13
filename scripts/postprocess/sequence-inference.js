@@ -92,8 +92,13 @@ function loadEpisodeRecords(contentEpisodeRoot) {
   return records;
 }
 
-function isSeasonBoundaryMonth(month) {
-  return month === 1 || month === 7;
+// Seasons follow the calendar half-year: the first episode released after 31 Dec or
+// 30 Jun starts a new season. Comparing half-year indices (rather than "is the target
+// month January/July") makes a break that skips clean over a boundary month - June to
+// August, December to February - still roll the season.
+function halfYearIndex(instant, timezone) {
+  const parts = zonedDateParts(instant, timezone);
+  return parts.year * 2 + (parts.month >= 7 ? 1 : 0);
 }
 
 function episodeOrdinal(season, episode) {
@@ -116,17 +121,35 @@ function inferPublishDateForEpisode({
   }
 
   const last = records[records.length - 1];
-  const targetOrdinal = episodeOrdinal(seasonNumber, episodeNumber);
-  const lastOrdinal = episodeOrdinal(last.season, last.episode);
-  const weekDelta = targetOrdinal - lastOrdinal;
-
-  // Step by calendar days rather than a fixed number of hours, so the release time
-  // stays put when the target lands on the other side of a DST change.
   const lastParts = zonedDateParts(last.date, timezone);
-  const cursor = new Date(
-    Date.UTC(lastParts.year, lastParts.month - 1, lastParts.day),
-  );
-  cursor.setUTCDate(cursor.getUTCDate() + weekDelta * 7);
+
+  let cursor;
+  if (Number(seasonNumber) > last.season) {
+    // A future season starts at the first release slot after its calendar boundary.
+    // Seasons can end short of 26 episodes (a boundary rollover cuts them off), so
+    // counting the old season's phantom remaining episodes would land weeks late.
+    const targetHalfIndex =
+      halfYearIndex(last.date, timezone) + (Number(seasonNumber) - last.season);
+    const boundaryYear = Math.floor(targetHalfIndex / 2);
+    const boundaryMonth = targetHalfIndex % 2 === 0 ? 1 : 7;
+    cursor = new Date(Date.UTC(boundaryYear, boundaryMonth - 1, 1));
+    // Releases go out on Wednesdays (a calendar date's weekday is zone-independent).
+    while (cursor.getUTCDay() !== 3) {
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+    cursor.setUTCDate(cursor.getUTCDate() + (Number(episodeNumber) - 1) * 7);
+  } else {
+    // Same (or an earlier) season: weekly cadence from the last known episode.
+    // Step by calendar days rather than a fixed number of hours, so the release time
+    // stays put when the target lands on the other side of a DST change.
+    const weekDelta =
+      episodeOrdinal(seasonNumber, episodeNumber) -
+      episodeOrdinal(last.season, last.episode);
+    cursor = new Date(
+      Date.UTC(lastParts.year, lastParts.month - 1, lastParts.day),
+    );
+    cursor.setUTCDate(cursor.getUTCDate() + weekDelta * 7);
+  }
 
   return formatZonedTimestamp({
     year: cursor.getUTCFullYear(),
@@ -169,18 +192,17 @@ function inferNextSeasonEpisode({
     nextPublish = new Date(nextPublishText);
   }
 
-  const nextMonth = nextPublish.getMonth() + 1;
-  const lastMonth = last.date.getMonth() + 1;
-
   let nextSeason = last.season;
   let nextEpisode = last.episode + 1;
   let reason = "increment";
 
-  if (last.episode >= 26) {
+  if (last.episode >= MAX_EPISODES_PER_SEASON) {
     nextSeason = last.season + 1;
     nextEpisode = 1;
     reason = "max-episodes";
-  } else if (isSeasonBoundaryMonth(nextMonth) && nextMonth !== lastMonth) {
+  } else if (
+    halfYearIndex(nextPublish, timezone) > halfYearIndex(last.date, timezone)
+  ) {
     nextSeason = last.season + 1;
     nextEpisode = 1;
     reason = "calendar-boundary";
