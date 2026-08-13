@@ -625,6 +625,19 @@ async function runPipeline(inputOptions = {}) {
     );
   }
 
+  // Medium-confidence fixes the user applied after an earlier run exist only in the
+  // episode's previous report; a re-run regenerates the transcripts from source, so
+  // without carrying them forward those approved corrections would silently vanish.
+  const previousReportPath = path.join(episodeDir, "postprocess-report.json");
+  const previousReport = fileExists(previousReportPath)
+    ? readJson(previousReportPath, {})
+    : null;
+  const carriedTranscriptFixes = Array.isArray(
+    previousReport?.appliedTranscriptFixes,
+  )
+    ? previousReport.appliedTranscriptFixes
+    : [];
+
   const report = {
     episode: {
       ...episodeMeta,
@@ -635,6 +648,7 @@ async function runPipeline(inputOptions = {}) {
       podcastPath,
       videoPath,
     },
+    appliedTranscriptFixes: carriedTranscriptFixes,
     chapterCount: chaptersWithImages.length,
     chapters: chaptersWithImages.map((chapter) => ({
       start: chapter.timeLabel,
@@ -735,10 +749,15 @@ async function runPipeline(inputOptions = {}) {
 
   // Fixes rewrite only the copies written into the episode folder; the source
   // transcripts are never touched.
-  const transcriptFixes = selectTranscriptFixes(
+  const selectedFixes = selectTranscriptFixes(
     transcriptReview,
     inputOptions.transcriptFixes,
   );
+  const selectedQuotes = new Set(selectedFixes.map((fix) => fix.quote));
+  const transcriptFixes = [
+    ...selectedFixes,
+    ...carriedTranscriptFixes.filter((fix) => !selectedQuotes.has(fix.quote)),
+  ];
   const mdFixResult = applyTranscriptFixes(
     sourceTranscriptMdText,
     transcriptFixes,

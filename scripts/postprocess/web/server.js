@@ -1265,6 +1265,29 @@ function startServer({ port = 4173 } = {}) {
           fs.writeFileSync(vttPath, vttResult.text, "utf8");
         }
 
+        // Applied fixes are remembered in the report so a later re-run - which
+        // regenerates the transcripts from source - re-applies them instead of
+        // silently dropping corrections the user explicitly approved.
+        const reviewReportPath = path.join(
+          episodeDir,
+          "postprocess-report.json",
+        );
+        if (mdResult.applied.length > 0 && fs.existsSync(reviewReportPath)) {
+          const report = readJson(reviewReportPath, {});
+          const remembered = Array.isArray(report.appliedTranscriptFixes)
+            ? report.appliedTranscriptFixes
+            : [];
+          const seen = new Set(remembered.map((fix) => fix.quote));
+          for (const fix of mdResult.applied) {
+            if (!seen.has(fix.quote)) {
+              remembered.push({ quote: fix.quote, correction: fix.correction });
+              seen.add(fix.quote);
+            }
+          }
+          report.appliedTranscriptFixes = remembered;
+          writeJson(reviewReportPath, report);
+        }
+
         sendJson(res, 200, {
           success: true,
           review,

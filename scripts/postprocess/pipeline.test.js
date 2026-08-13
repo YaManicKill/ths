@@ -253,6 +253,41 @@ async function main() {
   );
   assert.equal(savedReport.videoStatus.skipped, true);
 
+  // Medium fixes applied after a run (recorded in the report by the review endpoint)
+  // must survive a re-run, which regenerates the transcripts from source.
+  savedReport.appliedTranscriptFixes = [
+    { quote: "honestly", correction: "frankly" },
+  ];
+  fs.writeFileSync(
+    path.join(episodeDir, "postprocess-report.json"),
+    JSON.stringify(savedReport),
+  );
+
+  const { report: rerunReport } = await runPipeline({
+    repoRoot: runRoot,
+    mp3Path: runMp3,
+    transcriptMdPath: fixture.transcriptMdPath,
+    transcriptVttPath: fixture.transcriptVttPath,
+    skipVideo: true,
+    onProgress: () => {},
+    llmComplete: async ({ schema }) =>
+      schema?.properties?.clips ? fakeClips : { findings: [] },
+  });
+
+  const rerunMd = fs.readFileSync(
+    path.join(episodeDir, "transcript.md"),
+    "utf8",
+  );
+  assert.ok(
+    rerunMd.includes("frankly"),
+    "previously applied medium fix was dropped by the re-run",
+  );
+  assert.deepEqual(
+    rerunReport.appliedTranscriptFixes,
+    [{ quote: "honestly", correction: "frankly" }],
+    "applied fixes must carry forward into the new report",
+  );
+
   fs.rmSync(repoRoot, { recursive: true, force: true });
   fs.rmSync(runRoot, { recursive: true, force: true });
   console.log("pipeline test passed", { survivors: survivors.length });
