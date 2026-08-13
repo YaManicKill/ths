@@ -97,7 +97,6 @@ async function resolveChapterImages(chapters, options) {
   for (const chapter of chapters) {
     const normalized = normalizeTitle(chapter.title);
 
-    // Skip image lookups for Theme Tune, Intro and Outro - use fallback only
     if (
       normalized === "theme tune" ||
       normalized === "intro" ||

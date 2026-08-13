@@ -11,8 +11,18 @@ const {
 const { resolveChapterImages } = require("./image-resolver");
 const { findWordMatches } = require("./transcript-check");
 const { generateVideoFromChapters } = require("./video");
+const { buildClipSuggestions } = require("./clip-suggestions");
+const { loadPostprocessConfig } = require("./config");
+const { resolveLlm } = require("./llm");
+const {
+  applyTranscriptFixes,
+  reviewTranscriptCached,
+  selectTranscriptFixes,
+} = require("./transcript-review");
+const { suggestClipsLlmCached } = require("./clip-suggestions-llm");
 const {
   assertToolAvailable,
+  chapterImageOverridesPath,
   createOrCheckoutEpisodeBranch,
   ensureDir,
   fileExists,
@@ -24,24 +34,6 @@ const {
   titleCase,
   writeJson,
 } = require("./utils");
-
-const DEFAULT_CONFIG = {
-  defaultAuthor: "Al McKinlay",
-  releaseTimeLocal: "19:00:00",
-  timezoneOffset: "+01:00",
-  outputRoot: "content/episode",
-  videoOutputRoot: "content/episode-videos",
-  imageOverridesFile: "data/chapter-image-overrides.json",
-  profanityWords: [
-    "fuck",
-    "fucking",
-    "shit",
-    "bitch",
-    "cunt",
-    "asshole",
-    "motherfucker",
-  ],
-};
 
 function getAudioDurationSeconds(mp3Path) {
   const result = runCommand("ffprobe", [
@@ -93,6 +85,67 @@ function createFallbackImage(outputPath) {
   ]);
 
   return result.status === 0 && fileExists(outputPath);
+}
+
+function checkChapterEmbedSupport() {
+  if (!assertToolAvailable("python3")) {
+    return {
+      ok: false,
+      error:
+        "python3 was not found in PATH, and it is required to embed chapter images into the MP3",
+    };
+  }
+
+  const result = runCommand("python3", ["-c", "import mutagen"]);
+  if (result.status !== 0) {
+    return {
+      ok: false,
+      error:
+        "The python3 'mutagen' package is required to embed chapter images into the MP3. Install with: python3 -m pip install --user mutagen",
+    };
+  }
+
+  return { ok: true };
+}
+
+const WORK_DIR_RETENTION_MS = 24 * 60 * 60 * 1000;
+
+// Discovery runs on every UI input change, and a run leaves chapter MP4 segments behind,
+// so without pruning this grows by hundreds of megabytes per episode.
+function pruneStaleWorkDirs(workRoot, keepDir) {
+  const cutoff = Date.now() - WORK_DIR_RETENTION_MS;
+
+  let entries = [];
+  try {
+    entries = fs.readdirSync(workRoot, { withFileTypes: true });
+  } catch {
+    return;
+  }
+
+  for (const entry of entries) {
+    if (
+      !entry.isDirectory() ||
+      !/^(?:ths-\d{2}-\d{2}|rerender)-\d+$/.test(entry.name)
+    ) {
+      continue;
+    }
+
+    const fullPath = path.join(workRoot, entry.name);
+    if (fullPath === keepDir) {
+      continue;
+    }
+
+    const timestamp = Number(entry.name.split("-").pop());
+    if (Number.isFinite(timestamp) && timestamp > cutoff) {
+      continue;
+    }
+
+    try {
+      fs.rmSync(fullPath, { recursive: true, force: true });
+    } catch {
+      // A dir still in use by another run will be picked up next time.
+    }
+  }
 }
 
 function ensureMp3Backup(mp3Path) {
@@ -338,13 +391,12 @@ function buildIndexMarkdown({
   return lines.join("\n");
 }
 
-function loadConfig(repoRoot, configPath) {
-  const fullPath = configPath || path.join(repoRoot, "postprocess.config.json");
-  const config = fileExists(fullPath) ? readJson(fullPath) : {};
-  return {
-    ...DEFAULT_CONFIG,
-    ...config,
-  };
+function writeVideoStatusPreserveClipGeneration(statusFilePath, nextStatus) {
+  const existing = readJson(statusFilePath, {});
+  if (existing.clipGeneration && nextStatus.clipGeneration === undefined) {
+    nextStatus.clipGeneration = existing.clipGeneration;
+  }
+  writeJson(statusFilePath, nextStatus);
 }
 
 function resolveSeasonInfo(episodeMeta) {
@@ -386,7 +438,7 @@ function validateInputs(inputs) {
 // Discovery phase - parse chapters, resolve images, but don't write files
 async function discoverEpisodeData(inputOptions = {}) {
   const repoRoot = inputOptions.repoRoot || path.resolve(__dirname, "..", "..");
-  const config = loadConfig(repoRoot, inputOptions.configPath);
+  const config = loadPostprocessConfig(repoRoot, inputOptions.configPath);
 
   const onProgress = inputOptions.onProgress || (() => {});
 
@@ -395,13 +447,18 @@ async function discoverEpisodeData(inputOptions = {}) {
   const tools = {
     ffmpeg: assertToolAvailable("ffmpeg"),
     ffprobe: assertToolAvailable("ffprobe"),
-    python3: assertToolAvailable("python3"),
   };
 
   if (!tools.ffmpeg || !tools.ffprobe) {
     throw new Error(
       "ffmpeg and ffprobe are required and were not found in PATH",
     );
+  }
+
+  // Only a warning here; runPipeline rejects the same condition before it writes.
+  const embedSupport = checkChapterEmbedSupport();
+  if (!embedSupport.ok) {
+    onProgress(`Warning: ${embedSupport.error}`);
   }
 
   onProgress("Parsing episode metadata...");
@@ -453,7 +510,7 @@ async function discoverEpisodeData(inputOptions = {}) {
     inputOptions.publishDate ||
     getUpcomingWednesdayDateString({
       time: config.releaseTimeLocal,
-      timezoneOffset: config.timezoneOffset,
+      timezone: config.timezone,
     });
 
   onProgress("Extracting cover art...");
@@ -461,6 +518,7 @@ async function discoverEpisodeData(inputOptions = {}) {
   const workRoot = path.join(repoRoot, ".cache", "postprocess");
   const workDir = path.join(workRoot, `${episodeMeta.guid}-${Date.now()}`);
   ensureDir(workDir);
+  pruneStaleWorkDirs(workRoot, workDir);
 
   const fallbackCoverPath = path.join(workDir, "fallback-cover.jpg");
   const coverExtracted = extractCoverArt(
@@ -473,10 +531,7 @@ async function discoverEpisodeData(inputOptions = {}) {
 
   onProgress("Resolving chapter images...");
 
-  const imageOverridesPath = path.isAbsolute(config.imageOverridesFile)
-    ? config.imageOverridesFile
-    : path.join(repoRoot, config.imageOverridesFile);
-  const persistentOverrides = readJson(imageOverridesPath, {});
+  const persistentOverrides = readJson(chapterImageOverridesPath(repoRoot), {});
 
   const chaptersWithImages = await resolveChapterImages(chapters, {
     cacheDir: path.join(workRoot, "image-cache"),
@@ -491,6 +546,12 @@ async function discoverEpisodeData(inputOptions = {}) {
     transcriptMd: findWordMatches(transcriptMdText, config.profanityWords),
     transcriptVtt: findWordMatches(transcriptVttText, config.profanityWords),
   };
+
+  const clipSuggestions = buildClipSuggestions({
+    transcriptMdText,
+    transcriptVttText,
+    maxSuggestions: 8,
+  });
 
   return {
     episodeMeta,
@@ -508,6 +569,7 @@ async function discoverEpisodeData(inputOptions = {}) {
     profanityMatches,
     transcriptMdText,
     transcriptVttText,
+    clipSuggestions,
     workDir,
     fallbackCoverPath,
   };
@@ -515,11 +577,10 @@ async function discoverEpisodeData(inputOptions = {}) {
 
 async function runPipeline(inputOptions = {}) {
   const repoRoot = inputOptions.repoRoot || path.resolve(__dirname, "..", "..");
-  const config = loadConfig(repoRoot, inputOptions.configPath);
+  const config = loadPostprocessConfig(repoRoot, inputOptions.configPath);
 
   const onProgress = inputOptions.onProgress || (() => {});
 
-  // Use cached discovery data if provided, otherwise perform discovery
   let discovered;
   if (inputOptions.discoveredData) {
     discovered = inputOptions.discoveredData;
@@ -533,7 +594,6 @@ async function runPipeline(inputOptions = {}) {
     seasonInfo,
     episodeTitle,
     description,
-    podcastBytes: discoveredPodcastBytes,
     podcastDuration,
     dateString,
     chapters: chaptersWithImages,
@@ -551,10 +611,6 @@ async function runPipeline(inputOptions = {}) {
   );
 
   const podcastPath = `ths/year${seasonInfo.year}/${seasonInfo.folder}/ths-${episodeMeta.seasonCode}-${episodeMeta.episodeCode}.mp3`;
-  let effectivePodcastBytes = discoveredPodcastBytes;
-  let indexMarkdown = "";
-
-  // Determine video output path - use discovered episode folder or derive from mp3
   let videoPath;
   if (inputOptions.episodeFolderPath) {
     videoPath = path.join(
@@ -562,7 +618,6 @@ async function runPipeline(inputOptions = {}) {
       `ths-${episodeMeta.seasonCode}-${episodeMeta.episodeCode}.mp4`,
     );
   } else {
-    // Derive from mp3Path - the folder containing the mp3 is the episodes folder
     const episodeFolderFromMp3 = path.dirname(inputOptions.mp3Path);
     videoPath = path.join(
       episodeFolderFromMp3,
@@ -570,8 +625,20 @@ async function runPipeline(inputOptions = {}) {
     );
   }
 
+  // Medium-confidence fixes the user applied after an earlier run exist only in the
+  // episode's previous report; a re-run regenerates the transcripts from source, so
+  // without carrying them forward those approved corrections would silently vanish.
+  const previousReportPath = path.join(episodeDir, "postprocess-report.json");
+  const previousReport = fileExists(previousReportPath)
+    ? readJson(previousReportPath, {})
+    : null;
+  const carriedTranscriptFixes = Array.isArray(
+    previousReport?.appliedTranscriptFixes,
+  )
+    ? previousReport.appliedTranscriptFixes
+    : [];
+
   const report = {
-    dryRun: Boolean(inputOptions.dryRun),
     episode: {
       ...episodeMeta,
       title: episodeTitle,
@@ -581,6 +648,7 @@ async function runPipeline(inputOptions = {}) {
       podcastPath,
       videoPath,
     },
+    appliedTranscriptFixes: carriedTranscriptFixes,
     chapterCount: chaptersWithImages.length,
     chapters: chaptersWithImages.map((chapter) => ({
       start: chapter.timeLabel,
@@ -597,70 +665,210 @@ async function runPipeline(inputOptions = {}) {
       transcriptMd: discovered.profanityMatches.transcriptMd,
       transcriptVtt: discovered.profanityMatches.transcriptVtt,
     },
+    clipSuggestions: discovered.clipSuggestions,
+    coverImagePath: discovered.fallbackCoverPath,
     mp3ChapterImages: {
-      attempted: !inputOptions.dryRun,
       completed: false,
       chaptersEmbedded: 0,
       backupPath: null,
     },
-    notes: [
-      "Per-chapter images are embedded into MP3 chapter metadata.",
-      "Video generation uses chapter image fallback to MP3 cover when lookup fails.",
-    ],
   };
 
-  if (!inputOptions.dryRun) {
-    onProgress("Creating git branch...");
-
-    const branchResult = createOrCheckoutEpisodeBranch(
-      repoRoot,
-      episodeMeta.seasonCode,
-      episodeMeta.episodeCode,
-    );
-
-    report.gitBranch = {
-      name: branchResult.branchName,
-      created: branchResult.created,
-    };
-
-    onProgress("Creating episode directory...");
-
-    ensureDir(episodeDir);
-
-    onProgress("Copying transcripts...");
-
-    fs.copyFileSync(
-      inputOptions.transcriptMdPath,
-      path.join(episodeDir, "transcript.md"),
-    );
-    fs.copyFileSync(
-      inputOptions.transcriptVttPath,
-      path.join(episodeDir, "transcript.vtt"),
-    );
-
-    onProgress("Updating MP3 chapter images...");
-
-    const { backupPath } = embedChapterImagesIntoMp3({
-      mp3Path: inputOptions.mp3Path,
-      chapters: chaptersWithImages,
-      workDir,
-    });
-
-    report.mp3ChapterImages.completed = true;
-    report.mp3ChapterImages.chaptersEmbedded = chaptersWithImages.length;
-    report.mp3ChapterImages.backupPath = backupPath;
-
-    // MP3 was just modified by embed; use final file size for frontmatter bytes.
-    effectivePodcastBytes = fs.statSync(inputOptions.mp3Path).size;
+  // Fail before the branch and files exist, rather than part-way through the run.
+  const embedSupport = checkChapterEmbedSupport();
+  if (!embedSupport.ok) {
+    throw new Error(embedSupport.error);
   }
 
-  indexMarkdown = buildIndexMarkdown({
+  // The sources are re-read here rather than reusing discovery-time text, because the
+  // user may have edited them between discovery and approval.
+  const sourceTranscriptMdText = fs.readFileSync(
+    inputOptions.transcriptMdPath,
+    "utf8",
+  );
+  const sourceTranscriptVttText = fs.readFileSync(
+    inputOptions.transcriptVttPath,
+    "utf8",
+  );
+
+  // The AI check runs at generation rather than discovery, so the LLM is consulted once
+  // per approved run instead of on every input tweak. Warning-only: a missing key, a
+  // network failure, or a provider outage must never block the run.
+  let transcriptReview = { enabled: false, findings: [] };
+  const llm = resolveLlm(config);
+  if (llm) {
+    onProgress(
+      `Checking transcript for likely mistranscriptions (${llm.model})...`,
+    );
+    try {
+      const review = await reviewTranscriptCached({
+        cacheDir: path.join(
+          repoRoot,
+          ".cache",
+          "postprocess",
+          "transcript-review",
+        ),
+        transcriptMdText: sourceTranscriptMdText,
+        transcriptVttText: sourceTranscriptVttText,
+        chapters: chaptersWithImages,
+        llm,
+        hostNames: config.hostNames,
+        complete: inputOptions.llmComplete,
+      });
+      transcriptReview = { enabled: true, ...review };
+      onProgress(
+        review.fromCache
+          ? "Transcript check: using cached result for this transcript"
+          : `Transcript check: ${review.findings.length} potential issue(s) found`,
+      );
+    } catch (error) {
+      transcriptReview = { enabled: true, findings: [], error: error.message };
+      onProgress(`Warning: transcript check failed: ${error.message}`);
+    }
+  }
+  report.transcriptReview = transcriptReview;
+
+  onProgress("Creating git branch...");
+
+  const branchResult = createOrCheckoutEpisodeBranch(
+    repoRoot,
+    episodeMeta.seasonCode,
+    episodeMeta.episodeCode,
+  );
+
+  report.gitBranch = {
+    name: branchResult.branchName,
+    created: branchResult.created,
+  };
+
+  onProgress("Creating episode directory...");
+
+  ensureDir(episodeDir);
+
+  onProgress("Writing transcripts...");
+
+  // Fixes rewrite only the copies written into the episode folder; the source
+  // transcripts are never touched.
+  const selectedFixes = selectTranscriptFixes(
+    transcriptReview,
+    inputOptions.transcriptFixes,
+  );
+  const selectedQuotes = new Set(selectedFixes.map((fix) => fix.quote));
+  const transcriptFixes = [
+    ...selectedFixes,
+    ...carriedTranscriptFixes.filter((fix) => !selectedQuotes.has(fix.quote)),
+  ];
+  const mdFixResult = applyTranscriptFixes(
+    sourceTranscriptMdText,
+    transcriptFixes,
+  );
+  const vttFixResult = applyTranscriptFixes(
+    sourceTranscriptVttText,
+    transcriptFixes,
+  );
+
+  fs.writeFileSync(
+    path.join(episodeDir, "transcript.md"),
+    mdFixResult.text,
+    "utf8",
+  );
+  fs.writeFileSync(
+    path.join(episodeDir, "transcript.vtt"),
+    vttFixResult.text,
+    "utf8",
+  );
+
+  report.transcriptFixes = {
+    attempted: transcriptFixes.length,
+    mdApplied: mdFixResult.applied.length,
+    vttApplied: vttFixResult.applied.length,
+    mdMissed: mdFixResult.missed.map((fix) => fix.quote),
+    vttMissed: vttFixResult.missed.map((fix) => fix.quote),
+  };
+
+  if (transcriptFixes.length > 0) {
+    onProgress(
+      `Applied transcript fixes: ${mdFixResult.applied.length} in transcript.md, ${vttFixResult.applied.length} in transcript.vtt`,
+    );
+  }
+  for (const fix of mdFixResult.missed) {
+    onProgress(
+      `Warning: fix not applied to transcript.md (text not found verbatim): "${fix.quote}"`,
+    );
+  }
+  for (const fix of vttFixResult.missed) {
+    onProgress(
+      `Warning: fix not applied to transcript.vtt (text not found verbatim): "${fix.quote}"`,
+    );
+  }
+
+  // AI clip picks replace the heuristic suggestions when available, using the fixed
+  // transcripts so quotes match the burned-in subtitles. Warning-only, like the check:
+  // any failure falls back to the heuristics from discovery.
+  let clipSuggestions = discovered.clipSuggestions;
+  let clipSource = "heuristic";
+  // A 429 from the check means the quota is gone for every request in this run;
+  // asking again for clips would just re-walk the retry waits before failing too.
+  const quotaExhausted = /\(429\)/.test(transcriptReview.error || "");
+  if (llm && quotaExhausted) {
+    onProgress(
+      "Skipping AI clip selection: the transcript check already hit the API quota limit; keeping heuristic suggestions",
+    );
+  } else if (llm) {
+    onProgress(`Selecting clip suggestions (${llm.model})...`);
+    try {
+      const llmClips = await suggestClipsLlmCached({
+        cacheDir: path.join(
+          repoRoot,
+          ".cache",
+          "postprocess",
+          "clip-suggestions",
+        ),
+        transcriptMdText: mdFixResult.text,
+        transcriptVttText: vttFixResult.text,
+        llm,
+        complete: inputOptions.llmComplete,
+      });
+      if (llmClips.suggestions.length > 0) {
+        clipSuggestions = llmClips.suggestions;
+        clipSource = "llm";
+        onProgress(
+          llmClips.fromCache
+            ? "Clip suggestions: using cached AI picks for this transcript"
+            : `Clip suggestions: ${llmClips.suggestions.length} picked by AI`,
+        );
+      } else {
+        onProgress(
+          "Warning: AI clip selection returned nothing usable; keeping heuristic suggestions",
+        );
+      }
+    } catch (error) {
+      onProgress(`Warning: AI clip selection failed: ${error.message}`);
+    }
+  }
+  report.clipSuggestions = clipSuggestions;
+  report.clipSource = clipSource;
+
+  onProgress("Updating MP3 chapter images...");
+
+  const { backupPath } = embedChapterImagesIntoMp3({
+    mp3Path: inputOptions.mp3Path,
+    chapters: chaptersWithImages,
+    workDir,
+  });
+
+  report.mp3ChapterImages.completed = true;
+  report.mp3ChapterImages.chaptersEmbedded = chaptersWithImages.length;
+  report.mp3ChapterImages.backupPath = backupPath;
+
+  const indexMarkdown = buildIndexMarkdown({
     episodeTitle,
     episodeMeta,
     seasonInfo,
     description,
+    // Read after the embed, which changes the file size.
+    podcastBytes: fs.statSync(inputOptions.mp3Path).size,
     podcastPath,
-    podcastBytes: effectivePodcastBytes,
     podcastDuration,
     dateString,
     chapters: chaptersWithImages,
@@ -668,55 +876,57 @@ async function runPipeline(inputOptions = {}) {
     author: config.defaultAuthor,
   });
 
-  if (!inputOptions.dryRun) {
-    onProgress("Writing shownotes...");
+  onProgress("Writing shownotes...");
 
-    fs.writeFileSync(path.join(episodeDir, "index.md"), indexMarkdown, "utf8");
+  fs.writeFileSync(path.join(episodeDir, "index.md"), indexMarkdown, "utf8");
 
-    writeJson(path.join(episodeDir, "postprocess-report.json"), report);
-  }
-
-  if (!inputOptions.dryRun && inputOptions.skipVideo) {
+  if (inputOptions.skipVideo) {
     onProgress("Skipping MP4 generation (requested)");
     report.videoStatus = { skipped: true };
   }
 
-  if (!inputOptions.dryRun && !inputOptions.skipVideo) {
+  if (!inputOptions.skipVideo) {
     onProgress("Generating MP4 video...");
     const videoStatusPath = path.join(episodeDir, "video-status.json");
     const startedAt = new Date().toISOString();
 
-    // Use setImmediate to start the task asynchronously without blocking
-    setImmediate(() => {
-      writeJson(videoStatusPath, {
+    setImmediate(async () => {
+      writeVideoStatusPreserveClipGeneration(videoStatusPath, {
         status: "started",
         startedAt,
         percent: 0,
       });
       try {
-        generateVideoFromChapters({
+        await generateVideoFromChapters({
           chapters: chaptersWithImages,
           mp3Path: inputOptions.mp3Path,
           outputPath: videoPath,
           workDir: path.join(workDir, "video"),
           onProgress: (progress) => {
-            writeJson(videoStatusPath, {
+            writeVideoStatusPreserveClipGeneration(videoStatusPath, {
               status: "started",
               startedAt,
               ...progress,
             });
           },
         });
-        writeJson(videoStatusPath, {
+        writeVideoStatusPreserveClipGeneration(videoStatusPath, {
           status: "completed",
           completedAt: new Date().toISOString(),
           videoPath,
           percent: 100,
         });
+
+        // The chapter segments are the bulk of the scratch space and the muxed MP4 is
+        // already written, so drop them as soon as the render succeeds.
+        fs.rmSync(path.join(workDir, "video"), {
+          recursive: true,
+          force: true,
+        });
       } catch (error) {
         // Log error but don't throw since we're background
         console.error("Video generation error:", error.message);
-        writeJson(videoStatusPath, {
+        writeVideoStatusPreserveClipGeneration(videoStatusPath, {
           status: "failed",
           failedAt: new Date().toISOString(),
           error: error.message,
@@ -727,10 +937,14 @@ async function runPipeline(inputOptions = {}) {
     report.videoStatus = { statusFile: videoStatusPath };
   }
 
-  if (!inputOptions.dryRun && !inputOptions.skipVideo) {
-    onProgress("Pipeline complete. Video generation running in background...");
-  } else {
+  // Written last so the saved report includes videoStatus, which is only known once the
+  // video branch above has run.
+  writeJson(path.join(episodeDir, "postprocess-report.json"), report);
+
+  if (inputOptions.skipVideo) {
     onProgress("Pipeline complete.");
+  } else {
+    onProgress("Pipeline complete. Video generation running in background...");
   }
 
   return {
