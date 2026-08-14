@@ -1317,8 +1317,10 @@ function renderClipSuggestions(suggestions) {
   currentClipSuggestions = Array.isArray(suggestions) ? suggestions : [];
   const nextApprovalState = [];
 
+  // Tri-state: true approved, false denied, null undecided. Nothing is approved by
+  // default - every clip needs an explicit decision before generation.
   currentClipSuggestions.forEach((_, index) => {
-    nextApprovalState[index] = clipApprovalState[index] ?? true;
+    nextApprovalState[index] = clipApprovalState[index] ?? null;
   });
 
   clipApprovalState = nextApprovalState;
@@ -1340,7 +1342,10 @@ function renderClipSuggestions(suggestions) {
   clipSuggestionsSection.style.display = "block";
   // The count keeps the collapsed section informative; open/closed state is the
   // browser's and survives re-renders because only the list contents are replaced.
-  clipSuggestionsSummary.textContent = `Clip Suggestions (${currentClipSuggestions.length})`;
+  const undecided = countUndecidedClipSuggestions();
+  clipSuggestionsSummary.textContent = `Clip Suggestions (${currentClipSuggestions.length}${
+    undecided > 0 ? `, ${undecided} undecided` : ""
+  })`;
 
   const chapters = getDiscoverySnapshot()?.chapters || [];
 
@@ -1426,15 +1431,15 @@ function renderClipSuggestions(suggestions) {
     });
     controls.appendChild(previewButton);
 
-    const approved = clipApprovalState[index] !== false;
+    const state = clipApprovalState[index];
     const approveButton = document.createElement("button");
     approveButton.type = "button";
-    approveButton.textContent = approved ? "✓ Approved" : "Approve";
+    approveButton.textContent = state === true ? "✓ Approved" : "Approve";
     approveButton.style.cssText = `
       padding: 8px 10px;
       cursor: pointer;
-      background: ${approved ? "#1f4d2b" : "var(--panel)"};
-      color: ${approved ? "#fff" : "inherit"};
+      background: ${state === true ? "#1f4d2b" : "var(--panel)"};
+      color: ${state === true ? "#fff" : "inherit"};
       border: 1px solid var(--line);
       border-radius: 4px;
     `;
@@ -1445,12 +1450,12 @@ function renderClipSuggestions(suggestions) {
 
     const denyButton = document.createElement("button");
     denyButton.type = "button";
-    denyButton.textContent = approved ? "Deny" : "✕ Denied";
+    denyButton.textContent = state === false ? "✕ Denied" : "Deny";
     denyButton.style.cssText = `
       padding: 8px 10px;
       cursor: pointer;
-      background: ${approved ? "var(--panel)" : "#4f1c1c"};
-      color: ${approved ? "inherit" : "#fff"};
+      background: ${state === false ? "#4f1c1c" : "var(--panel)"};
+      color: ${state === false ? "#fff" : "inherit"};
       border: 1px solid var(--line);
       border-radius: 4px;
     `;
@@ -1495,8 +1500,15 @@ function clearClipSuggestionReviewPanel() {
 
 function getApprovedClipSuggestions() {
   return currentClipSuggestions.filter(
-    (_, index) => clipApprovalState[index] !== false,
+    (_, index) => clipApprovalState[index] === true,
   );
+}
+
+function countUndecidedClipSuggestions() {
+  return currentClipSuggestions.filter(
+    (_, index) =>
+      clipApprovalState[index] !== true && clipApprovalState[index] !== false,
+  ).length;
 }
 
 function buildDiscoverPayload() {
@@ -2633,6 +2645,15 @@ generateClipVideosButton.addEventListener("click", async () => {
   // guard returns silently, which would eat the suggestions with no feedback.
   if (isGeneratingClips) {
     addStatus("Clip generation is already in progress.");
+    return;
+  }
+
+  // Every clip needs an explicit decision: an untouched card is not a yes.
+  const undecided = countUndecidedClipSuggestions();
+  if (undecided > 0) {
+    addStatus(
+      `⚠ ${undecided} clip suggestion(s) still need an Approve or Deny decision.`,
+    );
     return;
   }
 
