@@ -1092,18 +1092,21 @@ let clipPreviewAudio = null;
 let clipPreviewSrcPath = null;
 let clipPreviewStopAt = Infinity;
 let clipPreviewButton = null;
+let clipPreviewIdleLabel = "▶ Preview";
 
 function stopClipPreview() {
   if (clipPreviewAudio) {
     clipPreviewAudio.pause();
   }
   if (clipPreviewButton) {
-    clipPreviewButton.textContent = "▶ Preview";
+    clipPreviewButton.textContent = clipPreviewIdleLabel;
     clipPreviewButton = null;
   }
 }
 
-function playClipPreview(suggestion, button) {
+// lastSeconds plays just the tail of the clip - the quickest way to hear how a trim
+// lands without sitting through the whole thing.
+function playClipPreview(suggestion, button, { lastSeconds } = {}) {
   if (clipPreviewButton === button) {
     stopClipPreview();
     return;
@@ -1127,10 +1130,13 @@ function playClipPreview(suggestion, button) {
     clipPreviewAudio.addEventListener("ended", stopClipPreview);
   }
 
-  const startSeconds = Math.max(0, Number(suggestion.startSeconds) || 0);
+  const clipStart = Math.max(0, Number(suggestion.startSeconds) || 0);
   clipPreviewStopAt = Number(suggestion.endSeconds)
     ? Number(suggestion.endSeconds)
-    : startSeconds + (Number(suggestion.durationSeconds) || 60);
+    : clipStart + (Number(suggestion.durationSeconds) || 60);
+  const startSeconds = lastSeconds
+    ? Math.max(clipStart, clipPreviewStopAt - lastSeconds)
+    : clipStart;
 
   const src = `/api/audio?path=${encodeURIComponent(mp3Path)}`;
   const seekAndPlay = () => {
@@ -1150,6 +1156,7 @@ function playClipPreview(suggestion, button) {
     });
   }
 
+  clipPreviewIdleLabel = button.textContent;
   button.textContent = "■ Stop";
   clipPreviewButton = button;
 }
@@ -1706,6 +1713,16 @@ function renderClipSuggestions(suggestions) {
       playClipPreview(suggestion, previewButton);
     });
     controls.appendChild(previewButton);
+
+    const endingButton = document.createElement("button");
+    endingButton.type = "button";
+    endingButton.textContent = "▶ Ending";
+    endingButton.title = "Play the last five seconds of the clip";
+    endingButton.style.cssText = previewButton.style.cssText;
+    endingButton.addEventListener("click", () => {
+      playClipPreview(suggestion, endingButton, { lastSeconds: 5 });
+    });
+    controls.appendChild(endingButton);
 
     const approveButton = document.createElement("button");
     approveButton.type = "button";
