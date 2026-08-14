@@ -234,7 +234,7 @@
 
 (3m 26s)
 
-> Um, I bought one month of premium and it is unfair how different the game is when you have premium.
+> I bought one month of premium and it is unfair how different the game is when you have premium.
 
 (3m 27s) **Codey:**
 
@@ -262,7 +262,7 @@
 
 (3m 51s)
 
-> Um, you get like the premium wheels, you get goody bags.
+> You get like the premium wheels, you get goody bags.
 
 (3m 55s) **Codey:**
 
@@ -282,7 +282,7 @@
 
 (4m 5s) **Codey:**
 
-> I mean, honestly, I would still go to the soup kitchen and I would still play as a popper and all of that if I could just not have lags.
+> I mean, honestly, I would still go to the soup kitchen and I would still play as a pauper and all of that if I could just not have lag.
 
 (4m 14s)
 
@@ -1252,7 +1252,7 @@
 
 (17m 7s)
 
-> Um, once they have mated, the males actually just die.
+> Once they have mated, the males actually just die.
 
 (17m 12s)
 
@@ -3108,7 +3108,7 @@
 
 (49m 45s) **Codey:**
 
-> And I just love, uh, there, there was an evolutionary biologist named JBS Helding that, uh, when he was looking at, uh, thinking, he was talking about theologians and Christian and Christians, and as an evolutionary biologist, he was talking to them and said, well, of, of your god, uh, he must have an inordinate fondness for Beatles because there's a heck ton of these.
+> And I just love, uh, there, there was an evolutionary biologist named J.B.S Halding that, uh, when he was looking at, uh, thinking, he was talking about theologians and Christians, and as an evolutionary biologist, he was talking to them and said, well, of, of your god, uh, he must have an inordinate fondness for beetles because there's a heck ton of these.
 
 (50m 10s) **Chelsea:**
 
@@ -3116,7 +3116,7 @@
 
 (50m 11s) **Codey:**
 
-> But the exact quote is an inordinate fondness of Beatles, for Beatles.
+> But the exact quote is an inordinate fondness for beetles.
 
 (50m 16s)
 
@@ -3348,11 +3348,11 @@
 
 (54m 27s)
 
-> If you're not sold, I have to refer you to the genus and therophagus, which means flower eating.
+> If you're not sold, I have to refer you to the genus Antherophagus, which means flower eating.
 
 (54m 33s)
 
-> These are known as the bumblebee riding Beatles.
+> These are known as the bumblebee riding beetles.
 
 (54m 38s) **Chelsea:**
 
@@ -3372,7 +3372,7 @@
 
 (54m 50s)
 
-> Um, or just look up Bumblebee Riding Beatles, uh, specifically look it up in Bugguide.net, which is the website, uh, that a lot of us, that a lot of North American entomologists use.
+> Um, or just look up Bumblebee Riding beetles, uh, specifically look it up in Bugguide.net, which is the website, uh, that a lot of us, that a lot of North American entomologists use.
 
 (55m 1s)
 
@@ -9118,11 +9118,11 @@
 
 (2h 33m 24s) **Codey:**
 
-> Like, these men are going to try and follow us and they're just going to reuse resources.
+> Like, these men are going to try and follow us and they're just going to use resources.
 
 (2h 33m 27s)
 
-> We're trying to rebuild and they're just like eaten and not providing anything.
+> We're trying to rebuild and they're just like eating and not providing anything.
 
 (2h 33m 32s)
 
@@ -9130,7 +9130,7 @@
 
 (2h 33m 33s) **Chelsea:**
 
-> Smooching off the ladies.
+> Mooching off the ladies.
 
 (2h 33m 34s) **Codey:**
 
@@ -9142,7 +9142,7 @@
 
 (2h 33m 38s) **Chelsea:**
 
-> Can you imagine that in beast simulator?
+> Can you imagine that in Bee Simulator?
 
 (2h 33m 41s) **Codey:**
 
@@ -9678,7 +9678,7 @@
 
 (2h 39m 52s)
 
-> And so L ended up, they ended up developing a DLC in which solitary bees are introduced and butterflies and the solitary bee scientist that like, she, it's, she's based on me.
+> So Ell ended up, they ended up developing a DLC in which solitary bees are introduced and butterflies. And the solitary bee scientist that like, she's based on me.
 
 (2h 40m 6s)
 
