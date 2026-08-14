@@ -66,6 +66,9 @@ let chapterImageOverrides = {}; // Track uploaded replacement images by chapter 
 let currentTranscriptFindings = [];
 let shownotesLinks = [];
 let draggedLinkIndex = null;
+// Each open cue editor registers a dirty-check so Generate can refuse while unsaved
+// transcript edits exist; cleared whenever the cards are rebuilt.
+const clipEditorDirtyChecks = new Set();
 // Keyed by quote rather than index so ticks survive the fresh discovery the approve
 // flow runs (cached findings come back identical, but order is not guaranteed).
 let mediumFixAccepted = {};
@@ -1424,6 +1427,13 @@ function renderClipCueEditor(container, { cues, editable }) {
 
   const originals = cues.map((cue) => cue.speech);
   const inputs = [];
+  clipEditorDirtyChecks.add(
+    () =>
+      inputs.filter(
+        (input, index) =>
+          !input.disabled && input.value.trim() !== originals[index].trim(),
+      ).length,
+  );
 
   cues.forEach((cue) => {
     const row = document.createElement("div");
@@ -1529,6 +1539,7 @@ function renderClipSuggestions(suggestions) {
 
   clipApprovalState = nextApprovalState;
   clipSuggestionsList.innerHTML = "";
+  clipEditorDirtyChecks.clear();
 
   // The cards stay on screen during an MP4 render - the server queues generation
   // behind the render ("waiting" state), so clips can be reviewed and queued instead
@@ -1544,12 +1555,7 @@ function renderClipSuggestions(suggestions) {
   }
 
   clipSuggestionsSection.style.display = "block";
-  // The count keeps the collapsed section informative; open/closed state is the
-  // browser's and survives re-renders because only the list contents are replaced.
-  const undecided = countUndecidedClipSuggestions();
-  clipSuggestionsSummary.textContent = `Clip Suggestions (${currentClipSuggestions.length}${
-    undecided > 0 ? `, ${undecided} undecided` : ""
-  })`;
+  updateClipSuggestionsSummary();
 
   const chapters = getDiscoverySnapshot()?.chapters || [];
 
@@ -1640,37 +1646,45 @@ function renderClipSuggestions(suggestions) {
     });
     controls.appendChild(previewButton);
 
-    const state = clipApprovalState[index];
     const approveButton = document.createElement("button");
     approveButton.type = "button";
-    approveButton.textContent = state === true ? "✓ Approved" : "Approve";
-    approveButton.style.cssText = `
-      padding: 8px 10px;
-      cursor: pointer;
-      background: ${state === true ? "#1f4d2b" : "var(--panel)"};
-      color: ${state === true ? "#fff" : "inherit"};
-      border: 1px solid var(--line);
-      border-radius: 4px;
-    `;
-    approveButton.addEventListener("click", () => {
-      clipApprovalState[index] = true;
-      renderClipSuggestions(currentClipSuggestions);
-    });
-
     const denyButton = document.createElement("button");
     denyButton.type = "button";
-    denyButton.textContent = state === false ? "✕ Denied" : "Deny";
-    denyButton.style.cssText = `
-      padding: 8px 10px;
-      cursor: pointer;
-      background: ${state === false ? "#4f1c1c" : "var(--panel)"};
-      color: ${state === false ? "#fff" : "inherit"};
-      border: 1px solid var(--line);
-      border-radius: 4px;
-    `;
+
+    // Decisions update the two buttons in place: a full card rebuild here would
+    // silently destroy open trim/transcript editors, unsaved edits included.
+    const refreshDecision = () => {
+      const state = clipApprovalState[index];
+      approveButton.textContent = state === true ? "✓ Approved" : "Approve";
+      approveButton.style.cssText = `
+        padding: 8px 10px;
+        cursor: pointer;
+        background: ${state === true ? "#1f4d2b" : "var(--panel)"};
+        color: ${state === true ? "#fff" : "inherit"};
+        border: 1px solid var(--line);
+        border-radius: 4px;
+      `;
+      denyButton.textContent = state === false ? "✕ Denied" : "Deny";
+      denyButton.style.cssText = `
+        padding: 8px 10px;
+        cursor: pointer;
+        background: ${state === false ? "#4f1c1c" : "var(--panel)"};
+        color: ${state === false ? "#fff" : "inherit"};
+        border: 1px solid var(--line);
+        border-radius: 4px;
+      `;
+    };
+    refreshDecision();
+
+    approveButton.addEventListener("click", () => {
+      clipApprovalState[index] = true;
+      refreshDecision();
+      updateClipSuggestionsSummary();
+    });
     denyButton.addEventListener("click", () => {
       clipApprovalState[index] = false;
-      renderClipSuggestions(currentClipSuggestions);
+      refreshDecision();
+      updateClipSuggestionsSummary();
     });
 
     controls.appendChild(approveButton);
@@ -1718,6 +1732,15 @@ function countUndecidedClipSuggestions() {
     (_, index) =>
       clipApprovalState[index] !== true && clipApprovalState[index] !== false,
   ).length;
+}
+
+// The count keeps the collapsed section informative; open/closed state is the
+// browser's and survives re-renders because only the list contents are replaced.
+function updateClipSuggestionsSummary() {
+  const undecided = countUndecidedClipSuggestions();
+  clipSuggestionsSummary.textContent = `Clip Suggestions (${currentClipSuggestions.length}${
+    undecided > 0 ? `, ${undecided} undecided` : ""
+  })`;
 }
 
 function buildDiscoverPayload() {
@@ -2854,6 +2877,18 @@ generateClipVideosButton.addEventListener("click", async () => {
   // guard returns silently, which would eat the suggestions with no feedback.
   if (isGeneratingClips) {
     addStatus("Clip generation is already in progress.");
+    return;
+  }
+
+  // Unsaved cue edits would render with the old text; force a decision on them first.
+  const unsavedEdits = [...clipEditorDirtyChecks].reduce(
+    (sum, check) => sum + check(),
+    0,
+  );
+  if (unsavedEdits > 0) {
+    addStatus(
+      `⚠ ${unsavedEdits} unsaved transcript edit(s) - press "Save Transcript Edits" on the open card(s) first.`,
+    );
     return;
   }
 
