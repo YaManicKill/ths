@@ -159,6 +159,64 @@ function extractImageUrlFromHtml(html, baseUrl) {
   return null;
 }
 
+function decodeHtmlEntities(text) {
+  return String(text || "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, "'")
+    .replace(/&#x27;/gi, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, " ");
+}
+
+async function fetchPageTitle(pageUrl) {
+  let parsed;
+  try {
+    parsed = new URL(pageUrl);
+  } catch {
+    throw new Error("Invalid URL");
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("Only http(s) URLs are supported");
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const response = await fetch(parsed.toString(), {
+      signal: controller.signal,
+      redirect: "follow",
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        accept: "text/html,application/xhtml+xml,*/*;q=0.8",
+        "accept-language": "en-GB,en;q=0.9",
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Page fetch failed (${response.status})`);
+    }
+    const html = await response.text();
+    const match = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
+    const title = match
+      ? decodeHtmlEntities(match[1]).replace(/\s+/g, " ").trim()
+      : "";
+    if (!title) {
+      throw new Error("Page has no title");
+    }
+    return title;
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw new Error("Page fetch timed out");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 async function downloadImageFromUrl(imageUrl) {
   let parsed;
   try {
@@ -900,11 +958,30 @@ function startServer({ port = 4173, onPortConflict } = {}) {
               ? episodeReport.clipSuggestions
               : [],
             existingTranscriptFindings,
+            shownotesLinkSeeds:
+              discovered.shownotesLinkSeeds || discovered.hiddenLinks,
+            existingShownotesLinks: Array.isArray(episodeReport?.shownotesLinks)
+              ? episodeReport.shownotesLinks
+              : null,
           },
           discoveryData: JSON.stringify(discovered),
         });
       } catch (error) {
         sendJson(res, 400, { error: error.message });
+      }
+      return;
+    }
+
+    // Title lookup for a pasted shownotes URL, so the user edits a sensible default
+    // instead of typing every title from scratch.
+    if (req.method === "POST" && pathname === "/api/fetch-link-title") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+        const title = await fetchPageTitle(String(payload.url || "").trim());
+        sendJson(res, 200, { success: true, title });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
       }
       return;
     }
@@ -992,6 +1069,55 @@ function startServer({ port = 4173, onPortConflict } = {}) {
         sendJson(res, 200, readNormalizedVideoStatus(statusFile));
       } catch {
         sendJson(res, 200, { status: "missing" });
+      }
+      return;
+    }
+
+    // Clear & Restart's server half: the run status and the report are what discovery
+    // uses to restore completed-run state, suggestions, links and fix memory - without
+    // deleting them a "restart" resurrects everything it just cleared. Generated media
+    // and episode content files are left alone; a re-approve rewrites those.
+    if (req.method === "POST" && pathname === "/api/clear-episode-state") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+
+        const { episodeDir, videoStatusFile } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+
+        if (
+          activeVideoStatusFiles.has(videoStatusFile) ||
+          activeClipGenerationStatusFiles.has(videoStatusFile)
+        ) {
+          sendJson(res, 400, {
+            success: false,
+            error:
+              "A render or clip generation is in progress for this episode - wait or cancel first",
+          });
+          return;
+        }
+
+        fs.rmSync(videoStatusFile, { force: true });
+        fs.rmSync(path.join(episodeDir, "postprocess-report.json"), {
+          force: true,
+        });
+        sendJson(res, 200, { success: true });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
       }
       return;
     }
@@ -1357,6 +1483,9 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           publishDate: payload.publishDate,
           skipVideo: Boolean(payload.skipVideo),
           episodeFolderPath: payload.episodeFolderPath,
+          shownotesLinks: Array.isArray(payload.shownotesLinks)
+            ? payload.shownotesLinks
+            : undefined,
           onProgress,
         };
 

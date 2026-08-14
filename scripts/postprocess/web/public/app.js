@@ -22,12 +22,22 @@ const clipSuggestionsSection = document.getElementById(
 );
 const clipSuggestionsList = document.getElementById("clip-suggestions-list");
 const clipQueueNote = document.getElementById("clip-queue-note");
+const clipSuggestionsSummary = document.getElementById(
+  "clip-suggestions-summary",
+);
 const transcriptReviewSection = document.getElementById(
   "transcript-review-section",
 );
 const transcriptReviewList = document.getElementById("transcript-review-list");
 const applyTranscriptFixesButton = document.getElementById(
   "apply-transcript-fixes-button",
+);
+const shownotesLinksSection = document.getElementById(
+  "shownotes-links-section",
+);
+const shownotesLinksList = document.getElementById("shownotes-links-list");
+const addShownotesLinkButton = document.getElementById(
+  "add-shownotes-link-button",
 );
 const recheckTranscriptButton = document.getElementById(
   "recheck-transcript-button",
@@ -54,6 +64,8 @@ let isRunRequestInFlight = false;
 let isVideoRenderCompleted = false;
 let chapterImageOverrides = {}; // Track uploaded replacement images by chapter index
 let currentTranscriptFindings = [];
+let shownotesLinks = [];
+let draggedLinkIndex = null;
 // Keyed by quote rather than index so ticks survive the fresh discovery the approve
 // flow runs (cached findings come back identical, but order is not guaranteed).
 let mediumFixAccepted = {};
@@ -72,6 +84,7 @@ function setVideoRenderUiState(inProgress) {
   if (isVideoRenderInProgress) {
     toggleOverridesButton.style.display = "none";
     previewSection.style.display = "none";
+    shownotesLinksSection.style.display = "none";
     approveButton.disabled = true;
     rerenderMp4Button.disabled = true;
     restartProcessButton.disabled = true;
@@ -95,6 +108,7 @@ function setVideoRenderCompletedUiState(completed) {
   isVideoRenderInProgress = false;
   toggleOverridesButton.style.display = "none";
   previewSection.style.display = "none";
+  shownotesLinksSection.style.display = "none";
   clipSuggestionsSection.style.display = "none";
   approveButton.disabled = true;
   generateClipVideosButton.style.display = "none";
@@ -849,6 +863,156 @@ function renderTranscriptFixResult(fixes) {
   }
 }
 
+// Editable rows for the generated index.md's Links section: seeded from the
+// auto-resolved Steam links (or the last run's edited list), with rows freely added,
+// edited and removed. State lives in shownotesLinks; text edits mutate it directly so
+// typing never triggers a re-render (which would steal focus).
+function renderShownotesLinks() {
+  shownotesLinksList.innerHTML = "";
+
+  shownotesLinks.forEach((link, index) => {
+    const row = document.createElement("div");
+    row.style.cssText =
+      "display: flex; gap: 8px; margin-bottom: 8px; align-items: center;";
+
+    // Dragging is armed only from the handle: a draggable row would hijack text
+    // selection inside the inputs.
+    const handle = document.createElement("span");
+    handle.textContent = "⠿";
+    handle.title = "Drag to reorder";
+    handle.style.cssText =
+      "cursor: grab; color: var(--muted); user-select: none; padding: 0 2px;";
+    handle.addEventListener("mousedown", () => {
+      row.draggable = true;
+    });
+    handle.addEventListener("mouseup", () => {
+      row.draggable = false;
+    });
+
+    row.addEventListener("dragstart", (event) => {
+      draggedLinkIndex = index;
+      event.dataTransfer.effectAllowed = "move";
+      row.style.opacity = "0.4";
+    });
+    // The indicator and the drop must share one decision, or the line lies about
+    // where the row will land: above the target when the pointer is in its top half,
+    // below it otherwise. Drawn with a box-shadow so rows don't shift while dragging.
+    const dropsBelow = (event) => {
+      const rect = row.getBoundingClientRect();
+      return event.clientY >= rect.top + rect.height / 2;
+    };
+
+    row.addEventListener("dragend", () => {
+      row.draggable = false;
+      row.style.opacity = "";
+      draggedLinkIndex = null;
+      for (const sibling of shownotesLinksList.children) {
+        sibling.style.boxShadow = "";
+      }
+    });
+    row.addEventListener("dragover", (event) => {
+      if (draggedLinkIndex === null || draggedLinkIndex === index) {
+        return;
+      }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      for (const sibling of shownotesLinksList.children) {
+        sibling.style.boxShadow = "";
+      }
+      row.style.boxShadow = dropsBelow(event)
+        ? "0 2px 0 var(--accent)"
+        : "0 -2px 0 var(--accent)";
+    });
+    row.addEventListener("dragleave", () => {
+      row.style.boxShadow = "";
+    });
+    row.addEventListener("drop", (event) => {
+      event.preventDefault();
+      if (draggedLinkIndex === null || draggedLinkIndex === index) {
+        return;
+      }
+      let target = index + (dropsBelow(event) ? 1 : 0);
+      if (draggedLinkIndex < target) {
+        target -= 1;
+      }
+      const [moved] = shownotesLinks.splice(draggedLinkIndex, 1);
+      shownotesLinks.splice(target, 0, moved);
+      draggedLinkIndex = null;
+      renderShownotesLinks();
+    });
+
+    const titleInput = document.createElement("input");
+    titleInput.type = "text";
+    titleInput.placeholder = "Title";
+    titleInput.value = link.title || "";
+    titleInput.style.flex = "1";
+    titleInput.addEventListener("input", () => {
+      link.title = titleInput.value;
+    });
+
+    const urlInput = document.createElement("input");
+    urlInput.type = "text";
+    urlInput.placeholder = "https://...";
+    urlInput.value = link.url || "";
+    urlInput.style.flex = "2";
+    urlInput.addEventListener("input", () => {
+      link.url = urlInput.value;
+    });
+    // A pasted URL gets its page title fetched as an editable default, but never
+    // overwrites a title the user has typed in the meantime.
+    urlInput.addEventListener("blur", async () => {
+      const url = urlInput.value.trim();
+      if (!url || titleInput.value.trim()) {
+        return;
+      }
+      titleInput.placeholder = "Fetching title...";
+      try {
+        const response = await fetch("/api/fetch-link-title", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ url }),
+        });
+        const body = await response.json();
+        if (
+          response.ok &&
+          body.success &&
+          body.title &&
+          !titleInput.value.trim()
+        ) {
+          titleInput.value = body.title;
+          link.title = body.title;
+        }
+      } catch {
+        // No title is fine; the user types one.
+      } finally {
+        titleInput.placeholder = "Title";
+      }
+    });
+
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.textContent = "✕";
+    removeButton.addEventListener("click", () => {
+      shownotesLinks.splice(index, 1);
+      renderShownotesLinks();
+    });
+
+    row.appendChild(handle);
+    row.appendChild(titleInput);
+    row.appendChild(urlInput);
+    row.appendChild(removeButton);
+    shownotesLinksList.appendChild(row);
+  });
+}
+
+addShownotesLinkButton.addEventListener("click", () => {
+  shownotesLinks.push({ title: "", url: "" });
+  renderShownotesLinks();
+  shownotesLinksList.lastElementChild?.querySelector("input")?.focus();
+});
+
 function renderProfanityStatus(
   transcriptChecks,
   phaseLabel = "Check",
@@ -1015,6 +1179,9 @@ function renderClipSuggestions(suggestions) {
   }
 
   clipSuggestionsSection.style.display = "block";
+  // The count keeps the collapsed section informative; open/closed state is the
+  // browser's and survives re-renders because only the list contents are replaced.
+  clipSuggestionsSummary.textContent = `Clip Suggestions (${currentClipSuggestions.length})`;
 
   const chapters = getDiscoverySnapshot()?.chapters || [];
 
@@ -1302,6 +1469,22 @@ async function runDiscovery() {
       );
     }
 
+    // Shownotes links: the last run's edited list when there is one, otherwise the
+    // auto-resolved Steam links as the starting point.
+    const seedLinks = Array.isArray(result.discovered?.existingShownotesLinks)
+      ? result.discovered.existingShownotesLinks
+      : result.discovered?.shownotesLinkSeeds || [];
+    shownotesLinks = seedLinks.map((link) => ({
+      title: link.title || "",
+      url: link.url || "",
+    }));
+    renderShownotesLinks();
+    // Links are review-phase input: once a run has baked them into index.md the
+    // editor stays hidden, like the chapter preview.
+    if (!hasActiveVideoRun && !hasCompletedVideoRun) {
+      shownotesLinksSection.style.display = "block";
+    }
+
     // Unapplied medium-confidence findings come back the same way; ticks are keyed by
     // quote, so any made before the refresh carry over.
     const existingFindings =
@@ -1477,6 +1660,7 @@ async function pollVideoStatus(statusFile) {
         // Approve is enabled again after a failure, so what it acts on must be
         // visible too - otherwise the re-approve happens blind.
         previewSection.style.display = "block";
+        shownotesLinksSection.style.display = "block";
         toggleOverridesButton.style.display = "inline-block";
         const interruptedByRestart =
           /interrupted \(server process restarted or exited\)/i.test(
@@ -1814,11 +1998,36 @@ restartProcessButton.addEventListener("click", async () => {
   }
 
   const confirmed = window.confirm(
-    "Clear and restart process? This will reset current review state (approvals, suggestions, and temporary overrides in this session).",
+    "Clear and restart process? This resets the episode's processing state: run status, suggestions, applied-fix memory, saved links and temporary overrides. Generated media files are not deleted.",
   );
   if (!confirmed) {
     addStatus("Clear & Restart cancelled.");
     return;
+  }
+
+  // The server-side half: discovery restores completed-run state, suggestions, links
+  // and fix memory from the episode's status file and report, so those must go too or
+  // the restart resurrects everything.
+  if (currentDiscoveryData?.discoveryData) {
+    try {
+      const response = await fetch("/api/clear-episode-state", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          mp3Path: buildDiscoverPayload().mp3Path,
+          discoveryData: currentDiscoveryData.discoveryData,
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok || !body.success) {
+        throw new Error(body.error || "Clear request failed");
+      }
+    } catch (error) {
+      addStatus(`❌ Could not clear episode state: ${error.message}`);
+      return;
+    }
   }
 
   currentRunResult = null;
@@ -1827,6 +2036,7 @@ restartProcessButton.addEventListener("click", async () => {
   chapterImageOverrides = {};
   currentTranscriptFindings = [];
   mediumFixAccepted = {};
+  shownotesLinks = [];
   renderTranscriptFixSection();
   persistActiveVideoStatusFile("");
   persistActiveClipStatusFile("");
@@ -2188,6 +2398,7 @@ approveButton.addEventListener("click", async () => {
       body: JSON.stringify({
         ...runPayload,
         discoveryData,
+        shownotesLinks,
       }),
     });
 

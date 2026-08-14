@@ -172,6 +172,10 @@ async function main() {
     transcriptVttPath: fixture.transcriptVttPath,
     skipVideo: true,
     onProgress: () => {},
+    shownotesLinks: [
+      { title: "Cool Bug", url: "https://example.com/bug" },
+      { title: "A Game With No Steam Page", url: "" },
+    ],
     llmComplete: async ({ schema }) =>
       schema?.properties?.clips
         ? fakeClips
@@ -235,6 +239,16 @@ async function main() {
     vttMissed: ["actually do that"],
   });
 
+  // Shownotes links from the UI land in the Links section: URL rows as markdown
+  // links, title-only rows as bare text.
+  const writtenIndex = fs.readFileSync(
+    path.join(episodeDir, "index.md"),
+    "utf8",
+  );
+  assert.ok(writtenIndex.includes("[Cool Bug](https://example.com/bug)"));
+  assert.ok(writtenIndex.includes("\nA Game With No Steam Page\n"));
+  assert.equal(report.shownotesLinks.length, 2);
+
   // The AI clip picks replace the heuristic suggestions, grounded in the VTT timings.
   assert.equal(report.clipSource, "llm");
   assert.equal(report.clipSuggestions.length, 1);
@@ -286,6 +300,14 @@ async function main() {
     rerunReport.appliedTranscriptFixes,
     [{ quote: "honestly", correction: "frankly" }],
     "applied fixes must carry forward into the new report",
+  );
+
+  // A re-run without an explicit link list keeps the last run's edited links rather
+  // than resetting to the auto-resolved Steam set.
+  const rerunIndex = fs.readFileSync(path.join(episodeDir, "index.md"), "utf8");
+  assert.ok(
+    rerunIndex.includes("[Cool Bug](https://example.com/bug)"),
+    "shownotes links were not carried through the re-run",
   );
 
   fs.rmSync(repoRoot, { recursive: true, force: true });

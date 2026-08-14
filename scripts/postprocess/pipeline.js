@@ -315,6 +315,20 @@ async function resolveHiddenChapterLinks(chapters) {
   }));
 }
 
+// Rows with a URL render as markdown links; title-only rows (a game with no Steam
+// page, a link to fill in later) render as bare text, matching the hand-edited style.
+function sanitizeShownotesLinks(rawLinks) {
+  if (!Array.isArray(rawLinks)) {
+    return null;
+  }
+  return rawLinks
+    .map((link) => ({
+      title: String(link?.title || "").trim(),
+      url: String(link?.url || "").trim() || null,
+    }))
+    .filter((link) => link.title || link.url);
+}
+
 function buildIndexMarkdown({
   episodeTitle,
   episodeMeta,
@@ -325,7 +339,7 @@ function buildIndexMarkdown({
   podcastDuration,
   dateString,
   chapters,
-  hiddenLinks,
+  links,
   author,
 }) {
   const lines = [];
@@ -364,15 +378,13 @@ function buildIndexMarkdown({
   const fallbackHiddenLinks = chapters
     .filter((chapter) => chapter.toc === false)
     .map((chapter) => ({ title: chapter.title, url: null }));
-  const resolvedHiddenLinks =
-    Array.isArray(hiddenLinks) && hiddenLinks.length > 0
-      ? hiddenLinks
-      : fallbackHiddenLinks;
+  const resolvedLinks =
+    Array.isArray(links) && links.length > 0 ? links : fallbackHiddenLinks;
 
-  if (resolvedHiddenLinks.length === 0) {
+  if (resolvedLinks.length === 0) {
     lines.push("[]()");
   } else {
-    for (const link of resolvedHiddenLinks) {
+    for (const link of resolvedLinks) {
       if (link.url) {
         lines.push(`[${link.title}](${link.url})`);
       } else {
@@ -502,6 +514,33 @@ async function discoverEpisodeData(inputOptions = {}) {
   const hiddenLinks = await resolveHiddenChapterLinks(chapters);
   const hiddenLinkTitles = hiddenLinks.map((link) => link.title);
 
+  // The chapter before Outro is almost always the main topic, and the main topic is
+  // almost always a game - so it gets a prefilled shownotes row too, deleted in the UI
+  // on the weeks it is not.
+  const shownotesLinkSeeds = [...hiddenLinks];
+  const outroIndex = chapters.findIndex(
+    (chapter) => normalizeTitle(chapter.title) === "outro",
+  );
+  const mainTopicChapter = outroIndex > 0 ? chapters[outroIndex - 1] : null;
+  if (
+    mainTopicChapter &&
+    !hiddenLinks.some(
+      (link) =>
+        normalizeTitle(link.title) === normalizeTitle(mainTopicChapter.title),
+    )
+  ) {
+    let mainTopicUrl = null;
+    try {
+      mainTopicUrl = await findExactSteamStoreUrl(mainTopicChapter.title);
+    } catch {
+      // No Steam page is fine; the row still seeds with just the title.
+    }
+    shownotesLinkSeeds.push({
+      title: mainTopicChapter.title,
+      url: mainTopicUrl,
+    });
+  }
+
   const stat = fs.statSync(inputOptions.mp3Path);
   const podcastBytes = stat.size;
   const podcastDuration = formatSecondsToHhmmss(audioDurationSeconds);
@@ -562,6 +601,7 @@ async function discoverEpisodeData(inputOptions = {}) {
     description,
     hiddenLinks,
     hiddenLinkTitles,
+    shownotesLinkSeeds,
     podcastBytes,
     podcastDuration,
     dateString,
@@ -638,6 +678,14 @@ async function runPipeline(inputOptions = {}) {
     ? previousReport.appliedTranscriptFixes
     : [];
 
+  // Shownotes links: the UI's edited list wins; a re-run without one keeps the last
+  // run's links rather than resetting to the auto-resolved Steam set.
+  const shownotesLinks =
+    sanitizeShownotesLinks(inputOptions.shownotesLinks) ??
+    sanitizeShownotesLinks(previousReport?.shownotesLinks) ??
+    discovered.shownotesLinkSeeds ??
+    discovered.hiddenLinks;
+
   const report = {
     episode: {
       ...episodeMeta,
@@ -649,6 +697,7 @@ async function runPipeline(inputOptions = {}) {
       videoPath,
     },
     appliedTranscriptFixes: carriedTranscriptFixes,
+    shownotesLinks,
     chapterCount: chaptersWithImages.length,
     chapters: chaptersWithImages.map((chapter) => ({
       start: chapter.timeLabel,
@@ -872,7 +921,7 @@ async function runPipeline(inputOptions = {}) {
     podcastDuration,
     dateString,
     chapters: chaptersWithImages,
-    hiddenLinks: discovered.hiddenLinks,
+    links: shownotesLinks,
     author: config.defaultAuthor,
   });
 
