@@ -1016,6 +1016,28 @@ addShownotesLinkButton.addEventListener("click", () => {
   shownotesLinksList.lastElementChild?.querySelector("input")?.focus();
 });
 
+function renderAudioQc(audioQc) {
+  if (!audioQc || !audioQc.enabled) {
+    return;
+  }
+  if (audioQc.error) {
+    addStatus(`⚠ Audio QC failed: ${audioQc.error}`);
+    return;
+  }
+
+  const summary = `${audioQc.integratedLufs} LUFS, true peak ${audioQc.truePeakDb} dBFS`;
+  const warnings = audioQc.warnings || [];
+  if (warnings.length === 0) {
+    addStatus(`✓ Audio QC: ${summary}, no long silences`);
+    return;
+  }
+
+  addStatus(`⚠ Audio QC (${summary}):`);
+  for (const warning of warnings) {
+    addStatus(`  • ${warning}`);
+  }
+}
+
 function renderProfanityStatus(
   transcriptChecks,
   phaseLabel = "Check",
@@ -1900,6 +1922,7 @@ async function runDiscovery() {
       "Discovery",
       payload.transcriptMdPath,
     );
+    renderAudioQc(result.discovered?.audioQc);
     resumeVideoStatusPollingFromDiscover(result.discovered?.videoStatus);
     resumeClipStatusPollingFromDiscover(result.discovered?.videoStatus);
 

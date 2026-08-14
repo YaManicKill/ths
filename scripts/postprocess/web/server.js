@@ -955,6 +955,7 @@ function startServer({ port = 4173, onPortConflict } = {}) {
               transcriptMd: discovered.profanityMatches.transcriptMd,
               transcriptVtt: discovered.profanityMatches.transcriptVtt,
             },
+            audioQc: discovered.audioQc,
             videoStatus: discoveredVideoStatus,
             existingClipSuggestions: Array.isArray(
               episodeReport?.clipSuggestions,

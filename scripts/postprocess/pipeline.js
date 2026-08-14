@@ -20,6 +20,7 @@ const {
   selectTranscriptFixes,
 } = require("./transcript-review");
 const { suggestClipsLlmCached } = require("./clip-suggestions-llm");
+const { analyzeAudioCached, buildAudioQcWarnings } = require("./audio-qc");
 const {
   assertToolAvailable,
   chapterImageOverridesPath,
@@ -586,6 +587,30 @@ async function discoverEpisodeData(inputOptions = {}) {
     transcriptVtt: findWordMatches(transcriptVttText, config.profanityWords),
   };
 
+  // Warning-only, like the profanity check. The first pass decodes the whole episode
+  // (~a minute for a long one); after that it is cached until the MP3 changes.
+  let audioQc = { enabled: false, warnings: [] };
+  try {
+    onProgress("Analyzing audio levels (first pass takes about a minute)...");
+    const analysis = await analyzeAudioCached({
+      cacheDir: path.join(workRoot, "audio-qc"),
+      mp3Path: inputOptions.mp3Path,
+    });
+    audioQc = {
+      enabled: true,
+      ...analysis,
+      warnings: buildAudioQcWarnings(analysis),
+    };
+    onProgress(
+      analysis.fromCache
+        ? "Audio QC: using cached analysis for this MP3"
+        : `Audio QC: ${audioQc.warnings.length} warning(s)`,
+    );
+  } catch (error) {
+    audioQc = { enabled: true, error: error.message, warnings: [] };
+    onProgress(`Warning: audio QC failed: ${error.message}`);
+  }
+
   const clipSuggestions = buildClipSuggestions({
     transcriptMdText,
     transcriptVttText,
@@ -607,6 +632,7 @@ async function discoverEpisodeData(inputOptions = {}) {
     dateString,
     chapters: chaptersWithImages,
     profanityMatches,
+    audioQc,
     transcriptMdText,
     transcriptVttText,
     clipSuggestions,
