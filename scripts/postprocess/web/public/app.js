@@ -1407,7 +1407,7 @@ function buildClipTranscriptEditor(suggestion) {
       if (!response.ok || !data.success) {
         throw new Error(data.error || "Cue request failed");
       }
-      renderClipCueEditor(body, data);
+      renderClipCueEditor(body, suggestion, data);
     } catch (error) {
       loaded = false;
       body.textContent = `Could not load transcript cues: ${error.message}`;
@@ -1417,7 +1417,7 @@ function buildClipTranscriptEditor(suggestion) {
   return details;
 }
 
-function renderClipCueEditor(container, { cues, editable }) {
+function renderClipCueEditor(container, suggestion, { cues, editable }) {
   container.textContent = "";
 
   if (!cues.length) {
@@ -1425,13 +1425,29 @@ function renderClipCueEditor(container, { cues, editable }) {
     return;
   }
 
+  // Per-clip exclusions: ✕ cuts a line from this clip's burned subtitles only (for
+  // cues that overlap the window but are not audible in the clip). The episode
+  // transcripts are never touched by exclusions; they ride on the suggestion into the
+  // generation payload.
+  if (!Array.isArray(suggestion.excludedCueStarts)) {
+    suggestion.excludedCueStarts = [];
+  }
+  const isExcluded = (cue) =>
+    suggestion.excludedCueStarts.some(
+      (start) => Math.abs(start - cue.startSeconds) < 0.01,
+    );
+
   const originals = cues.map((cue) => cue.speech);
   const inputs = [];
+  // Excluded rows are skipped: they are clip-local cuts, not transcript edits.
   clipEditorDirtyChecks.add(
     () =>
       inputs.filter(
         (input, index) =>
-          !input.disabled && input.value.trim() !== originals[index].trim(),
+          !input.disabled &&
+          !isExcluded(cues[index]) &&
+          input.value.trim() !== "" &&
+          input.value.trim() !== originals[index].trim(),
       ).length,
   );
 
@@ -1448,13 +1464,40 @@ function renderClipCueEditor(container, { cues, editable }) {
     const input = document.createElement("textarea");
     input.value = cue.speech;
     input.rows = 1;
-    input.disabled = !editable;
     input.style.cssText =
       "flex: 1; resize: vertical; font-size: 0.9em; line-height: 1.4;";
     inputs.push(input);
 
+    const excludeButton = document.createElement("button");
+    excludeButton.type = "button";
+    excludeButton.style.cssText = "padding: 2px 8px; cursor: pointer;";
+
+    const refreshRow = () => {
+      const excluded = isExcluded(cue);
+      input.disabled = !editable || excluded;
+      input.style.opacity = excluded ? "0.4" : "";
+      input.style.textDecoration = excluded ? "line-through" : "";
+      excludeButton.textContent = excluded ? "↩" : "✕";
+      excludeButton.title = excluded
+        ? "Restore this line in the clip"
+        : "Cut this line from the clip's subtitles (episode transcripts unchanged)";
+    };
+    refreshRow();
+
+    excludeButton.addEventListener("click", () => {
+      if (isExcluded(cue)) {
+        suggestion.excludedCueStarts = suggestion.excludedCueStarts.filter(
+          (start) => Math.abs(start - cue.startSeconds) >= 0.01,
+        );
+      } else {
+        suggestion.excludedCueStarts.push(cue.startSeconds);
+      }
+      refreshRow();
+    });
+
     row.appendChild(label);
     row.appendChild(input);
+    row.appendChild(excludeButton);
     container.appendChild(row);
   });
 
@@ -1473,14 +1516,32 @@ function renderClipCueEditor(container, { cues, editable }) {
   saveButton.style.marginTop = "6px";
   saveButton.addEventListener("click", async () => {
     const fixes = [];
+    let emptiedRows = 0;
     inputs.forEach((input, index) => {
+      if (isExcluded(cues[index])) {
+        return;
+      }
       const edited = input.value.trim();
+      if (edited === "" && originals[index].trim() !== "") {
+        // Deleting transcript text is not supported; put the original back rather
+        // than leaving a blank row. Cutting a line from the clip is the ✕ button.
+        emptiedRows += 1;
+        input.value = originals[index];
+        return;
+      }
       if (edited && edited !== originals[index].trim()) {
         fixes.push({ quote: originals[index], correction: edited });
       }
     });
+    if (emptiedRows > 0) {
+      addStatus(
+        `ℹ ${emptiedRows} emptied cue row(s) restored - to cut a line from the clip, use its ✕ button.`,
+      );
+    }
     if (!fixes.length) {
-      addStatus("No transcript edits to save.");
+      if (!emptiedRows) {
+        addStatus("No transcript edits to save.");
+      }
       return;
     }
 

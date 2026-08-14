@@ -51,6 +51,18 @@ assert.deepEqual(sliced, [
   { startSeconds: 6, endSeconds: 10, text: "straddles the end" },
 ]);
 
+// Per-clip exclusions drop cues by original start time (float-tolerant), leaving the
+// rest untouched.
+assert.deepEqual(
+  sliceCuesForClip({
+    cues,
+    clipStartSeconds: 10,
+    clipEndSeconds: 20,
+    excludedCueStarts: [9.001, 16],
+  }),
+  [{ startSeconds: 2, endSeconds: 6, text: "fully inside" }],
+);
+
 assert.deepEqual(
   sliceCuesForClip({ cues, clipStartSeconds: 100, clipEndSeconds: 110 }),
   [],

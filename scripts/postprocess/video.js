@@ -740,6 +740,9 @@ async function generateClipVideos({
         cues,
         clipStartSeconds: startSeconds,
         clipEndSeconds: startSeconds + durationSeconds,
+        excludedCueStarts: Array.isArray(clipSuggestion?.excludedCueStarts)
+          ? clipSuggestion.excludedCueStarts
+          : [],
       }),
       workDir,
       name: `subs-${String(absoluteIndex + 1).padStart(3, "0")}`,
