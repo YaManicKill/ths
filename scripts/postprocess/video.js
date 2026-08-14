@@ -1,6 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { ensureDir, runCommand, runCommandStream } = require("./utils");
+const { ensureRequiredHashtags } = require("./clip-suggestions-llm");
 const {
   formatEpisodeDateForOverlay,
   resolveClipBoldFontPath,
@@ -791,6 +792,7 @@ async function generateClipVideos({
     outputs.push({
       title: clipSuggestion?.title || summary,
       summary,
+      caption: clipSuggestion?.caption || "",
       outputPath,
       durationSeconds,
       startSeconds,
@@ -801,7 +803,28 @@ async function generateClipVideos({
     reportProgress(index + 1, 0);
   }
 
+  writeClipCaptionsFile({ outputDir, outputs });
+
   return outputs;
+}
+
+// One paste-ready caption per rendered clip, next to the clips themselves. AI picks
+// carry a caption from the model; heuristic picks fall back to their summary so the
+// file is complete either way. Rewritten per generation run.
+function writeClipCaptionsFile({ outputDir, outputs }) {
+  const blocks = outputs
+    .map((output) => {
+      const caption = output.caption || output.summary || output.title;
+      return caption
+        ? `${path.basename(output.outputPath)}\n${ensureRequiredHashtags(caption)}\n`
+        : null;
+    })
+    .filter(Boolean);
+
+  if (blocks.length === 0) {
+    return;
+  }
+  fs.writeFileSync(path.join(outputDir, "captions.txt"), blocks.join("\n"));
 }
 
 module.exports = {

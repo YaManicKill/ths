@@ -8,7 +8,7 @@ const { fileExists, readJson, writeJson } = require("./utils");
 // Bump when the prompt or schema changes so cached picks from the old request shape are
 // not reused. Versioned separately from the transcript check: the two features evolve
 // independently and a prompt tweak in one must not invalidate the other's cache.
-const CLIP_PROMPT_VERSION = 1;
+const CLIP_PROMPT_VERSION = 3;
 const MAX_LLM_SUGGESTIONS = 10;
 // Validity bounds for a located clip, looser than the prompt's stated target so a
 // slightly long-but-good pick survives; anything outside is a bad quote match.
@@ -16,6 +16,26 @@ const MIN_CLIP_SECONDS = 15;
 const MAX_CLIP_SECONDS = 90;
 
 const CLIP_CATEGORIES = ["funny moment", "hot take", "story", "wholesome"];
+
+// Every posted clip carries the show's hashtags. The prompt asks for them so the model
+// weaves them in naturally, and ensureRequiredHashtags guarantees them even when it
+// forgets.
+const REQUIRED_CLIP_HASHTAGS = [
+  "#cottagecore",
+  "#farminggames",
+  "#theharvestseason",
+];
+
+function ensureRequiredHashtags(caption) {
+  const base = String(caption || "").trim();
+  const missing = REQUIRED_CLIP_HASHTAGS.filter(
+    (tag) => !new RegExp(tag, "i").test(base),
+  );
+  if (missing.length === 0) {
+    return base;
+  }
+  return [base, ...missing].filter(Boolean).join(" ");
+}
 
 const CLIP_SCHEMA = {
   type: "object",
@@ -44,6 +64,11 @@ const CLIP_SCHEMA = {
             type: "string",
             description: "One sentence on why this moment works as a clip.",
           },
+          caption: {
+            type: "string",
+            description:
+              "A ready-to-post social media caption: one or two energetic sentences that tease the moment without spoiling the payoff, ending with hashtags that always include #cottagecore #farminggames #theharvestseason plus one or two clip-specific ones.",
+          },
           score: {
             type: "number",
             description: "How strong the clip is, 0 (weak) to 100 (must-post).",
@@ -55,6 +80,7 @@ const CLIP_SCHEMA = {
           "title",
           "category",
           "reason",
+          "caption",
           "score",
         ],
       },
@@ -79,6 +105,9 @@ const SYSTEM_PROMPT = [
   "- Prefer moments with energy: laughter, disagreement, surprising facts, strong",
   "  opinions, good storytelling beats. Avoid housekeeping, greetings, ad reads and",
   "  outro/credits talk.",
+  "- The caption is pasted as-is when posting the clip: one or two energetic sentences",
+  "  that tease the moment without spoiling the payoff, ending with hashtags - always",
+  `  ${REQUIRED_CLIP_HASHTAGS.join(" ")}, plus one or two specific to the clip.`,
   "- Clips must not overlap each other.",
 ].join("\n");
 
@@ -238,6 +267,7 @@ async function suggestClipsLlm({
       speaker: speakerMatch ? speakerMatch[1].trim() : null,
       reason: CLIP_CATEGORIES.includes(raw.category) ? raw.category : "moment",
       llmReason: String(raw.reason || "").trim(),
+      caption: ensureRequiredHashtags(raw.caption),
       timestampLabel: `${formatSecondsToHhmmss(startSeconds)}-${formatSecondsToHhmmss(endSeconds)}`,
       source: "llm",
     });
@@ -293,6 +323,7 @@ async function suggestClipsLlmCached({ cacheDir, ...options }) {
 
 module.exports = {
   buildCueSearchIndex,
+  ensureRequiredHashtags,
   locateClipInCues,
   suggestClipsLlm,
   suggestClipsLlmCached,
