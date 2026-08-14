@@ -13,6 +13,8 @@ const {
 const { resolveLlm } = require("../llm");
 const { buildClipSuggestions } = require("../clip-suggestions");
 const { suggestClipsLlmCached } = require("../clip-suggestions-llm");
+const { stripSpeakerPrefix } = require("../clip-subtitles");
+const { parseVttCues } = require("../vtt");
 const { generateClipVideos, generateVideoFromChapters } = require("../video");
 const { loadPostprocessConfig } = require("../config");
 const {
@@ -1069,6 +1071,70 @@ function startServer({ port = 4173, onPortConflict } = {}) {
         sendJson(res, 200, readNormalizedVideoStatus(statusFile));
       } catch {
         sendJson(res, 200, { status: "missing" });
+      }
+      return;
+    }
+
+    // The subtitle cues overlapping one clip's window, for the per-card transcript
+    // editor. Reads the episode's written (fixed) transcript.vtt when it exists;
+    // before a run there is only discovery-time text, which is served read-only since
+    // edits are applied to the episode files.
+    if (req.method === "POST" && pathname === "/api/clip-cues") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        const startSeconds = Number(payload.startSeconds);
+        const endSeconds = Number(payload.endSeconds);
+        if (
+          !Number.isFinite(startSeconds) ||
+          !Number.isFinite(endSeconds) ||
+          endSeconds <= startSeconds
+        ) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid clip time range",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const vttPath = path.join(episodeDir, "transcript.vtt");
+        const editable =
+          fs.existsSync(vttPath) &&
+          fs.existsSync(path.join(episodeDir, "transcript.md"));
+        const vttText = editable
+          ? fs.readFileSync(vttPath, "utf8")
+          : discovered.transcriptVttText;
+
+        const cues = parseVttCues(vttText || "")
+          .filter(
+            (cue) =>
+              cue.endSeconds > startSeconds && cue.startSeconds < endSeconds,
+          )
+          .map((cue) => ({
+            startSeconds: cue.startSeconds,
+            speaker: (/^([^:\n]{1,30}):/.exec(cue.text) || [])[1] || null,
+            speech: stripSpeakerPrefix(cue.text),
+          }));
+
+        sendJson(res, 200, { success: true, editable, cues });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
       }
       return;
     }

@@ -1151,6 +1151,165 @@ function playClipPreview(suggestion, button) {
   clipPreviewButton = button;
 }
 
+function formatCueTime(seconds) {
+  const total = Math.max(0, Math.floor(Number(seconds) || 0));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = (value) => String(value).padStart(2, "0");
+  return h ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
+
+// The per-card transcript editor: the clip's cues load on first open, edit in place,
+// and save as quote->correction fixes through the same endpoint as the AI transcript
+// fixes - so edits land in both episode transcripts, are remembered across re-runs,
+// and reach the burned-in subtitles on the next clip render.
+function buildClipTranscriptEditor(suggestion) {
+  const details = document.createElement("details");
+  details.style.marginBottom = "10px";
+  const toggle = document.createElement("summary");
+  toggle.textContent = "Transcript";
+  toggle.style.cssText =
+    "cursor: pointer; font-size: 0.9em; color: var(--muted);";
+  const body = document.createElement("div");
+  body.style.cssText = "margin-top: 6px;";
+  details.appendChild(toggle);
+  details.appendChild(body);
+
+  let loaded = false;
+  details.addEventListener("toggle", async () => {
+    if (!details.open || loaded) {
+      return;
+    }
+    loaded = true;
+    body.textContent = "Loading transcript cues...";
+    try {
+      const response = await fetch("/api/clip-cues", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          mp3Path: buildDiscoverPayload().mp3Path,
+          discoveryData: currentDiscoveryData?.discoveryData,
+          startSeconds: suggestion.startSeconds,
+          endSeconds: suggestion.endSeconds,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Cue request failed");
+      }
+      renderClipCueEditor(body, data);
+    } catch (error) {
+      loaded = false;
+      body.textContent = `Could not load transcript cues: ${error.message}`;
+    }
+  });
+
+  return details;
+}
+
+function renderClipCueEditor(container, { cues, editable }) {
+  container.textContent = "";
+
+  if (!cues.length) {
+    container.textContent = "No subtitle cues in this clip's window.";
+    return;
+  }
+
+  const originals = cues.map((cue) => cue.speech);
+  const inputs = [];
+
+  cues.forEach((cue) => {
+    const row = document.createElement("div");
+    row.style.cssText =
+      "display: flex; gap: 8px; margin-bottom: 6px; align-items: baseline;";
+
+    const label = document.createElement("span");
+    label.textContent = `${formatCueTime(cue.startSeconds)}${cue.speaker ? ` ${cue.speaker}` : ""}`;
+    label.style.cssText =
+      "font-size: 0.8em; color: var(--muted); white-space: nowrap; min-width: 100px;";
+
+    const input = document.createElement("textarea");
+    input.value = cue.speech;
+    input.rows = 1;
+    input.disabled = !editable;
+    input.style.cssText =
+      "flex: 1; resize: vertical; font-size: 0.9em; line-height: 1.4;";
+    inputs.push(input);
+
+    row.appendChild(label);
+    row.appendChild(input);
+    container.appendChild(row);
+  });
+
+  if (!editable) {
+    const note = document.createElement("div");
+    note.textContent =
+      "Editing needs the episode transcripts - press Approve first.";
+    note.style.cssText = "font-size: 0.85em; color: var(--muted);";
+    container.appendChild(note);
+    return;
+  }
+
+  const saveButton = document.createElement("button");
+  saveButton.type = "button";
+  saveButton.textContent = "Save Transcript Edits";
+  saveButton.style.marginTop = "6px";
+  saveButton.addEventListener("click", async () => {
+    const fixes = [];
+    inputs.forEach((input, index) => {
+      const edited = input.value.trim();
+      if (edited && edited !== originals[index].trim()) {
+        fixes.push({ quote: originals[index], correction: edited });
+      }
+    });
+    if (!fixes.length) {
+      addStatus("No transcript edits to save.");
+      return;
+    }
+
+    saveButton.disabled = true;
+    try {
+      const response = await fetch("/api/transcript-review", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          mp3Path: buildDiscoverPayload().mp3Path,
+          discoveryData: currentDiscoveryData?.discoveryData,
+          recheck: false,
+          transcriptFixes: fixes,
+        }),
+      });
+      const bodyJson = await response.json();
+      if (!response.ok || !bodyJson.success) {
+        throw new Error(bodyJson.error || "Save failed");
+      }
+
+      renderTranscriptFixResult(bodyJson.fixes);
+      addStatus(
+        "✓ Transcript edits saved - regenerate clip videos to re-render with them",
+      );
+      // Applied rows become the new baseline; missed ones keep their original so a
+      // retry still diffs against the real file content.
+      const appliedQuotes = bodyJson.fixes?.appliedQuotes || [];
+      inputs.forEach((input, index) => {
+        if (appliedQuotes.includes(originals[index])) {
+          originals[index] = input.value.trim();
+        }
+      });
+    } catch (error) {
+      addStatus(`❌ Saving transcript edits failed: ${error.message}`);
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+  container.appendChild(saveButton);
+}
+
 function renderClipSuggestions(suggestions) {
   // Re-rendering replaces the card nodes, which would orphan a playing preview's
   // Stop button.
@@ -1242,26 +1401,11 @@ function renderClipSuggestions(suggestions) {
       card.appendChild(why);
     }
 
-    if (suggestion.text) {
-      const transcript = document.createElement("details");
-      transcript.style.marginBottom = "10px";
-      const transcriptToggle = document.createElement("summary");
-      transcriptToggle.textContent = "Show transcript";
-      transcriptToggle.style.cssText =
-        "cursor: pointer; font-size: 0.9em; color: var(--muted);";
-      const transcriptBody = document.createElement("div");
-      transcriptBody.textContent = suggestion.text;
-      transcriptBody.style.cssText = `
-        font-size: 0.9em;
-        line-height: 1.5;
-        margin-top: 6px;
-        padding: 8px 12px;
-        border-left: 3px solid var(--line);
-        color: var(--muted);
-      `;
-      transcript.appendChild(transcriptToggle);
-      transcript.appendChild(transcriptBody);
-      card.appendChild(transcript);
+    if (
+      typeof suggestion.startSeconds === "number" &&
+      typeof suggestion.endSeconds === "number"
+    ) {
+      card.appendChild(buildClipTranscriptEditor(suggestion));
     }
 
     const controls = document.createElement("div");

@@ -185,9 +185,9 @@ renderClipSuggestions([
     timestampLabel: "00:16:16-00:17:03",
     durationSeconds: 47.7,
     startSeconds: 976.24,
+    endSeconds: 1023.94,
     speaker: "Codey",
     reason: "strong hook and clear payoff",
-    text: "Do you want to tell the story of that? Yeah, so I just asked my daughter.",
   },
 ]);
 
@@ -199,11 +199,9 @@ assert.ok(
   cardText.includes("strong hook and clear payoff"),
   "reason badge missing",
 );
-assert.ok(cardText.includes("Show transcript"), "transcript toggle missing");
-assert.ok(
-  cardText.includes("I just asked my daughter"),
-  "full transcript text missing",
-);
+// The transcript editor renders as a collapsed toggle; its cues load from the server
+// only when opened, so the card itself carries just the summary element.
+assert.ok(cardText.includes("Transcript"), "transcript editor toggle missing");
 assert.ok(cardText.includes("48s"), "duration should render rounded");
 
 // A suggestion with no speaker, reason or text still renders a plain card.
