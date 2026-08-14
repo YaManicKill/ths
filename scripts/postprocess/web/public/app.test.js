@@ -199,8 +199,9 @@ assert.ok(
   cardText.includes("strong hook and clear payoff"),
   "reason badge missing",
 );
-// The transcript editor renders as a collapsed toggle; its cues load from the server
-// only when opened, so the card itself carries just the summary element.
+// The trim and transcript editors render as collapsed toggles; their content loads
+// from the server only when opened, so the card itself carries just the summaries.
+assert.ok(cardText.includes("Trim"), "trim editor toggle missing");
 assert.ok(cardText.includes("Transcript"), "transcript editor toggle missing");
 assert.ok(cardText.includes("48s"), "duration should render rounded");
 

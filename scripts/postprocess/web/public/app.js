@@ -1160,6 +1160,210 @@ function formatCueTime(seconds) {
   return h ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
+function formatHms(seconds) {
+  const total = Math.max(0, Math.floor(Number(seconds) || 0));
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${pad(Math.floor(total / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`;
+}
+
+// The per-card waveform trim: drag either handle to move the clip's start/end,
+// snapping to cue boundaries so trims land on sentence edges. Times are written
+// straight onto the suggestion object, which is what preview and generation read.
+function buildClipTrimEditor(suggestion, refreshMeta) {
+  const details = document.createElement("details");
+  details.style.marginBottom = "10px";
+  const toggle = document.createElement("summary");
+  toggle.textContent = "Trim";
+  toggle.style.cssText =
+    "cursor: pointer; font-size: 0.9em; color: var(--muted);";
+  const body = document.createElement("div");
+  body.style.cssText = "margin-top: 6px;";
+  details.appendChild(toggle);
+  details.appendChild(body);
+
+  let loaded = false;
+  details.addEventListener("toggle", async () => {
+    if (!details.open || loaded) {
+      return;
+    }
+    loaded = true;
+    body.textContent = "Loading waveform...";
+    try {
+      const mp3Path = buildDiscoverPayload().mp3Path;
+      const jsonPost = async (url, payload) => {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || `${url} failed`);
+        }
+        return data;
+      };
+
+      const [waveform, cueData] = await Promise.all([
+        jsonPost("/api/clip-waveform", {
+          mp3Path,
+          startSeconds: suggestion.startSeconds,
+          endSeconds: suggestion.endSeconds,
+        }),
+        jsonPost("/api/clip-cues", {
+          mp3Path,
+          discoveryData: currentDiscoveryData?.discoveryData,
+          startSeconds: Math.max(0, suggestion.startSeconds - 15),
+          endSeconds: suggestion.endSeconds + 15,
+        }),
+      ]);
+      renderClipTrimStrip(
+        body,
+        suggestion,
+        waveform,
+        cueData.cues,
+        refreshMeta,
+      );
+    } catch (error) {
+      loaded = false;
+      body.textContent = `Could not load waveform: ${error.message}`;
+    }
+  });
+
+  return details;
+}
+
+function renderClipTrimStrip(
+  container,
+  suggestion,
+  waveform,
+  cues,
+  refreshMeta,
+) {
+  container.textContent = "";
+  const { windowStart, windowEnd, peaks } = waveform;
+  const span = windowEnd - windowStart;
+  if (!(span > 0) || !peaks.length) {
+    container.textContent = "No audio in this clip's window.";
+    return;
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 800;
+  canvas.height = 70;
+  canvas.style.cssText =
+    "width: 100%; height: 70px; display: block; touch-action: none; cursor: ew-resize;";
+  const rangeLabel = document.createElement("div");
+  rangeLabel.style.cssText =
+    "font-size: 0.85em; color: var(--muted); margin-top: 4px;";
+  container.appendChild(canvas);
+  container.appendChild(rangeLabel);
+
+  // Cue boundaries are magnetic, not mandatory: cues can run 8-10s in monologue
+  // stretches, and hard-snapping made those the only reachable positions. Within the
+  // threshold a handle grabs the sentence edge; elsewhere it drags freely.
+  const SNAP_THRESHOLD_SECONDS = 0.75;
+  const inWindow = (t) => t >= windowStart && t <= windowEnd;
+  const cueStarts = cues.map((c) => c.startSeconds).filter(inWindow);
+  const cueEnds = cues.map((c) => c.endSeconds).filter(inWindow);
+  const nearest = (values, t) =>
+    values.reduce(
+      (best, value) =>
+        Math.abs(value - t) < Math.abs(best - t) ? value : best,
+      values[0],
+    );
+  const snap = (values, t) => {
+    const candidate = values.length ? nearest(values, t) : t;
+    return Math.abs(candidate - t) <= SNAP_THRESHOLD_SECONDS
+      ? candidate
+      : Math.round(t * 10) / 10;
+  };
+
+  const ctx = canvas.getContext("2d");
+  const xFor = (t) => ((t - windowStart) / span) * canvas.width;
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const barWidth = canvas.width / peaks.length;
+    const startX = xFor(suggestion.startSeconds);
+    const endX = xFor(suggestion.endSeconds);
+
+    peaks.forEach((peak, i) => {
+      const x = i * barWidth;
+      const height = Math.max(1, peak * (canvas.height - 10));
+      ctx.fillStyle = x >= startX && x <= endX ? "#38bdf8" : "#475569";
+      ctx.fillRect(
+        x,
+        (canvas.height - height) / 2,
+        Math.max(1, barWidth - 1),
+        height,
+      );
+    });
+
+    ctx.fillStyle = "#eb8807";
+    for (const x of [startX, endX]) {
+      ctx.fillRect(x - 1.5, 0, 3, canvas.height);
+    }
+  }
+
+  function setRange(start, end) {
+    const round3 = (value) => Math.round(value * 1000) / 1000;
+    suggestion.startSeconds = round3(start);
+    suggestion.endSeconds = round3(end);
+    suggestion.durationSeconds = round3(end - start);
+    suggestion.timestampLabel = `${formatHms(start)}-${formatHms(end)}`;
+    rangeLabel.textContent = `${formatHms(start)} – ${formatHms(end)} (${Math.round(
+      suggestion.durationSeconds,
+    )}s) — drag the orange handles; sentence boundaries are magnetic`;
+    draw();
+    refreshMeta();
+  }
+
+  let dragging = null;
+  const timeAt = (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.min(Math.max(0, event.clientX - rect.left), rect.width);
+    return windowStart + (x / rect.width) * span;
+  };
+
+  canvas.addEventListener("pointerdown", (event) => {
+    const t = timeAt(event);
+    dragging =
+      Math.abs(t - suggestion.startSeconds) <=
+      Math.abs(t - suggestion.endSeconds)
+        ? "start"
+        : "end";
+    canvas.setPointerCapture(event.pointerId);
+    onDrag(event);
+  });
+  canvas.addEventListener("pointermove", (event) => {
+    if (dragging) {
+      onDrag(event);
+    }
+  });
+  canvas.addEventListener("pointerup", () => {
+    dragging = null;
+  });
+
+  function onDrag(event) {
+    const t = timeAt(event);
+    if (dragging === "start") {
+      const snapped = snap(cueStarts, t);
+      if (snapped < suggestion.endSeconds - 2) {
+        setRange(snapped, suggestion.endSeconds);
+      }
+    } else {
+      const snapped = snap(cueEnds, t);
+      if (snapped > suggestion.startSeconds + 2) {
+        setRange(suggestion.startSeconds, snapped);
+      }
+    }
+  }
+
+  setRange(suggestion.startSeconds, suggestion.endSeconds);
+}
+
 // The per-card transcript editor: the clip's cues load on first open, edit in place,
 // and save as quote->correction fixes through the same endpoint as the AI transcript
 // fixes - so edits land in both episode transcripts, are remembered across re-runs,
@@ -1370,17 +1574,21 @@ function renderClipSuggestions(suggestions) {
     meta.style.cssText =
       "font-size: 0.9em; color: var(--muted); margin-bottom: 8px;";
     const chapterTitle = chapterTitleForTime(chapters, suggestion.startSeconds);
-    const metaParts = [
-      suggestion.timestampLabel || "",
-      `${Math.round(suggestion.durationSeconds || 0)}s`,
-    ];
-    if (chapterTitle) {
-      metaParts.push(chapterTitle);
-    }
-    if (suggestion.speaker) {
-      metaParts.push(`Opens with ${suggestion.speaker}`);
-    }
-    meta.textContent = metaParts.filter(Boolean).join(" • ");
+    // Re-called by the trim editor, whose drags change the times shown here.
+    const updateMeta = () => {
+      const metaParts = [
+        suggestion.timestampLabel || "",
+        `${Math.round(suggestion.durationSeconds || 0)}s`,
+      ];
+      if (chapterTitle) {
+        metaParts.push(chapterTitle);
+      }
+      if (suggestion.speaker) {
+        metaParts.push(`Opens with ${suggestion.speaker}`);
+      }
+      meta.textContent = metaParts.filter(Boolean).join(" • ");
+    };
+    updateMeta();
     card.appendChild(meta);
 
     if (suggestion.reason) {
@@ -1410,6 +1618,7 @@ function renderClipSuggestions(suggestions) {
       typeof suggestion.startSeconds === "number" &&
       typeof suggestion.endSeconds === "number"
     ) {
+      card.appendChild(buildClipTrimEditor(suggestion, updateMeta));
       card.appendChild(buildClipTranscriptEditor(suggestion));
     }
 

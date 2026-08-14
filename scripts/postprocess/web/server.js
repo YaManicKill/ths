@@ -3,6 +3,7 @@ const os = require("node:os");
 const path = require("node:path");
 const http = require("node:http");
 const crypto = require("node:crypto");
+const { spawnSync } = require("node:child_process");
 const { runPipeline, discoverEpisodeData } = require("../pipeline");
 const {
   applyTranscriptFixes,
@@ -19,6 +20,7 @@ const { generateClipVideos, generateVideoFromChapters } = require("../video");
 const { loadPostprocessConfig } = require("../config");
 const {
   chapterImageOverridesPath,
+  computeWaveformPeaks,
   normalizeTitle,
   parseByteRange,
   readJson,
@@ -1075,6 +1077,79 @@ function startServer({ port = 4173, onPortConflict } = {}) {
       return;
     }
 
+    // Peak amplitudes for the trim strip: the clip's window plus margin either side,
+    // decoded to mono 8 kHz PCM and bucketed. The reported window end reflects what
+    // was actually decoded, so a clip near the episode's end gets a truthful axis.
+    if (req.method === "POST" && pathname === "/api/clip-waveform") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+        const mp3Path = String(payload.mp3Path || "").trim();
+        const startSeconds = Number(payload.startSeconds);
+        const endSeconds = Number(payload.endSeconds);
+        if (!mp3Path || !path.isAbsolute(mp3Path) || !fs.existsSync(mp3Path)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid mp3Path",
+          });
+          return;
+        }
+        if (
+          !Number.isFinite(startSeconds) ||
+          !Number.isFinite(endSeconds) ||
+          endSeconds <= startSeconds
+        ) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid clip time range",
+          });
+          return;
+        }
+
+        const margin = 15;
+        const windowStart = Math.max(0, startSeconds - margin);
+        const windowDuration = endSeconds + margin - windowStart;
+
+        const decoded = spawnSync(
+          "ffmpeg",
+          [
+            "-v",
+            "error",
+            "-ss",
+            String(windowStart),
+            "-t",
+            String(windowDuration),
+            "-i",
+            mp3Path,
+            "-ac",
+            "1",
+            "-ar",
+            "8000",
+            "-f",
+            "s16le",
+            "pipe:1",
+          ],
+          { maxBuffer: 64 * 1024 * 1024 },
+        );
+        if (decoded.status !== 0 || !decoded.stdout) {
+          throw new Error(
+            `ffmpeg decode failed: ${String(decoded.stderr || "").slice(0, 200)}`,
+          );
+        }
+
+        const decodedSeconds = Math.floor(decoded.stdout.length / 2) / 8000;
+        sendJson(res, 200, {
+          success: true,
+          windowStart,
+          windowEnd: windowStart + decodedSeconds,
+          peaks: computeWaveformPeaks(decoded.stdout, 600),
+        });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
     // The subtitle cues overlapping one clip's window, for the per-card transcript
     // editor. Reads the episode's written (fixed) transcript.vtt when it exists;
     // before a run there is only discovery-time text, which is served read-only since
@@ -1128,6 +1203,7 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           )
           .map((cue) => ({
             startSeconds: cue.startSeconds,
+            endSeconds: cue.endSeconds,
             speaker: (/^([^:\n]{1,30}):/.exec(cue.text) || [])[1] || null,
             speech: stripSpeakerPrefix(cue.text),
           }));

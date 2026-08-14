@@ -232,6 +232,28 @@ function getUpcomingWednesdayDateString({
   return formatZonedTimestamp({ ...target, time, timezone });
 }
 
+// Buckets raw mono s16le PCM into per-bin peak amplitudes (0..1), the shape a canvas
+// waveform wants. The last partial sample byte, if any, is ignored.
+function computeWaveformPeaks(pcmBuffer, bins) {
+  const sampleCount = Math.floor(pcmBuffer.length / 2);
+  const binCount = Math.max(1, Number(bins) || 1);
+  const peaks = new Array(binCount).fill(0);
+  if (sampleCount === 0) {
+    return peaks;
+  }
+
+  const samplesPerBin = sampleCount / binCount;
+  for (let i = 0; i < sampleCount; i += 1) {
+    const bin = Math.min(binCount - 1, Math.floor(i / samplesPerBin));
+    const amplitude = Math.abs(pcmBuffer.readInt16LE(i * 2)) / 32768;
+    if (amplitude > peaks[bin]) {
+      peaks[bin] = amplitude;
+    }
+  }
+
+  return peaks.map((peak) => Math.round(peak * 1000) / 1000);
+}
+
 // Parses an HTTP Range header against a file size. Returns {start, end} (inclusive
 // byte offsets), null when there is no usable range (serve the whole file with 200),
 // or "unsatisfiable" (respond 416). Only single ranges are supported; multipart
@@ -302,6 +324,7 @@ module.exports = {
   DEFAULT_TIMEZONE,
   assertToolAvailable,
   chapterImageOverridesPath,
+  computeWaveformPeaks,
   createOrCheckoutEpisodeBranch,
   ensureDir,
   fileExists,
