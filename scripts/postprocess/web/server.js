@@ -419,6 +419,40 @@ function resolvePreferredClipImagePath({ resolvedMp3Path, resolvedImagePath }) {
   return resolvedImagePath;
 }
 
+// Newline-delimited JSON over a chunked response: {type:"progress"} events while the
+// work runs, then exactly one {type:"result"} or {type:"error"} to finish. The stream
+// stays open for minutes, so a client that reloads or disconnects mid-run is normal -
+// writes after that are dropped, and the response's error event must have a listener
+// or the EPIPE would crash the whole server process.
+function startNdjsonStream(res) {
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "application/x-ndjson");
+  res.setHeader("Cache-Control", "no-store");
+  res.flushHeaders?.();
+  res.on("error", () => {});
+  const write = (line) => {
+    if (!res.writableEnded && !res.destroyed) {
+      res.write(`${line}\n`);
+    }
+  };
+  const end = (line) => {
+    if (!res.writableEnded && !res.destroyed) {
+      res.end(`${line}\n`);
+    }
+  };
+  return {
+    progress: (message) => {
+      write(JSON.stringify({ type: "progress", message }));
+    },
+    result: (payload) => {
+      end(JSON.stringify({ type: "result", ...payload }));
+    },
+    error: (message) => {
+      end(JSON.stringify({ type: "error", error: message }));
+    },
+  };
+}
+
 function deriveEpisodeOutputPaths({ repoRoot, discovered, mp3Path }) {
   const outputRoot = loadPostprocessConfig(repoRoot).outputRoot;
 
@@ -868,14 +902,12 @@ function startServer({ port = 4173, onPortConflict } = {}) {
     }
 
     if (req.method === "POST" && pathname === "/api/discover") {
+      const body = await readRequestBody(req);
+      // Streamed NDJSON: progress events go out the moment each pipeline step starts,
+      // instead of arriving as a lump when the whole request finishes.
+      const stream = startNdjsonStream(res);
       try {
-        const body = await readRequestBody(req);
         const payload = JSON.parse(body || "{}");
-
-        const progressMessages = [];
-        const onProgress = (message) => {
-          progressMessages.push(message);
-        };
 
         const discovered = await discoverEpisodeData({
           mp3Path: payload.mp3Path,
@@ -884,7 +916,7 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           episodeTitle: payload.episodeTitle,
           description: payload.description,
           publishDate: payload.publishDate,
-          onProgress,
+          onProgress: stream.progress,
         });
 
         const { videoStatusFile: derivedVideoStatusFile } =
@@ -929,9 +961,8 @@ function startServer({ port = 4173, onPortConflict } = {}) {
               )
             : [];
 
-        sendJson(res, 200, {
+        stream.result({
           success: true,
-          progress: progressMessages,
           discovered: {
             episodeTitle: discovered.episodeTitle,
             episodeMeta: discovered.episodeMeta,
@@ -972,7 +1003,7 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           discoveryData: JSON.stringify(discovered),
         });
       } catch (error) {
-        sendJson(res, 400, { error: error.message });
+        stream.error(error.message);
       }
       return;
     }
@@ -1608,14 +1639,10 @@ function startServer({ port = 4173, onPortConflict } = {}) {
     }
 
     if (req.method === "POST" && pathname === "/api/run") {
+      const body = await readRequestBody(req);
+      const stream = startNdjsonStream(res);
       try {
-        const body = await readRequestBody(req);
         const payload = JSON.parse(body || "{}");
-
-        const progressMessages = [];
-        const onProgress = (message) => {
-          progressMessages.push(message);
-        };
 
         let runOptions = {
           mp3Path: payload.mp3Path,
@@ -1629,7 +1656,7 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           shownotesLinks: Array.isArray(payload.shownotesLinks)
             ? payload.shownotesLinks
             : undefined,
-          onProgress,
+          onProgress: stream.progress,
         };
 
         if (payload.discoveryData) {
@@ -1645,12 +1672,9 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           activeVideoStatusFiles.add(report.videoStatus.statusFile);
         }
 
-        sendJson(res, 200, {
-          ...report,
-          progress: progressMessages,
-        });
+        stream.result(report);
       } catch (error) {
-        sendJson(res, 400, { error: error.message });
+        stream.error(error.message);
       }
       return;
     }

@@ -1856,6 +1856,58 @@ function buildDiscoverPayload() {
   };
 }
 
+// POSTs to an NDJSON-streaming endpoint: progress events invoke onProgress the moment
+// each pipeline step starts, and the single result/error event is returned. Errors
+// arrive as {type:"error"} events rather than HTTP failures.
+async function postWithProgress(url, payload, onProgress) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok || !response.body) {
+    throw new Error(`Request failed (${response.status})`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let final = null;
+
+  const handleLine = (line) => {
+    if (!line.trim()) {
+      return;
+    }
+    const event = JSON.parse(line);
+    if (event.type === "progress") {
+      onProgress?.(event.message);
+    } else {
+      final = event;
+    }
+  };
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    buffer += decoder.decode(value, { stream: true });
+    let newline;
+    while ((newline = buffer.indexOf("\n")) >= 0) {
+      handleLine(buffer.slice(0, newline));
+      buffer = buffer.slice(newline + 1);
+    }
+  }
+  handleLine(buffer);
+
+  if (!final) {
+    throw new Error("The server stream ended without a result");
+  }
+  return final;
+}
+
 let isDiscovering = false;
 let pendingDiscovery = false;
 let autoDiscoverTimer = null;
@@ -1890,19 +1942,13 @@ async function runDiscovery() {
   previewSection.style.display = "none";
 
   try {
-    const response = await fetch("/api/discover", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(payload),
+    const result = await postWithProgress("/api/discover", payload, (msg) => {
+      addStatus(`• ${msg}`);
     });
-
-    const result = await response.json();
 
     stopDiscoverSpinner("✓ Discovery complete");
 
-    if (!result.success) {
+    if (result.type === "error" || !result.success) {
       toggleOverridesButton.style.display = "none";
       addStatus(`❌ Discovery failed: ${result.error}`);
       return;
@@ -1912,11 +1958,6 @@ async function runDiscovery() {
     setInputValue("publishDate", result.discovered.dateString || "");
     setInputValue("episodeTitle", result.discovered.episodeTitle || "");
 
-    if (result.progress && Array.isArray(result.progress)) {
-      for (const msg of result.progress) {
-        addStatus(`• ${msg}`);
-      }
-    }
     renderProfanityStatus(
       result.discovered?.transcriptChecks,
       "Discovery",
@@ -2821,23 +2862,19 @@ approveButton.addEventListener("click", async () => {
     }
 
     // Always rediscover from disk before run so transcript edits are reflected.
-    const freshDiscoveryResponse = await fetch("/api/discover", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
+    const freshDiscoveryBody = await postWithProgress(
+      "/api/discover",
+      {
         mp3Path: runPayload.mp3Path,
         transcriptMdPath: runPayload.transcriptMdPath,
         transcriptVttPath: runPayload.transcriptVttPath,
         episodeTitle: runPayload.episodeTitle,
         description: runPayload.description,
         publishDate: runPayload.publishDate,
-      }),
-    });
-
-    const freshDiscoveryBody = await freshDiscoveryResponse.json();
-    if (!freshDiscoveryResponse.ok || !freshDiscoveryBody.success) {
+      },
+      (msg) => addStatus(`• ${msg}`),
+    );
+    if (freshDiscoveryBody.type === "error" || !freshDiscoveryBody.success) {
       throw new Error(
         freshDiscoveryBody.error || "Failed to refresh discovery data",
       );
@@ -2879,20 +2916,16 @@ approveButton.addEventListener("click", async () => {
       discoveryData = JSON.stringify(parsed);
     }
 
-    const response = await fetch("/api/run", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
+    const result = await postWithProgress(
+      "/api/run",
+      {
         ...runPayload,
         discoveryData,
         shownotesLinks,
-      }),
-    });
-
-    const result = await response.json();
-    const runFailed = !response.ok || Boolean(result.error);
+      },
+      (msg) => addStatus(`• ${msg}`),
+    );
+    const runFailed = result.type === "error" || Boolean(result.error);
     stopRunSpinner(
       runFailed ? "❌ Generation failed" : "✓ Generation completed",
     );
