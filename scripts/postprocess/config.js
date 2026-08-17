@@ -88,12 +88,15 @@ function loadPostprocessConfig(repoRoot, configPath) {
   const localPath = path.join(path.dirname(fullPath), LOCAL_CONFIG_FILE_NAME);
   const localConfig = fileExists(localPath) ? readJson(localPath) : {};
 
-  // Words from both files count: the local overlay is where words too crude for the
-  // public repo's committed config would go.
+  // A configured list REPLACES the defaults - the defaults only apply when the key is
+  // absent - so removing a word from the config actually removes it. The local overlay
+  // still adds on top of whichever base: it is where words too crude for the public
+  // repo's committed config would go.
+  const baseProfanityWords = Array.isArray(fileConfig.profanityWords)
+    ? fileConfig.profanityWords
+    : DEFAULT_CONFIG.profanityWords;
   const configuredProfanityWords = [
-    ...(Array.isArray(fileConfig.profanityWords)
-      ? fileConfig.profanityWords
-      : []),
+    ...baseProfanityWords,
     ...(Array.isArray(localConfig.profanityWords)
       ? localConfig.profanityWords
       : []),
@@ -108,12 +111,7 @@ function loadPostprocessConfig(repoRoot, configPath) {
       ...(fileConfig.llm || {}),
       ...(localConfig.llm || {}),
     },
-    profanityWords: [
-      ...new Set([
-        ...DEFAULT_CONFIG.profanityWords,
-        ...configuredProfanityWords,
-      ]),
-    ],
+    profanityWords: [...new Set(configuredProfanityWords)],
   };
 
   if (config.llm.apiKey === "") {

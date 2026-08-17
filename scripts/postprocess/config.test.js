@@ -30,23 +30,27 @@ const overridden = loadPostprocessConfig(
 assert.equal(overridden.outputRoot, "somewhere/else");
 assert.equal(overridden.releaseTimeLocal, "07:30");
 
-// Configured profanity words are added to the defaults, never replacing them.
+// A configured list replaces the defaults - removing a word actually removes it. The
+// defaults only apply when the key is absent.
 const words = loadPostprocessConfig(
   rootWith({ profanityWords: ["bananas*"] }),
 ).profanityWords;
-assert.ok(words.includes("bananas*"), "configured word missing");
-assert.ok(words.includes("fuck*"), "default word was dropped");
+assert.deepEqual(words, ["bananas*"], "configured list must replace defaults");
+assert.ok(
+  loadPostprocessConfig(rootWith({})).profanityWords.includes("fuck*"),
+  "defaults must apply when the key is absent",
+);
 
-// Words in the gitignored local overlay count too.
+// Words in the gitignored local overlay add on top of the configured base.
 const localWordsRoot = rootWith({ profanityWords: ["mainword*"] });
 fs.writeFileSync(
   path.join(localWordsRoot, "postprocess.config.local.json"),
   JSON.stringify({ profanityWords: ["localword*"] }),
 );
-const overlayWords = loadPostprocessConfig(localWordsRoot).profanityWords;
-assert.ok(overlayWords.includes("localword*"), "local overlay word dropped");
-assert.ok(overlayWords.includes("mainword*"), "main config word dropped");
-assert.ok(overlayWords.includes("fuck*"), "default word dropped in overlay");
+assert.deepEqual(loadPostprocessConfig(localWordsRoot).profanityWords, [
+  "mainword*",
+  "localword*",
+]);
 
 // Bad values must fail at load with a message naming the key, not silently or deep in Intl.
 const rejected = [

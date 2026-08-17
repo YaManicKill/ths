@@ -81,7 +81,7 @@ defaults in `config.js`.
 | `defaultAuthor`    | `Al McKinlay`                 | The `author` field in generated `index.md` frontmatter.                                                          |
 | `releaseTimeLocal` | `19:00:00`                    | Local time of day used for inferred publish dates.                                                               |
 | `timezone`         | `Europe/London`               | IANA zone the release time is interpreted in. The UTC offset is computed per date, so DST is handled.            |
-| `profanityWords`   | built-in list                 | Extra words for the warning-only transcript check, unioned with the defaults. Wildcards like `shit*` work.       |
+| `profanityWords`   | built-in list                 | Word list for the warning-only transcript check; setting it replaces the defaults. Wildcards like `shit*` work.  |
 | `hostNames`        | the five regulars             | Correct spellings of the recurring hosts. The AI transcript check flags any other spelling of them as a mistake. |
 | `llm.provider`     | `gemini`                      | Which LLM backs the AI features. Only `gemini` is implemented so far.                                            |
 | `llm.model`        | `gemini-3.6-flash`            | The model used for the AI features.                                                                              |
