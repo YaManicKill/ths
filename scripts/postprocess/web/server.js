@@ -1028,6 +1028,9 @@ function startServer({ port = 4173, onPortConflict } = {}) {
             )
               ? episodeReport.clipSuggestions
               : [],
+            existingClipApprovals: Array.isArray(episodeReport?.clipApprovals)
+              ? episodeReport.clipApprovals
+              : null,
             existingTranscriptFindings,
             shownotesLinkSeeds:
               discovered.shownotesLinkSeeds || discovered.hiddenLinks,
@@ -1276,6 +1279,57 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           }));
 
         sendJson(res, 200, { success: true, editable, cues });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Clip curation - trims, per-clip cue exclusions, approve/deny decisions - is
+    // saved into the episode report as it changes, so an app restart or crash never
+    // loses review work. The suggestions are stored whole; the approvals ride
+    // alongside as a parallel array.
+    if (req.method === "POST" && pathname === "/api/save-clip-curation") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        if (!Array.isArray(payload.clipSuggestions)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing clipSuggestions",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const reportPath = path.join(episodeDir, "postprocess-report.json");
+        if (!fs.existsSync(reportPath)) {
+          sendJson(res, 200, { success: true, saved: false });
+          return;
+        }
+
+        const report = readJson(reportPath, {});
+        report.clipSuggestions = payload.clipSuggestions;
+        report.clipApprovals = Array.isArray(payload.clipApprovals)
+          ? payload.clipApprovals
+          : null;
+        writeJson(reportPath, report);
+        sendJson(res, 200, { success: true, saved: true });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
       }
@@ -1532,12 +1586,14 @@ function startServer({ port = 4173, onPortConflict } = {}) {
         }
 
         // The report is what discovery reads to restore the cards after a page
-        // refresh, so it must always hold the set the user last saw.
+        // refresh, so it must always hold the set the user last saw. A regenerated
+        // set voids the saved approvals - they would map by index onto other clips.
         const reportPath = path.join(episodeDir, "postprocess-report.json");
         if (fs.existsSync(reportPath)) {
           const report = readJson(reportPath, {});
           report.clipSuggestions = clipSuggestions;
           report.clipSource = source;
+          report.clipApprovals = null;
           writeJson(reportPath, report);
         }
 

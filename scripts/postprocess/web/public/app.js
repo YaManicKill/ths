@@ -1350,6 +1350,7 @@ function renderClipTrimStrip(
     )}s) — drag the orange handles; sentence boundaries are magnetic`;
     draw();
     refreshMeta();
+    scheduleClipCurationSave();
   }
 
   let dragging = null;
@@ -1522,6 +1523,7 @@ function renderClipCueEditor(container, suggestion, { cues, editable }) {
         suggestion.excludedCueStarts.push(cue.startSeconds);
       }
       refreshRow();
+      scheduleClipCurationSave();
     });
 
     row.appendChild(label);
@@ -1780,11 +1782,13 @@ function renderClipSuggestions(suggestions) {
       clipApprovalState[index] = true;
       refreshDecision();
       updateClipSuggestionsSummary();
+      scheduleClipCurationSave();
     });
     denyButton.addEventListener("click", () => {
       clipApprovalState[index] = false;
       refreshDecision();
       updateClipSuggestionsSummary();
+      scheduleClipCurationSave();
     });
 
     controls.appendChild(approveButton);
@@ -1825,6 +1829,35 @@ function getApprovedClipSuggestions() {
   return currentClipSuggestions.filter(
     (_, index) => clipApprovalState[index] === true,
   );
+}
+
+// Curation - trims, exclusions, decisions - is saved to the episode report shortly
+// after every change, so a restart or crash never loses review work. Fire-and-forget:
+// a failed save is retried by whatever change comes next.
+let clipCurationSaveTimer = null;
+function scheduleClipCurationSave() {
+  if (!currentDiscoveryData?.discoveryData) {
+    return;
+  }
+  clearTimeout(clipCurationSaveTimer);
+  clipCurationSaveTimer = setTimeout(async () => {
+    try {
+      await fetch("/api/save-clip-curation", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          mp3Path: buildDiscoverPayload().mp3Path,
+          discoveryData: currentDiscoveryData?.discoveryData,
+          clipSuggestions: currentClipSuggestions,
+          clipApprovals: clipApprovalState,
+        }),
+      });
+    } catch {
+      // Next change retries.
+    }
+  }, 600);
 }
 
 function countUndecidedClipSuggestions() {
@@ -1991,7 +2024,11 @@ async function runDiscovery() {
     // the whole clip section, and renderClipSuggestions re-shows it.
     const existingSuggestions =
       result.discovered?.existingClipSuggestions || [];
-    clipApprovalState = [];
+    // Saved approvals come back with the saved set; a set without saved approvals
+    // starts undecided.
+    clipApprovalState = Array.isArray(result.discovered?.existingClipApprovals)
+      ? result.discovered.existingClipApprovals
+      : [];
     renderClipSuggestions(existingSuggestions);
     if (existingSuggestions.length > 0 && !hasActiveVideoRun) {
       addStatus(
