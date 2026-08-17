@@ -22,12 +22,22 @@ const clipSuggestionsSection = document.getElementById(
 );
 const clipSuggestionsList = document.getElementById("clip-suggestions-list");
 const clipQueueNote = document.getElementById("clip-queue-note");
+const clipSuggestionsSummary = document.getElementById(
+  "clip-suggestions-summary",
+);
 const transcriptReviewSection = document.getElementById(
   "transcript-review-section",
 );
 const transcriptReviewList = document.getElementById("transcript-review-list");
 const applyTranscriptFixesButton = document.getElementById(
   "apply-transcript-fixes-button",
+);
+const shownotesLinksSection = document.getElementById(
+  "shownotes-links-section",
+);
+const shownotesLinksList = document.getElementById("shownotes-links-list");
+const addShownotesLinkButton = document.getElementById(
+  "add-shownotes-link-button",
 );
 const recheckTranscriptButton = document.getElementById(
   "recheck-transcript-button",
@@ -54,6 +64,11 @@ let isRunRequestInFlight = false;
 let isVideoRenderCompleted = false;
 let chapterImageOverrides = {}; // Track uploaded replacement images by chapter index
 let currentTranscriptFindings = [];
+let shownotesLinks = [];
+let draggedLinkIndex = null;
+// Each open cue editor registers a dirty-check so Generate can refuse while unsaved
+// transcript edits exist; cleared whenever the cards are rebuilt.
+const clipEditorDirtyChecks = new Set();
 // Keyed by quote rather than index so ticks survive the fresh discovery the approve
 // flow runs (cached findings come back identical, but order is not guaranteed).
 let mediumFixAccepted = {};
@@ -72,6 +87,7 @@ function setVideoRenderUiState(inProgress) {
   if (isVideoRenderInProgress) {
     toggleOverridesButton.style.display = "none";
     previewSection.style.display = "none";
+    shownotesLinksSection.style.display = "none";
     approveButton.disabled = true;
     rerenderMp4Button.disabled = true;
     restartProcessButton.disabled = true;
@@ -95,6 +111,7 @@ function setVideoRenderCompletedUiState(completed) {
   isVideoRenderInProgress = false;
   toggleOverridesButton.style.display = "none";
   previewSection.style.display = "none";
+  shownotesLinksSection.style.display = "none";
   clipSuggestionsSection.style.display = "none";
   approveButton.disabled = true;
   generateClipVideosButton.style.display = "none";
@@ -849,6 +866,178 @@ function renderTranscriptFixResult(fixes) {
   }
 }
 
+// Editable rows for the generated index.md's Links section: seeded from the
+// auto-resolved Steam links (or the last run's edited list), with rows freely added,
+// edited and removed. State lives in shownotesLinks; text edits mutate it directly so
+// typing never triggers a re-render (which would steal focus).
+function renderShownotesLinks() {
+  shownotesLinksList.innerHTML = "";
+
+  shownotesLinks.forEach((link, index) => {
+    const row = document.createElement("div");
+    row.style.cssText =
+      "display: flex; gap: 8px; margin-bottom: 8px; align-items: center;";
+
+    // Dragging is armed only from the handle: a draggable row would hijack text
+    // selection inside the inputs.
+    const handle = document.createElement("span");
+    handle.textContent = "⠿";
+    handle.title = "Drag to reorder";
+    handle.style.cssText =
+      "cursor: grab; color: var(--muted); user-select: none; padding: 0 2px;";
+    handle.addEventListener("mousedown", () => {
+      row.draggable = true;
+    });
+    handle.addEventListener("mouseup", () => {
+      row.draggable = false;
+    });
+
+    row.addEventListener("dragstart", (event) => {
+      draggedLinkIndex = index;
+      event.dataTransfer.effectAllowed = "move";
+      row.style.opacity = "0.4";
+    });
+    // The indicator and the drop must share one decision, or the line lies about
+    // where the row will land: above the target when the pointer is in its top half,
+    // below it otherwise. Drawn with a box-shadow so rows don't shift while dragging.
+    const dropsBelow = (event) => {
+      const rect = row.getBoundingClientRect();
+      return event.clientY >= rect.top + rect.height / 2;
+    };
+
+    row.addEventListener("dragend", () => {
+      row.draggable = false;
+      row.style.opacity = "";
+      draggedLinkIndex = null;
+      for (const sibling of shownotesLinksList.children) {
+        sibling.style.boxShadow = "";
+      }
+    });
+    row.addEventListener("dragover", (event) => {
+      if (draggedLinkIndex === null || draggedLinkIndex === index) {
+        return;
+      }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      for (const sibling of shownotesLinksList.children) {
+        sibling.style.boxShadow = "";
+      }
+      row.style.boxShadow = dropsBelow(event)
+        ? "0 2px 0 var(--accent)"
+        : "0 -2px 0 var(--accent)";
+    });
+    row.addEventListener("dragleave", () => {
+      row.style.boxShadow = "";
+    });
+    row.addEventListener("drop", (event) => {
+      event.preventDefault();
+      if (draggedLinkIndex === null || draggedLinkIndex === index) {
+        return;
+      }
+      let target = index + (dropsBelow(event) ? 1 : 0);
+      if (draggedLinkIndex < target) {
+        target -= 1;
+      }
+      const [moved] = shownotesLinks.splice(draggedLinkIndex, 1);
+      shownotesLinks.splice(target, 0, moved);
+      draggedLinkIndex = null;
+      renderShownotesLinks();
+    });
+
+    const titleInput = document.createElement("input");
+    titleInput.type = "text";
+    titleInput.placeholder = "Title";
+    titleInput.value = link.title || "";
+    titleInput.style.flex = "1";
+    titleInput.addEventListener("input", () => {
+      link.title = titleInput.value;
+    });
+
+    const urlInput = document.createElement("input");
+    urlInput.type = "text";
+    urlInput.placeholder = "https://...";
+    urlInput.value = link.url || "";
+    urlInput.style.flex = "2";
+    urlInput.addEventListener("input", () => {
+      link.url = urlInput.value;
+    });
+    // A pasted URL gets its page title fetched as an editable default, but never
+    // overwrites a title the user has typed in the meantime.
+    urlInput.addEventListener("blur", async () => {
+      const url = urlInput.value.trim();
+      if (!url || titleInput.value.trim()) {
+        return;
+      }
+      titleInput.placeholder = "Fetching title...";
+      try {
+        const response = await fetch("/api/fetch-link-title", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ url }),
+        });
+        const body = await response.json();
+        if (
+          response.ok &&
+          body.success &&
+          body.title &&
+          !titleInput.value.trim()
+        ) {
+          titleInput.value = body.title;
+          link.title = body.title;
+        }
+      } catch {
+        // No title is fine; the user types one.
+      } finally {
+        titleInput.placeholder = "Title";
+      }
+    });
+
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.textContent = "✕";
+    removeButton.addEventListener("click", () => {
+      shownotesLinks.splice(index, 1);
+      renderShownotesLinks();
+    });
+
+    row.appendChild(handle);
+    row.appendChild(titleInput);
+    row.appendChild(urlInput);
+    row.appendChild(removeButton);
+    shownotesLinksList.appendChild(row);
+  });
+}
+
+addShownotesLinkButton.addEventListener("click", () => {
+  shownotesLinks.push({ title: "", url: "" });
+  renderShownotesLinks();
+  shownotesLinksList.lastElementChild?.querySelector("input")?.focus();
+});
+
+function renderAudioQc(audioQc) {
+  if (!audioQc || !audioQc.enabled) {
+    return;
+  }
+  if (audioQc.error) {
+    addStatus(`⚠ Audio QC failed: ${audioQc.error}`);
+    return;
+  }
+
+  const summary = `${audioQc.integratedLufs} LUFS, true peak ${audioQc.truePeakDb} dBFS`;
+  const warnings = audioQc.warnings || [];
+  if (warnings.length === 0) {
+    addStatus(`✓ Audio QC: ${summary}, no long silences`);
+    return;
+  }
+
+  addStatus(`⚠ Audio QC (${summary}):`);
+  for (const warning of warnings) {
+    addStatus(`  • ${warning}`);
+  }
+}
+
 function renderProfanityStatus(
   transcriptChecks,
   phaseLabel = "Check",
@@ -925,18 +1114,21 @@ let clipPreviewAudio = null;
 let clipPreviewSrcPath = null;
 let clipPreviewStopAt = Infinity;
 let clipPreviewButton = null;
+let clipPreviewIdleLabel = "▶ Preview";
 
 function stopClipPreview() {
   if (clipPreviewAudio) {
     clipPreviewAudio.pause();
   }
   if (clipPreviewButton) {
-    clipPreviewButton.textContent = "▶ Preview";
+    clipPreviewButton.textContent = clipPreviewIdleLabel;
     clipPreviewButton = null;
   }
 }
 
-function playClipPreview(suggestion, button) {
+// lastSeconds plays just the tail of the clip - the quickest way to hear how a trim
+// lands without sitting through the whole thing.
+function playClipPreview(suggestion, button, { lastSeconds } = {}) {
   if (clipPreviewButton === button) {
     stopClipPreview();
     return;
@@ -960,10 +1152,13 @@ function playClipPreview(suggestion, button) {
     clipPreviewAudio.addEventListener("ended", stopClipPreview);
   }
 
-  const startSeconds = Math.max(0, Number(suggestion.startSeconds) || 0);
+  const clipStart = Math.max(0, Number(suggestion.startSeconds) || 0);
   clipPreviewStopAt = Number(suggestion.endSeconds)
     ? Number(suggestion.endSeconds)
-    : startSeconds + (Number(suggestion.durationSeconds) || 60);
+    : clipStart + (Number(suggestion.durationSeconds) || 60);
+  const startSeconds = lastSeconds
+    ? Math.max(clipStart, clipPreviewStopAt - lastSeconds)
+    : clipStart;
 
   const src = `/api/audio?path=${encodeURIComponent(mp3Path)}`;
   const seekAndPlay = () => {
@@ -983,8 +1178,442 @@ function playClipPreview(suggestion, button) {
     });
   }
 
+  clipPreviewIdleLabel = button.textContent;
   button.textContent = "■ Stop";
   clipPreviewButton = button;
+}
+
+function formatCueTime(seconds) {
+  const total = Math.max(0, Math.floor(Number(seconds) || 0));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = (value) => String(value).padStart(2, "0");
+  return h ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
+
+function formatHms(seconds) {
+  const total = Math.max(0, Math.floor(Number(seconds) || 0));
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${pad(Math.floor(total / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`;
+}
+
+// The per-card waveform trim: drag either handle to move the clip's start/end,
+// snapping to cue boundaries so trims land on sentence edges. Times are written
+// straight onto the suggestion object, which is what preview and generation read.
+function buildClipTrimEditor(suggestion, refreshMeta) {
+  const details = document.createElement("details");
+  details.style.marginBottom = "10px";
+  const toggle = document.createElement("summary");
+  toggle.textContent = "Trim";
+  toggle.style.cssText =
+    "cursor: pointer; font-size: 0.9em; color: var(--muted);";
+  const body = document.createElement("div");
+  body.style.cssText = "margin-top: 6px;";
+  details.appendChild(toggle);
+  details.appendChild(body);
+
+  let loaded = false;
+  details.addEventListener("toggle", async () => {
+    if (!details.open || loaded) {
+      return;
+    }
+    loaded = true;
+    body.textContent = "Loading waveform...";
+    try {
+      const mp3Path = buildDiscoverPayload().mp3Path;
+      const jsonPost = async (url, payload) => {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || `${url} failed`);
+        }
+        return data;
+      };
+
+      const [waveform, cueData] = await Promise.all([
+        jsonPost("/api/clip-waveform", {
+          mp3Path,
+          startSeconds: suggestion.startSeconds,
+          endSeconds: suggestion.endSeconds,
+        }),
+        jsonPost("/api/clip-cues", {
+          mp3Path,
+          discoveryData: currentDiscoveryData?.discoveryData,
+          startSeconds: Math.max(0, suggestion.startSeconds - 15),
+          endSeconds: suggestion.endSeconds + 15,
+        }),
+      ]);
+      renderClipTrimStrip(
+        body,
+        suggestion,
+        waveform,
+        cueData.cues,
+        refreshMeta,
+      );
+    } catch (error) {
+      loaded = false;
+      body.textContent = `Could not load waveform: ${error.message}`;
+    }
+  });
+
+  return details;
+}
+
+function renderClipTrimStrip(
+  container,
+  suggestion,
+  waveform,
+  cues,
+  refreshMeta,
+) {
+  container.textContent = "";
+  const { windowStart, windowEnd, peaks } = waveform;
+  const span = windowEnd - windowStart;
+  if (!(span > 0) || !peaks.length) {
+    container.textContent = "No audio in this clip's window.";
+    return;
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 800;
+  canvas.height = 70;
+  canvas.style.cssText =
+    "width: 100%; height: 70px; display: block; touch-action: none; cursor: ew-resize;";
+  const rangeLabel = document.createElement("div");
+  rangeLabel.style.cssText =
+    "font-size: 0.85em; color: var(--muted); margin-top: 4px;";
+  container.appendChild(canvas);
+  container.appendChild(rangeLabel);
+
+  // Cue boundaries are magnetic, not mandatory: cues can run 8-10s in monologue
+  // stretches, and hard-snapping made those the only reachable positions. Within the
+  // threshold a handle grabs the sentence edge; elsewhere it drags freely.
+  const SNAP_THRESHOLD_SECONDS = 0.75;
+  const inWindow = (t) => t >= windowStart && t <= windowEnd;
+  const cueStarts = cues.map((c) => c.startSeconds).filter(inWindow);
+  const cueEnds = cues.map((c) => c.endSeconds).filter(inWindow);
+  const nearest = (values, t) =>
+    values.reduce(
+      (best, value) =>
+        Math.abs(value - t) < Math.abs(best - t) ? value : best,
+      values[0],
+    );
+  const snap = (values, t) => {
+    const candidate = values.length ? nearest(values, t) : t;
+    return Math.abs(candidate - t) <= SNAP_THRESHOLD_SECONDS
+      ? candidate
+      : Math.round(t * 10) / 10;
+  };
+
+  const ctx = canvas.getContext("2d");
+  const xFor = (t) => ((t - windowStart) / span) * canvas.width;
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const barWidth = canvas.width / peaks.length;
+    const startX = xFor(suggestion.startSeconds);
+    const endX = xFor(suggestion.endSeconds);
+
+    peaks.forEach((peak, i) => {
+      const x = i * barWidth;
+      const height = Math.max(1, peak * (canvas.height - 10));
+      ctx.fillStyle = x >= startX && x <= endX ? "#38bdf8" : "#475569";
+      ctx.fillRect(
+        x,
+        (canvas.height - height) / 2,
+        Math.max(1, barWidth - 1),
+        height,
+      );
+    });
+
+    ctx.fillStyle = "#eb8807";
+    for (const x of [startX, endX]) {
+      ctx.fillRect(x - 1.5, 0, 3, canvas.height);
+    }
+  }
+
+  function setRange(start, end) {
+    const round3 = (value) => Math.round(value * 1000) / 1000;
+    suggestion.startSeconds = round3(start);
+    suggestion.endSeconds = round3(end);
+    suggestion.durationSeconds = round3(end - start);
+    suggestion.timestampLabel = `${formatHms(start)}-${formatHms(end)}`;
+    rangeLabel.textContent = `${formatHms(start)} – ${formatHms(end)} (${Math.round(
+      suggestion.durationSeconds,
+    )}s) — drag the orange handles; sentence boundaries are magnetic`;
+    draw();
+    refreshMeta();
+    scheduleClipCurationSave();
+  }
+
+  let dragging = null;
+  const timeAt = (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.min(Math.max(0, event.clientX - rect.left), rect.width);
+    return windowStart + (x / rect.width) * span;
+  };
+
+  canvas.addEventListener("pointerdown", (event) => {
+    const t = timeAt(event);
+    dragging =
+      Math.abs(t - suggestion.startSeconds) <=
+      Math.abs(t - suggestion.endSeconds)
+        ? "start"
+        : "end";
+    canvas.setPointerCapture(event.pointerId);
+    onDrag(event);
+  });
+  canvas.addEventListener("pointermove", (event) => {
+    if (dragging) {
+      onDrag(event);
+    }
+  });
+  canvas.addEventListener("pointerup", () => {
+    dragging = null;
+  });
+
+  function onDrag(event) {
+    const t = timeAt(event);
+    if (dragging === "start") {
+      const snapped = snap(cueStarts, t);
+      if (snapped < suggestion.endSeconds - 2) {
+        setRange(snapped, suggestion.endSeconds);
+      }
+    } else {
+      const snapped = snap(cueEnds, t);
+      if (snapped > suggestion.startSeconds + 2) {
+        setRange(suggestion.startSeconds, snapped);
+      }
+    }
+  }
+
+  setRange(suggestion.startSeconds, suggestion.endSeconds);
+}
+
+// The per-card transcript editor: the clip's cues load on first open, edit in place,
+// and save as quote->correction fixes through the same endpoint as the AI transcript
+// fixes - so edits land in both episode transcripts, are remembered across re-runs,
+// and reach the burned-in subtitles on the next clip render.
+function buildClipTranscriptEditor(suggestion) {
+  const details = document.createElement("details");
+  details.style.marginBottom = "10px";
+  const toggle = document.createElement("summary");
+  toggle.textContent = "Transcript";
+  toggle.style.cssText =
+    "cursor: pointer; font-size: 0.9em; color: var(--muted);";
+  const body = document.createElement("div");
+  body.style.cssText = "margin-top: 6px;";
+  details.appendChild(toggle);
+  details.appendChild(body);
+
+  let loaded = false;
+  details.addEventListener("toggle", async () => {
+    if (!details.open || loaded) {
+      return;
+    }
+    loaded = true;
+    body.textContent = "Loading transcript cues...";
+    try {
+      const response = await fetch("/api/clip-cues", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          mp3Path: buildDiscoverPayload().mp3Path,
+          discoveryData: currentDiscoveryData?.discoveryData,
+          startSeconds: suggestion.startSeconds,
+          endSeconds: suggestion.endSeconds,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Cue request failed");
+      }
+      renderClipCueEditor(body, suggestion, data);
+    } catch (error) {
+      loaded = false;
+      body.textContent = `Could not load transcript cues: ${error.message}`;
+    }
+  });
+
+  return details;
+}
+
+function renderClipCueEditor(container, suggestion, { cues, editable }) {
+  container.textContent = "";
+
+  if (!cues.length) {
+    container.textContent = "No subtitle cues in this clip's window.";
+    return;
+  }
+
+  // Per-clip exclusions: ✕ cuts a line from this clip's burned subtitles only (for
+  // cues that overlap the window but are not audible in the clip). The episode
+  // transcripts are never touched by exclusions; they ride on the suggestion into the
+  // generation payload.
+  if (!Array.isArray(suggestion.excludedCueStarts)) {
+    suggestion.excludedCueStarts = [];
+  }
+  const isExcluded = (cue) =>
+    suggestion.excludedCueStarts.some(
+      (start) => Math.abs(start - cue.startSeconds) < 0.01,
+    );
+
+  const originals = cues.map((cue) => cue.speech);
+  const inputs = [];
+  // Excluded rows are skipped: they are clip-local cuts, not transcript edits.
+  clipEditorDirtyChecks.add(
+    () =>
+      inputs.filter(
+        (input, index) =>
+          !input.disabled &&
+          !isExcluded(cues[index]) &&
+          input.value.trim() !== "" &&
+          input.value.trim() !== originals[index].trim(),
+      ).length,
+  );
+
+  cues.forEach((cue) => {
+    const row = document.createElement("div");
+    row.style.cssText =
+      "display: flex; gap: 8px; margin-bottom: 6px; align-items: baseline;";
+
+    const label = document.createElement("span");
+    label.textContent = `${formatCueTime(cue.startSeconds)}${cue.speaker ? ` ${cue.speaker}` : ""}`;
+    label.style.cssText =
+      "font-size: 0.8em; color: var(--muted); white-space: nowrap; min-width: 100px;";
+
+    const input = document.createElement("textarea");
+    input.value = cue.speech;
+    input.rows = 1;
+    input.style.cssText =
+      "flex: 1; resize: vertical; font-size: 0.9em; line-height: 1.4;";
+    inputs.push(input);
+
+    const excludeButton = document.createElement("button");
+    excludeButton.type = "button";
+    excludeButton.style.cssText = "padding: 2px 8px; cursor: pointer;";
+
+    const refreshRow = () => {
+      const excluded = isExcluded(cue);
+      input.disabled = !editable || excluded;
+      input.style.opacity = excluded ? "0.4" : "";
+      input.style.textDecoration = excluded ? "line-through" : "";
+      excludeButton.textContent = excluded ? "↩" : "✕";
+      excludeButton.title = excluded
+        ? "Restore this line in the clip"
+        : "Cut this line from the clip's subtitles (episode transcripts unchanged)";
+    };
+    refreshRow();
+
+    excludeButton.addEventListener("click", () => {
+      if (isExcluded(cue)) {
+        suggestion.excludedCueStarts = suggestion.excludedCueStarts.filter(
+          (start) => Math.abs(start - cue.startSeconds) >= 0.01,
+        );
+      } else {
+        suggestion.excludedCueStarts.push(cue.startSeconds);
+      }
+      refreshRow();
+      scheduleClipCurationSave();
+    });
+
+    row.appendChild(label);
+    row.appendChild(input);
+    row.appendChild(excludeButton);
+    container.appendChild(row);
+  });
+
+  if (!editable) {
+    const note = document.createElement("div");
+    note.textContent =
+      "Editing needs the episode transcripts - press Approve first.";
+    note.style.cssText = "font-size: 0.85em; color: var(--muted);";
+    container.appendChild(note);
+    return;
+  }
+
+  const saveButton = document.createElement("button");
+  saveButton.type = "button";
+  saveButton.textContent = "Save Transcript Edits";
+  saveButton.style.marginTop = "6px";
+  saveButton.addEventListener("click", async () => {
+    const fixes = [];
+    let emptiedRows = 0;
+    inputs.forEach((input, index) => {
+      if (isExcluded(cues[index])) {
+        return;
+      }
+      const edited = input.value.trim();
+      if (edited === "" && originals[index].trim() !== "") {
+        // Deleting transcript text is not supported; put the original back rather
+        // than leaving a blank row. Cutting a line from the clip is the ✕ button.
+        emptiedRows += 1;
+        input.value = originals[index];
+        return;
+      }
+      if (edited && edited !== originals[index].trim()) {
+        fixes.push({ quote: originals[index], correction: edited });
+      }
+    });
+    if (emptiedRows > 0) {
+      addStatus(
+        `ℹ ${emptiedRows} emptied cue row(s) restored - to cut a line from the clip, use its ✕ button.`,
+      );
+    }
+    if (!fixes.length) {
+      if (!emptiedRows) {
+        addStatus("No transcript edits to save.");
+      }
+      return;
+    }
+
+    saveButton.disabled = true;
+    try {
+      const response = await fetch("/api/transcript-review", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          mp3Path: buildDiscoverPayload().mp3Path,
+          discoveryData: currentDiscoveryData?.discoveryData,
+          recheck: false,
+          transcriptFixes: fixes,
+        }),
+      });
+      const bodyJson = await response.json();
+      if (!response.ok || !bodyJson.success) {
+        throw new Error(bodyJson.error || "Save failed");
+      }
+
+      renderTranscriptFixResult(bodyJson.fixes);
+      addStatus(
+        "✓ Transcript edits saved - regenerate clip videos to re-render with them",
+      );
+      // Applied rows become the new baseline; missed ones keep their original so a
+      // retry still diffs against the real file content.
+      const appliedQuotes = bodyJson.fixes?.appliedQuotes || [];
+      inputs.forEach((input, index) => {
+        if (appliedQuotes.includes(originals[index])) {
+          originals[index] = input.value.trim();
+        }
+      });
+    } catch (error) {
+      addStatus(`❌ Saving transcript edits failed: ${error.message}`);
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+  container.appendChild(saveButton);
 }
 
 function renderClipSuggestions(suggestions) {
@@ -994,12 +1623,15 @@ function renderClipSuggestions(suggestions) {
   currentClipSuggestions = Array.isArray(suggestions) ? suggestions : [];
   const nextApprovalState = [];
 
+  // Tri-state: true approved, false denied, null undecided. Nothing is approved by
+  // default - every clip needs an explicit decision before generation.
   currentClipSuggestions.forEach((_, index) => {
-    nextApprovalState[index] = clipApprovalState[index] ?? true;
+    nextApprovalState[index] = clipApprovalState[index] ?? null;
   });
 
   clipApprovalState = nextApprovalState;
   clipSuggestionsList.innerHTML = "";
+  clipEditorDirtyChecks.clear();
 
   // The cards stay on screen during an MP4 render - the server queues generation
   // behind the render ("waiting" state), so clips can be reviewed and queued instead
@@ -1015,6 +1647,7 @@ function renderClipSuggestions(suggestions) {
   }
 
   clipSuggestionsSection.style.display = "block";
+  updateClipSuggestionsSummary();
 
   const chapters = getDiscoverySnapshot()?.chapters || [];
 
@@ -1039,17 +1672,21 @@ function renderClipSuggestions(suggestions) {
     meta.style.cssText =
       "font-size: 0.9em; color: var(--muted); margin-bottom: 8px;";
     const chapterTitle = chapterTitleForTime(chapters, suggestion.startSeconds);
-    const metaParts = [
-      suggestion.timestampLabel || "",
-      `${Math.round(suggestion.durationSeconds || 0)}s`,
-    ];
-    if (chapterTitle) {
-      metaParts.push(chapterTitle);
-    }
-    if (suggestion.speaker) {
-      metaParts.push(`Opens with ${suggestion.speaker}`);
-    }
-    meta.textContent = metaParts.filter(Boolean).join(" • ");
+    // Re-called by the trim editor, whose drags change the times shown here.
+    const updateMeta = () => {
+      const metaParts = [
+        suggestion.timestampLabel || "",
+        `${Math.round(suggestion.durationSeconds || 0)}s`,
+      ];
+      if (chapterTitle) {
+        metaParts.push(chapterTitle);
+      }
+      if (suggestion.speaker) {
+        metaParts.push(`Opens with ${suggestion.speaker}`);
+      }
+      meta.textContent = metaParts.filter(Boolean).join(" • ");
+    };
+    updateMeta();
     card.appendChild(meta);
 
     if (suggestion.reason) {
@@ -1075,26 +1712,12 @@ function renderClipSuggestions(suggestions) {
       card.appendChild(why);
     }
 
-    if (suggestion.text) {
-      const transcript = document.createElement("details");
-      transcript.style.marginBottom = "10px";
-      const transcriptToggle = document.createElement("summary");
-      transcriptToggle.textContent = "Show transcript";
-      transcriptToggle.style.cssText =
-        "cursor: pointer; font-size: 0.9em; color: var(--muted);";
-      const transcriptBody = document.createElement("div");
-      transcriptBody.textContent = suggestion.text;
-      transcriptBody.style.cssText = `
-        font-size: 0.9em;
-        line-height: 1.5;
-        margin-top: 6px;
-        padding: 8px 12px;
-        border-left: 3px solid var(--line);
-        color: var(--muted);
-      `;
-      transcript.appendChild(transcriptToggle);
-      transcript.appendChild(transcriptBody);
-      card.appendChild(transcript);
+    if (
+      typeof suggestion.startSeconds === "number" &&
+      typeof suggestion.endSeconds === "number"
+    ) {
+      card.appendChild(buildClipTrimEditor(suggestion, updateMeta));
+      card.appendChild(buildClipTranscriptEditor(suggestion));
     }
 
     const controls = document.createElement("div");
@@ -1115,37 +1738,57 @@ function renderClipSuggestions(suggestions) {
     });
     controls.appendChild(previewButton);
 
-    const approved = clipApprovalState[index] !== false;
+    const endingButton = document.createElement("button");
+    endingButton.type = "button";
+    endingButton.textContent = "▶ Ending";
+    endingButton.title = "Play the last five seconds of the clip";
+    endingButton.style.cssText = previewButton.style.cssText;
+    endingButton.addEventListener("click", () => {
+      playClipPreview(suggestion, endingButton, { lastSeconds: 5 });
+    });
+    controls.appendChild(endingButton);
+
     const approveButton = document.createElement("button");
     approveButton.type = "button";
-    approveButton.textContent = approved ? "✓ Approved" : "Approve";
-    approveButton.style.cssText = `
-      padding: 8px 10px;
-      cursor: pointer;
-      background: ${approved ? "#1f4d2b" : "var(--panel)"};
-      color: ${approved ? "#fff" : "inherit"};
-      border: 1px solid var(--line);
-      border-radius: 4px;
-    `;
-    approveButton.addEventListener("click", () => {
-      clipApprovalState[index] = true;
-      renderClipSuggestions(currentClipSuggestions);
-    });
-
     const denyButton = document.createElement("button");
     denyButton.type = "button";
-    denyButton.textContent = approved ? "Deny" : "✕ Denied";
-    denyButton.style.cssText = `
-      padding: 8px 10px;
-      cursor: pointer;
-      background: ${approved ? "var(--panel)" : "#4f1c1c"};
-      color: ${approved ? "inherit" : "#fff"};
-      border: 1px solid var(--line);
-      border-radius: 4px;
-    `;
+
+    // Decisions update the two buttons in place: a full card rebuild here would
+    // silently destroy open trim/transcript editors, unsaved edits included.
+    const refreshDecision = () => {
+      const state = clipApprovalState[index];
+      approveButton.textContent = state === true ? "✓ Approved" : "Approve";
+      approveButton.style.cssText = `
+        padding: 8px 10px;
+        cursor: pointer;
+        background: ${state === true ? "#1f4d2b" : "var(--panel)"};
+        color: ${state === true ? "#fff" : "inherit"};
+        border: 1px solid var(--line);
+        border-radius: 4px;
+      `;
+      denyButton.textContent = state === false ? "✕ Denied" : "Deny";
+      denyButton.style.cssText = `
+        padding: 8px 10px;
+        cursor: pointer;
+        background: ${state === false ? "#4f1c1c" : "var(--panel)"};
+        color: ${state === false ? "#fff" : "inherit"};
+        border: 1px solid var(--line);
+        border-radius: 4px;
+      `;
+    };
+    refreshDecision();
+
+    approveButton.addEventListener("click", () => {
+      clipApprovalState[index] = true;
+      refreshDecision();
+      updateClipSuggestionsSummary();
+      scheduleClipCurationSave();
+    });
     denyButton.addEventListener("click", () => {
       clipApprovalState[index] = false;
-      renderClipSuggestions(currentClipSuggestions);
+      refreshDecision();
+      updateClipSuggestionsSummary();
+      scheduleClipCurationSave();
     });
 
     controls.appendChild(approveButton);
@@ -1184,8 +1827,53 @@ function clearClipSuggestionReviewPanel() {
 
 function getApprovedClipSuggestions() {
   return currentClipSuggestions.filter(
-    (_, index) => clipApprovalState[index] !== false,
+    (_, index) => clipApprovalState[index] === true,
   );
+}
+
+// Curation - trims, exclusions, decisions - is saved to the episode report shortly
+// after every change, so a restart or crash never loses review work. Fire-and-forget:
+// a failed save is retried by whatever change comes next.
+let clipCurationSaveTimer = null;
+function scheduleClipCurationSave() {
+  if (!currentDiscoveryData?.discoveryData) {
+    return;
+  }
+  clearTimeout(clipCurationSaveTimer);
+  clipCurationSaveTimer = setTimeout(async () => {
+    try {
+      await fetch("/api/save-clip-curation", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          mp3Path: buildDiscoverPayload().mp3Path,
+          discoveryData: currentDiscoveryData?.discoveryData,
+          clipSuggestions: currentClipSuggestions,
+          clipApprovals: clipApprovalState,
+        }),
+      });
+    } catch {
+      // Next change retries.
+    }
+  }, 600);
+}
+
+function countUndecidedClipSuggestions() {
+  return currentClipSuggestions.filter(
+    (_, index) =>
+      clipApprovalState[index] !== true && clipApprovalState[index] !== false,
+  ).length;
+}
+
+// The count keeps the collapsed section informative; open/closed state is the
+// browser's and survives re-renders because only the list contents are replaced.
+function updateClipSuggestionsSummary() {
+  const undecided = countUndecidedClipSuggestions();
+  clipSuggestionsSummary.textContent = `Clip Suggestions (${currentClipSuggestions.length}${
+    undecided > 0 ? `, ${undecided} undecided` : ""
+  })`;
 }
 
 function buildDiscoverPayload() {
@@ -1199,6 +1887,58 @@ function buildDiscoverPayload() {
     description: String(formData.get("description") || "").trim() || undefined,
     publishDate: String(formData.get("publishDate") || "").trim() || undefined,
   };
+}
+
+// POSTs to an NDJSON-streaming endpoint: progress events invoke onProgress the moment
+// each pipeline step starts, and the single result/error event is returned. Errors
+// arrive as {type:"error"} events rather than HTTP failures.
+async function postWithProgress(url, payload, onProgress) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok || !response.body) {
+    throw new Error(`Request failed (${response.status})`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let final = null;
+
+  const handleLine = (line) => {
+    if (!line.trim()) {
+      return;
+    }
+    const event = JSON.parse(line);
+    if (event.type === "progress") {
+      onProgress?.(event.message);
+    } else {
+      final = event;
+    }
+  };
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    buffer += decoder.decode(value, { stream: true });
+    let newline;
+    while ((newline = buffer.indexOf("\n")) >= 0) {
+      handleLine(buffer.slice(0, newline));
+      buffer = buffer.slice(newline + 1);
+    }
+  }
+  handleLine(buffer);
+
+  if (!final) {
+    throw new Error("The server stream ended without a result");
+  }
+  return final;
 }
 
 let isDiscovering = false;
@@ -1235,19 +1975,13 @@ async function runDiscovery() {
   previewSection.style.display = "none";
 
   try {
-    const response = await fetch("/api/discover", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(payload),
+    const result = await postWithProgress("/api/discover", payload, (msg) => {
+      addStatus(`• ${msg}`);
     });
-
-    const result = await response.json();
 
     stopDiscoverSpinner("✓ Discovery complete");
 
-    if (!result.success) {
+    if (result.type === "error" || !result.success) {
       toggleOverridesButton.style.display = "none";
       addStatus(`❌ Discovery failed: ${result.error}`);
       return;
@@ -1257,16 +1991,12 @@ async function runDiscovery() {
     setInputValue("publishDate", result.discovered.dateString || "");
     setInputValue("episodeTitle", result.discovered.episodeTitle || "");
 
-    if (result.progress && Array.isArray(result.progress)) {
-      for (const msg of result.progress) {
-        addStatus(`• ${msg}`);
-      }
-    }
     renderProfanityStatus(
       result.discovered?.transcriptChecks,
       "Discovery",
       payload.transcriptMdPath,
     );
+    renderAudioQc(result.discovered?.audioQc);
     resumeVideoStatusPollingFromDiscover(result.discovered?.videoStatus);
     resumeClipStatusPollingFromDiscover(result.discovered?.videoStatus);
 
@@ -1294,12 +2024,32 @@ async function runDiscovery() {
     // the whole clip section, and renderClipSuggestions re-shows it.
     const existingSuggestions =
       result.discovered?.existingClipSuggestions || [];
-    clipApprovalState = [];
+    // Saved approvals come back with the saved set; a set without saved approvals
+    // starts undecided.
+    clipApprovalState = Array.isArray(result.discovered?.existingClipApprovals)
+      ? result.discovered.existingClipApprovals
+      : [];
     renderClipSuggestions(existingSuggestions);
     if (existingSuggestions.length > 0 && !hasActiveVideoRun) {
       addStatus(
         `✓ Restored ${existingSuggestions.length} clip suggestion(s) from the last run`,
       );
+    }
+
+    // Shownotes links: the last run's edited list when there is one, otherwise the
+    // auto-resolved Steam links as the starting point.
+    const seedLinks = Array.isArray(result.discovered?.existingShownotesLinks)
+      ? result.discovered.existingShownotesLinks
+      : result.discovered?.shownotesLinkSeeds || [];
+    shownotesLinks = seedLinks.map((link) => ({
+      title: link.title || "",
+      url: link.url || "",
+    }));
+    renderShownotesLinks();
+    // Links are review-phase input: once a run has baked them into index.md the
+    // editor stays hidden, like the chapter preview.
+    if (!hasActiveVideoRun && !hasCompletedVideoRun) {
+      shownotesLinksSection.style.display = "block";
     }
 
     // Unapplied medium-confidence findings come back the same way; ticks are keyed by
@@ -1477,6 +2227,7 @@ async function pollVideoStatus(statusFile) {
         // Approve is enabled again after a failure, so what it acts on must be
         // visible too - otherwise the re-approve happens blind.
         previewSection.style.display = "block";
+        shownotesLinksSection.style.display = "block";
         toggleOverridesButton.style.display = "inline-block";
         const interruptedByRestart =
           /interrupted \(server process restarted or exited\)/i.test(
@@ -1814,11 +2565,36 @@ restartProcessButton.addEventListener("click", async () => {
   }
 
   const confirmed = window.confirm(
-    "Clear and restart process? This will reset current review state (approvals, suggestions, and temporary overrides in this session).",
+    "Clear and restart process? This resets the episode's processing state: run status, suggestions, applied-fix memory, saved links and temporary overrides. Generated media files are not deleted.",
   );
   if (!confirmed) {
     addStatus("Clear & Restart cancelled.");
     return;
+  }
+
+  // The server-side half: discovery restores completed-run state, suggestions, links
+  // and fix memory from the episode's status file and report, so those must go too or
+  // the restart resurrects everything.
+  if (currentDiscoveryData?.discoveryData) {
+    try {
+      const response = await fetch("/api/clear-episode-state", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          mp3Path: buildDiscoverPayload().mp3Path,
+          discoveryData: currentDiscoveryData.discoveryData,
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok || !body.success) {
+        throw new Error(body.error || "Clear request failed");
+      }
+    } catch (error) {
+      addStatus(`❌ Could not clear episode state: ${error.message}`);
+      return;
+    }
   }
 
   currentRunResult = null;
@@ -1827,6 +2603,7 @@ restartProcessButton.addEventListener("click", async () => {
   chapterImageOverrides = {};
   currentTranscriptFindings = [];
   mediumFixAccepted = {};
+  shownotesLinks = [];
   renderTranscriptFixSection();
   persistActiveVideoStatusFile("");
   persistActiveClipStatusFile("");
@@ -2122,23 +2899,19 @@ approveButton.addEventListener("click", async () => {
     }
 
     // Always rediscover from disk before run so transcript edits are reflected.
-    const freshDiscoveryResponse = await fetch("/api/discover", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
+    const freshDiscoveryBody = await postWithProgress(
+      "/api/discover",
+      {
         mp3Path: runPayload.mp3Path,
         transcriptMdPath: runPayload.transcriptMdPath,
         transcriptVttPath: runPayload.transcriptVttPath,
         episodeTitle: runPayload.episodeTitle,
         description: runPayload.description,
         publishDate: runPayload.publishDate,
-      }),
-    });
-
-    const freshDiscoveryBody = await freshDiscoveryResponse.json();
-    if (!freshDiscoveryResponse.ok || !freshDiscoveryBody.success) {
+      },
+      (msg) => addStatus(`• ${msg}`),
+    );
+    if (freshDiscoveryBody.type === "error" || !freshDiscoveryBody.success) {
       throw new Error(
         freshDiscoveryBody.error || "Failed to refresh discovery data",
       );
@@ -2180,19 +2953,16 @@ approveButton.addEventListener("click", async () => {
       discoveryData = JSON.stringify(parsed);
     }
 
-    const response = await fetch("/api/run", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
+    const result = await postWithProgress(
+      "/api/run",
+      {
         ...runPayload,
         discoveryData,
-      }),
-    });
-
-    const result = await response.json();
-    const runFailed = !response.ok || Boolean(result.error);
+        shownotesLinks,
+      },
+      (msg) => addStatus(`• ${msg}`),
+    );
+    const runFailed = result.type === "error" || Boolean(result.error);
     stopRunSpinner(
       runFailed ? "❌ Generation failed" : "✓ Generation completed",
     );
@@ -2278,6 +3048,27 @@ generateClipVideosButton.addEventListener("click", async () => {
   // guard returns silently, which would eat the suggestions with no feedback.
   if (isGeneratingClips) {
     addStatus("Clip generation is already in progress.");
+    return;
+  }
+
+  // Unsaved cue edits would render with the old text; force a decision on them first.
+  const unsavedEdits = [...clipEditorDirtyChecks].reduce(
+    (sum, check) => sum + check(),
+    0,
+  );
+  if (unsavedEdits > 0) {
+    addStatus(
+      `⚠ ${unsavedEdits} unsaved transcript edit(s) - press "Save Transcript Edits" on the open card(s) first.`,
+    );
+    return;
+  }
+
+  // Every clip needs an explicit decision: an untouched card is not a yes.
+  const undecided = countUndecidedClipSuggestions();
+  if (undecided > 0) {
+    addStatus(
+      `⚠ ${undecided} clip suggestion(s) still need an Approve or Deny decision.`,
+    );
     return;
   }
 

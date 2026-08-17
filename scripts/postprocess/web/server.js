@@ -3,6 +3,7 @@ const os = require("node:os");
 const path = require("node:path");
 const http = require("node:http");
 const crypto = require("node:crypto");
+const { spawnSync } = require("node:child_process");
 const { runPipeline, discoverEpisodeData } = require("../pipeline");
 const {
   applyTranscriptFixes,
@@ -13,10 +14,13 @@ const {
 const { resolveLlm } = require("../llm");
 const { buildClipSuggestions } = require("../clip-suggestions");
 const { suggestClipsLlmCached } = require("../clip-suggestions-llm");
+const { stripSpeakerPrefix } = require("../clip-subtitles");
+const { parseVttCues } = require("../vtt");
 const { generateClipVideos, generateVideoFromChapters } = require("../video");
 const { loadPostprocessConfig } = require("../config");
 const {
   chapterImageOverridesPath,
+  computeWaveformPeaks,
   normalizeTitle,
   parseByteRange,
   readJson,
@@ -157,6 +161,64 @@ function extractImageUrlFromHtml(html, baseUrl) {
   }
 
   return null;
+}
+
+function decodeHtmlEntities(text) {
+  return String(text || "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, "'")
+    .replace(/&#x27;/gi, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, " ");
+}
+
+async function fetchPageTitle(pageUrl) {
+  let parsed;
+  try {
+    parsed = new URL(pageUrl);
+  } catch {
+    throw new Error("Invalid URL");
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("Only http(s) URLs are supported");
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const response = await fetch(parsed.toString(), {
+      signal: controller.signal,
+      redirect: "follow",
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        accept: "text/html,application/xhtml+xml,*/*;q=0.8",
+        "accept-language": "en-GB,en;q=0.9",
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Page fetch failed (${response.status})`);
+    }
+    const html = await response.text();
+    const match = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
+    const title = match
+      ? decodeHtmlEntities(match[1]).replace(/\s+/g, " ").trim()
+      : "";
+    if (!title) {
+      throw new Error("Page has no title");
+    }
+    return title;
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw new Error("Page fetch timed out");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 async function downloadImageFromUrl(imageUrl) {
@@ -355,6 +417,55 @@ function resolvePreferredClipImagePath({ resolvedMp3Path, resolvedImagePath }) {
   }
 
   return resolvedImagePath;
+}
+
+// Newline-delimited JSON over a chunked response: {type:"progress"} events while the
+// work runs, then exactly one {type:"result"} or {type:"error"} to finish. The stream
+// stays open for minutes, so a client that reloads or disconnects mid-run is normal -
+// writes after that are dropped, and the response's error event must have a listener
+// or the EPIPE would crash the whole server process.
+function startNdjsonStream(res) {
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "application/x-ndjson");
+  res.setHeader("Cache-Control", "no-store");
+  res.flushHeaders?.();
+  res.on("error", () => {});
+  const write = (line) => {
+    if (!res.writableEnded && !res.destroyed) {
+      res.write(`${line}\n`);
+    }
+  };
+  const end = (line) => {
+    if (!res.writableEnded && !res.destroyed) {
+      res.end(`${line}\n`);
+    }
+  };
+  return {
+    progress: (message) => {
+      write(JSON.stringify({ type: "progress", message }));
+    },
+    result: (payload) => {
+      end(JSON.stringify({ type: "result", ...payload }));
+    },
+    error: (message) => {
+      end(JSON.stringify({ type: "error", error: message }));
+    },
+  };
+}
+
+// Client aborts are routine for served files - the audio preview cancels range
+// requests on every seek - and neither pipe() nor the http layer attaches error
+// handlers for us. Without them one aborted download kills the process.
+function pipeFileToResponse(filePath, res, options) {
+  const fileStream = fs.createReadStream(filePath, options);
+  res.on("error", () => {});
+  res.on("close", () => {
+    fileStream.destroy();
+  });
+  fileStream.on("error", () => {
+    res.destroy();
+  });
+  fileStream.pipe(res);
 }
 
 function deriveEpisodeOutputPaths({ repoRoot, discovered, mp3Path }) {
@@ -599,6 +710,10 @@ function startServer({ port = 4173, onPortConflict } = {}) {
             waitingForVideo: false,
           }),
           completedAt: new Date().toISOString(),
+          // Status patches merge, so a transient earlier failure marking would
+          // otherwise ride along with the completed state and read as a crash.
+          failedAt: null,
+          error: null,
         });
       } catch (error) {
         if (abortController.signal.aborted) {
@@ -642,11 +757,25 @@ function startServer({ port = 4173, onPortConflict } = {}) {
       };
     }
 
+    // An actively-running render rewrites its status file constantly, so a fresh
+    // mtime means someone is still working on it - even if it is missing from THIS
+    // process's in-memory set (a second instance answering polls, a restart race).
+    // Only a file that has gone quiet is truly orphaned.
+    const statusFileIsFresh = () => {
+      try {
+        return Date.now() - fs.statSync(statusFile).mtimeMs < 120_000;
+      } catch {
+        return false;
+      }
+    };
+
     const parsed = readJson(statusFile, { status: "unknown" });
     if (
       parsed.status === "started" &&
-      !activeVideoStatusFiles.has(statusFile)
+      !activeVideoStatusFiles.has(statusFile) &&
+      !statusFileIsFresh()
     ) {
+      console.error(`marking stale video run interrupted: ${statusFile}`);
       const interrupted = markVideoStatusInterrupted(statusFile, parsed);
       return {
         statusFile,
@@ -657,8 +786,10 @@ function startServer({ port = 4173, onPortConflict } = {}) {
     if (
       parsed.clipGeneration &&
       ["started", "waiting"].includes(parsed.clipGeneration.status) &&
-      !activeClipGenerationStatusFiles.has(statusFile)
+      !activeClipGenerationStatusFiles.has(statusFile) &&
+      !statusFileIsFresh()
     ) {
+      console.error(`marking stale clip run interrupted: ${statusFile}`);
       parsed.clipGeneration = markClipGenerationInterrupted(
         statusFile,
         parsed.clipGeneration,
@@ -739,7 +870,7 @@ function startServer({ port = 4173, onPortConflict } = {}) {
         res.statusCode = 200;
         res.setHeader("Content-Type", contentTypeForImage(imagePath));
         res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-        fs.createReadStream(imagePath).pipe(res);
+        pipeFileToResponse(imagePath, res);
       } catch {
         res.statusCode = 404;
         res.end("Not Found");
@@ -788,16 +919,16 @@ function startServer({ port = 4173, onPortConflict } = {}) {
             `bytes ${range.start}-${range.end}/${stat.size}`,
           );
           res.setHeader("Content-Length", range.end - range.start + 1);
-          fs.createReadStream(audioPath, {
+          pipeFileToResponse(audioPath, res, {
             start: range.start,
             end: range.end,
-          }).pipe(res);
+          });
           return;
         }
 
         res.statusCode = 200;
         res.setHeader("Content-Length", stat.size);
-        fs.createReadStream(audioPath).pipe(res);
+        pipeFileToResponse(audioPath, res);
       } catch {
         res.statusCode = 404;
         res.end("Not Found");
@@ -806,14 +937,12 @@ function startServer({ port = 4173, onPortConflict } = {}) {
     }
 
     if (req.method === "POST" && pathname === "/api/discover") {
+      const body = await readRequestBody(req);
+      // Streamed NDJSON: progress events go out the moment each pipeline step starts,
+      // instead of arriving as a lump when the whole request finishes.
+      const stream = startNdjsonStream(res);
       try {
-        const body = await readRequestBody(req);
         const payload = JSON.parse(body || "{}");
-
-        const progressMessages = [];
-        const onProgress = (message) => {
-          progressMessages.push(message);
-        };
 
         const discovered = await discoverEpisodeData({
           mp3Path: payload.mp3Path,
@@ -822,7 +951,7 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           episodeTitle: payload.episodeTitle,
           description: payload.description,
           publishDate: payload.publishDate,
-          onProgress,
+          onProgress: stream.progress,
         });
 
         const { videoStatusFile: derivedVideoStatusFile } =
@@ -867,9 +996,8 @@ function startServer({ port = 4173, onPortConflict } = {}) {
               )
             : [];
 
-        sendJson(res, 200, {
+        stream.result({
           success: true,
-          progress: progressMessages,
           discovered: {
             episodeTitle: discovered.episodeTitle,
             episodeMeta: discovered.episodeMeta,
@@ -893,18 +1021,41 @@ function startServer({ port = 4173, onPortConflict } = {}) {
               transcriptMd: discovered.profanityMatches.transcriptMd,
               transcriptVtt: discovered.profanityMatches.transcriptVtt,
             },
+            audioQc: discovered.audioQc,
             videoStatus: discoveredVideoStatus,
             existingClipSuggestions: Array.isArray(
               episodeReport?.clipSuggestions,
             )
               ? episodeReport.clipSuggestions
               : [],
+            existingClipApprovals: Array.isArray(episodeReport?.clipApprovals)
+              ? episodeReport.clipApprovals
+              : null,
             existingTranscriptFindings,
+            shownotesLinkSeeds:
+              discovered.shownotesLinkSeeds || discovered.hiddenLinks,
+            existingShownotesLinks: Array.isArray(episodeReport?.shownotesLinks)
+              ? episodeReport.shownotesLinks
+              : null,
           },
           discoveryData: JSON.stringify(discovered),
         });
       } catch (error) {
-        sendJson(res, 400, { error: error.message });
+        stream.error(error.message);
+      }
+      return;
+    }
+
+    // Title lookup for a pasted shownotes URL, so the user edits a sensible default
+    // instead of typing every title from scratch.
+    if (req.method === "POST" && pathname === "/api/fetch-link-title") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+        const title = await fetchPageTitle(String(payload.url || "").trim());
+        sendJson(res, 200, { success: true, title });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
       }
       return;
     }
@@ -992,6 +1143,244 @@ function startServer({ port = 4173, onPortConflict } = {}) {
         sendJson(res, 200, readNormalizedVideoStatus(statusFile));
       } catch {
         sendJson(res, 200, { status: "missing" });
+      }
+      return;
+    }
+
+    // Peak amplitudes for the trim strip: the clip's window plus margin either side,
+    // decoded to mono 8 kHz PCM and bucketed. The reported window end reflects what
+    // was actually decoded, so a clip near the episode's end gets a truthful axis.
+    if (req.method === "POST" && pathname === "/api/clip-waveform") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+        const mp3Path = String(payload.mp3Path || "").trim();
+        const startSeconds = Number(payload.startSeconds);
+        const endSeconds = Number(payload.endSeconds);
+        if (!mp3Path || !path.isAbsolute(mp3Path) || !fs.existsSync(mp3Path)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid mp3Path",
+          });
+          return;
+        }
+        if (
+          !Number.isFinite(startSeconds) ||
+          !Number.isFinite(endSeconds) ||
+          endSeconds <= startSeconds
+        ) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid clip time range",
+          });
+          return;
+        }
+
+        const margin = 15;
+        const windowStart = Math.max(0, startSeconds - margin);
+        const windowDuration = endSeconds + margin - windowStart;
+
+        const decoded = spawnSync(
+          "ffmpeg",
+          [
+            "-v",
+            "error",
+            "-ss",
+            String(windowStart),
+            "-t",
+            String(windowDuration),
+            "-i",
+            mp3Path,
+            "-ac",
+            "1",
+            "-ar",
+            "8000",
+            "-f",
+            "s16le",
+            "pipe:1",
+          ],
+          { maxBuffer: 64 * 1024 * 1024 },
+        );
+        if (decoded.status !== 0 || !decoded.stdout) {
+          throw new Error(
+            `ffmpeg decode failed: ${String(decoded.stderr || "").slice(0, 200)}`,
+          );
+        }
+
+        const decodedSeconds = Math.floor(decoded.stdout.length / 2) / 8000;
+        sendJson(res, 200, {
+          success: true,
+          windowStart,
+          windowEnd: windowStart + decodedSeconds,
+          peaks: computeWaveformPeaks(decoded.stdout, 600),
+        });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // The subtitle cues overlapping one clip's window, for the per-card transcript
+    // editor. Reads the episode's written (fixed) transcript.vtt when it exists;
+    // before a run there is only discovery-time text, which is served read-only since
+    // edits are applied to the episode files.
+    if (req.method === "POST" && pathname === "/api/clip-cues") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        const startSeconds = Number(payload.startSeconds);
+        const endSeconds = Number(payload.endSeconds);
+        if (
+          !Number.isFinite(startSeconds) ||
+          !Number.isFinite(endSeconds) ||
+          endSeconds <= startSeconds
+        ) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid clip time range",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const vttPath = path.join(episodeDir, "transcript.vtt");
+        const editable =
+          fs.existsSync(vttPath) &&
+          fs.existsSync(path.join(episodeDir, "transcript.md"));
+        const vttText = editable
+          ? fs.readFileSync(vttPath, "utf8")
+          : discovered.transcriptVttText;
+
+        const cues = parseVttCues(vttText || "")
+          .filter(
+            (cue) =>
+              cue.endSeconds > startSeconds && cue.startSeconds < endSeconds,
+          )
+          .map((cue) => ({
+            startSeconds: cue.startSeconds,
+            endSeconds: cue.endSeconds,
+            speaker: (/^([^:\n]{1,30}):/.exec(cue.text) || [])[1] || null,
+            speech: stripSpeakerPrefix(cue.text),
+          }));
+
+        sendJson(res, 200, { success: true, editable, cues });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Clip curation - trims, per-clip cue exclusions, approve/deny decisions - is
+    // saved into the episode report as it changes, so an app restart or crash never
+    // loses review work. The suggestions are stored whole; the approvals ride
+    // alongside as a parallel array.
+    if (req.method === "POST" && pathname === "/api/save-clip-curation") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        if (!Array.isArray(payload.clipSuggestions)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing clipSuggestions",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const reportPath = path.join(episodeDir, "postprocess-report.json");
+        if (!fs.existsSync(reportPath)) {
+          sendJson(res, 200, { success: true, saved: false });
+          return;
+        }
+
+        const report = readJson(reportPath, {});
+        report.clipSuggestions = payload.clipSuggestions;
+        report.clipApprovals = Array.isArray(payload.clipApprovals)
+          ? payload.clipApprovals
+          : null;
+        writeJson(reportPath, report);
+        sendJson(res, 200, { success: true, saved: true });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Clear & Restart's server half: the run status and the report are what discovery
+    // uses to restore completed-run state, suggestions, links and fix memory - without
+    // deleting them a "restart" resurrects everything it just cleared. Generated media
+    // and episode content files are left alone; a re-approve rewrites those.
+    if (req.method === "POST" && pathname === "/api/clear-episode-state") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+
+        const { episodeDir, videoStatusFile } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+
+        if (
+          activeVideoStatusFiles.has(videoStatusFile) ||
+          activeClipGenerationStatusFiles.has(videoStatusFile)
+        ) {
+          sendJson(res, 400, {
+            success: false,
+            error:
+              "A render or clip generation is in progress for this episode - wait or cancel first",
+          });
+          return;
+        }
+
+        fs.rmSync(videoStatusFile, { force: true });
+        fs.rmSync(path.join(episodeDir, "postprocess-report.json"), {
+          force: true,
+        });
+        sendJson(res, 200, { success: true });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
       }
       return;
     }
@@ -1197,12 +1586,14 @@ function startServer({ port = 4173, onPortConflict } = {}) {
         }
 
         // The report is what discovery reads to restore the cards after a page
-        // refresh, so it must always hold the set the user last saw.
+        // refresh, so it must always hold the set the user last saw. A regenerated
+        // set voids the saved approvals - they would map by index onto other clips.
         const reportPath = path.join(episodeDir, "postprocess-report.json");
         if (fs.existsSync(reportPath)) {
           const report = readJson(reportPath, {});
           report.clipSuggestions = clipSuggestions;
           report.clipSource = source;
+          report.clipApprovals = null;
           writeJson(reportPath, report);
         }
 
@@ -1339,14 +1730,10 @@ function startServer({ port = 4173, onPortConflict } = {}) {
     }
 
     if (req.method === "POST" && pathname === "/api/run") {
+      const body = await readRequestBody(req);
+      const stream = startNdjsonStream(res);
       try {
-        const body = await readRequestBody(req);
         const payload = JSON.parse(body || "{}");
-
-        const progressMessages = [];
-        const onProgress = (message) => {
-          progressMessages.push(message);
-        };
 
         let runOptions = {
           mp3Path: payload.mp3Path,
@@ -1357,7 +1744,10 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           publishDate: payload.publishDate,
           skipVideo: Boolean(payload.skipVideo),
           episodeFolderPath: payload.episodeFolderPath,
-          onProgress,
+          shownotesLinks: Array.isArray(payload.shownotesLinks)
+            ? payload.shownotesLinks
+            : undefined,
+          onProgress: stream.progress,
         };
 
         if (payload.discoveryData) {
@@ -1373,12 +1763,9 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           activeVideoStatusFiles.add(report.videoStatus.statusFile);
         }
 
-        sendJson(res, 200, {
-          ...report,
-          progress: progressMessages,
-        });
+        stream.result(report);
       } catch (error) {
-        sendJson(res, 400, { error: error.message });
+        stream.error(error.message);
       }
       return;
     }
@@ -1493,6 +1880,10 @@ function startServer({ port = 4173, onPortConflict } = {}) {
     }
     throw error;
   });
+
+  // The Electron app asks before quitting mid-render.
+  server.hasActiveJobs = () =>
+    activeVideoStatusFiles.size > 0 || activeClipGenerationStatusFiles.size > 0;
 
   // Loopback only. This server reads local files and runs the pipeline with no auth,
   // so it must not be reachable from the network.

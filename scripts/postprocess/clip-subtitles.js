@@ -23,14 +23,29 @@ function stripSpeakerPrefix(text) {
 }
 
 // Cues overlapping [clipStartSeconds, clipEndSeconds], rebased so 0 is the clip start and
-// clamped to the clip, ready to become subtitle events.
-function sliceCuesForClip({ cues, clipStartSeconds, clipEndSeconds }) {
+// clamped to the clip, ready to become subtitle events. excludedCueStarts drops cues
+// the user cut from this one clip in the editor (a line that technically overlaps the
+// window but is not audible in it) - a per-clip decision that never touches the
+// episode transcripts, matched by original start time.
+function sliceCuesForClip({
+  cues,
+  clipStartSeconds,
+  clipEndSeconds,
+  excludedCueStarts = [],
+}) {
   const sliced = [];
 
   for (const cue of cues || []) {
     if (
       cue.endSeconds <= clipStartSeconds ||
       cue.startSeconds >= clipEndSeconds
+    ) {
+      continue;
+    }
+    if (
+      excludedCueStarts.some(
+        (start) => Math.abs(start - cue.startSeconds) < 0.01,
+      )
     ) {
       continue;
     }

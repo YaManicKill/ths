@@ -59,9 +59,11 @@ generateClipVideos({
     {
       title: "One",
       summary: "First clip",
+      caption: "You will not believe this one 🐝 #podcast",
       startSeconds: 0,
       durationSeconds: 2,
     },
+    // No caption: the captions file must fall back to the summary.
     {
       title: "Two",
       summary: "Second clip",
@@ -100,6 +102,25 @@ generateClipVideos({
         `${output.outputPath} looks empty (${stat.size} bytes)`,
       );
     }
+
+    // Paste-ready captions land next to the clips: the AI caption when there is one,
+    // the summary otherwise, each block naming its clip file.
+    const captions = fs.readFileSync(
+      path.join(base, "out", "captions.txt"),
+      "utf8",
+    );
+    assert.ok(
+      captions.includes(
+        `${path.basename(outputs[0].outputPath)}\nYou will not believe this one 🐝 #podcast #cottagecore #farminggames #theharvestseason\n`,
+      ),
+      "AI caption missing from captions.txt",
+    );
+    assert.ok(
+      captions.includes(
+        `${path.basename(outputs[1].outputPath)}\nSecond clip #cottagecore #farminggames #theharvestseason\n`,
+      ),
+      "summary fallback missing from captions.txt",
+    );
 
     // The overlay files are what drawtext actually rendered: wrapped title lines in one,
     // the formatted date in the other, shared by every clip in the episode.

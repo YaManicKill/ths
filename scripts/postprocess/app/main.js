@@ -1,8 +1,48 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const util = require("node:util");
 const { app, BrowserWindow, dialog, nativeImage } = require("electron");
 
 const PORT = Number(process.env.THS_APP_PORT) || 4173;
+
+// Dock-launched apps have no terminal: stdout vanishes and an uncaught exception kills
+// the process with zero trace. Everything console-printed is teed into a log file
+// (~/Library/Logs/THS Post-Process/main.log), and process-level failures are recorded
+// before the app dies, so "the server just closed" is never a mystery again.
+const logDir = app.getPath("logs");
+fs.mkdirSync(logDir, { recursive: true });
+const logPath = path.join(logDir, "main.log");
+
+function logLine(level, parts) {
+  const text = util.format(...parts);
+  try {
+    fs.appendFileSync(
+      logPath,
+      `${new Date().toISOString()} [${level}] ${text}\n`,
+    );
+  } catch {
+    // Logging must never take the app down.
+  }
+}
+
+for (const level of ["log", "warn", "error"]) {
+  const original = console[level].bind(console);
+  console[level] = (...parts) => {
+    logLine(level, parts);
+    original(...parts);
+  };
+}
+
+process.on("uncaughtException", (error) => {
+  logLine("fatal", [`uncaughtException: ${error?.stack || error}`]);
+  process.exit(1);
+});
+process.on("unhandledRejection", (reason) => {
+  logLine("fatal", [`unhandledRejection: ${reason?.stack || reason}`]);
+});
+
+logLine("log", [`app starting (pid ${process.pid}, port ${PORT})`]);
+app.on("quit", () => logLine("log", ["app quit"]));
 
 // The pipeline code is loaded from the repo checkout, not bundled into the app, so
 // day-to-day changes to the tool are picked up without rebuilding the app. A packaged
@@ -33,13 +73,32 @@ process.env.PATH = [
   process.env.PATH || "",
 ].join(":");
 
-function createWindow(url) {
+function createWindow(url, server) {
   const window = new BrowserWindow({
     width: 1280,
     height: 960,
     title: "THS Post-Process",
   });
   window.loadURL(url);
+
+  // Closing the window kills the in-process server - and any render with it - so an
+  // active job earns a confirmation instead of dying silently.
+  window.on("close", (event) => {
+    if (!server?.hasActiveJobs?.()) {
+      return;
+    }
+    const choice = dialog.showMessageBoxSync(window, {
+      type: "warning",
+      buttons: ["Keep Running", "Quit Anyway"],
+      defaultId: 0,
+      cancelId: 0,
+      message: "A render or clip generation is still in progress.",
+      detail: "Quitting now will kill it partway through.",
+    });
+    if (choice === 0) {
+      event.preventDefault();
+    }
+  });
 
   if (process.env.THS_APP_SMOKE) {
     window.webContents.once("did-finish-load", () => {
@@ -93,7 +152,7 @@ app.whenReady().then(() => {
   });
 
   server.once("listening", () => {
-    createWindow(buildUiLaunchUrl(PORT, launch.defaults));
+    createWindow(buildUiLaunchUrl(PORT, launch.defaults), server);
   });
 });
 

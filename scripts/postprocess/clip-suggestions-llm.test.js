@@ -4,6 +4,7 @@ const os = require("node:os");
 const path = require("node:path");
 const {
   buildCueSearchIndex,
+  ensureRequiredHashtags,
   locateClipInCues,
   suggestClipsLlm,
   suggestClipsLlmCached,
@@ -76,6 +77,7 @@ async function main() {
             title: "A chicken standing on a cow",
             category: "funny moment",
             reason: "Absurd farm imagery with a perfect reaction.",
+            caption: "The barn had a surprise this morning 🐔🐄 #podcast #farm",
             score: 90,
           },
           // Overlaps the clip above with a lower score, so it must lose.
@@ -124,6 +126,11 @@ async function main() {
   assert.equal(clip.summary, "A chicken standing on a cow");
   assert.equal(clip.speaker, "Codey");
   assert.equal(clip.reason, "funny moment");
+  // The show hashtags are guaranteed even when the model leaves them out.
+  assert.equal(
+    clip.caption,
+    "The barn had a surprise this morning 🐔🐄 #podcast #farm #cottagecore #farminggames #theharvestseason",
+  );
   assert.equal(clip.source, "llm");
   assert.ok(clip.text.includes("chicken standing on the cow"));
   assert.ok(!clip.text.includes("Codey:"), "speaker prefix left in clip text");
@@ -138,6 +145,22 @@ async function main() {
     },
   });
   assert.deepEqual(noVtt, { suggestions: [], candidatesReturned: 0 });
+
+  // Hashtag guarantee: appended when missing, not duplicated when present in any case.
+  assert.equal(
+    ensureRequiredHashtags("Great clip! #FarmingGames"),
+    "Great clip! #FarmingGames #cottagecore #theharvestseason",
+  );
+  assert.equal(
+    ensureRequiredHashtags(
+      "All there #cottagecore #farminggames #theharvestseason",
+    ),
+    "All there #cottagecore #farminggames #theharvestseason",
+  );
+  assert.equal(
+    ensureRequiredHashtags(""),
+    "#cottagecore #farminggames #theharvestseason",
+  );
 
   // Cache: unchanged transcript is a hit, edited transcript re-runs.
   const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "ths-clips-"));

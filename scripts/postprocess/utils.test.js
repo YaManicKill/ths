@@ -126,6 +126,16 @@ assert.equal(
   fsLocal.rmSync(dir, { recursive: true, force: true });
 }
 
+// Waveform peaks: per-bin maxima of |sample|/32768, resilient to empty input.
+{
+  const { computeWaveformPeaks } = require("./utils");
+  const samples = [0, 16384, -32768, 8192]; // two bins of two samples each
+  const buffer = Buffer.alloc(samples.length * 2);
+  samples.forEach((value, i) => buffer.writeInt16LE(value, i * 2));
+  assert.deepEqual(computeWaveformPeaks(buffer, 2), [0.5, 1]);
+  assert.deepEqual(computeWaveformPeaks(Buffer.alloc(0), 3), [0, 0, 0]);
+}
+
 // Byte ranges for audio serving: the three header forms, clamping past EOF, and the
 // unsatisfiable cases that must produce a 416 rather than a broken stream.
 assert.deepEqual(parseByteRange("bytes=0-499", 1000), { start: 0, end: 499 });
