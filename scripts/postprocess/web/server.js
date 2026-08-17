@@ -1881,6 +1881,10 @@ function startServer({ port = 4173, onPortConflict } = {}) {
     throw error;
   });
 
+  // The Electron app asks before quitting mid-render.
+  server.hasActiveJobs = () =>
+    activeVideoStatusFiles.size > 0 || activeClipGenerationStatusFiles.size > 0;
+
   // Loopback only. This server reads local files and runs the pipeline with no auth,
   // so it must not be reachable from the network.
   server.listen(port, "127.0.0.1", () => {
