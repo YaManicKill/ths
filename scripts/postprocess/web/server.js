@@ -453,6 +453,21 @@ function startNdjsonStream(res) {
   };
 }
 
+// Client aborts are routine for served files - the audio preview cancels range
+// requests on every seek - and neither pipe() nor the http layer attaches error
+// handlers for us. Without them one aborted download kills the process.
+function pipeFileToResponse(filePath, res, options) {
+  const fileStream = fs.createReadStream(filePath, options);
+  res.on("error", () => {});
+  res.on("close", () => {
+    fileStream.destroy();
+  });
+  fileStream.on("error", () => {
+    res.destroy();
+  });
+  fileStream.pipe(res);
+}
+
 function deriveEpisodeOutputPaths({ repoRoot, discovered, mp3Path }) {
   const outputRoot = loadPostprocessConfig(repoRoot).outputRoot;
 
@@ -695,6 +710,10 @@ function startServer({ port = 4173, onPortConflict } = {}) {
             waitingForVideo: false,
           }),
           completedAt: new Date().toISOString(),
+          // Status patches merge, so a transient earlier failure marking would
+          // otherwise ride along with the completed state and read as a crash.
+          failedAt: null,
+          error: null,
         });
       } catch (error) {
         if (abortController.signal.aborted) {
@@ -738,11 +757,25 @@ function startServer({ port = 4173, onPortConflict } = {}) {
       };
     }
 
+    // An actively-running render rewrites its status file constantly, so a fresh
+    // mtime means someone is still working on it - even if it is missing from THIS
+    // process's in-memory set (a second instance answering polls, a restart race).
+    // Only a file that has gone quiet is truly orphaned.
+    const statusFileIsFresh = () => {
+      try {
+        return Date.now() - fs.statSync(statusFile).mtimeMs < 120_000;
+      } catch {
+        return false;
+      }
+    };
+
     const parsed = readJson(statusFile, { status: "unknown" });
     if (
       parsed.status === "started" &&
-      !activeVideoStatusFiles.has(statusFile)
+      !activeVideoStatusFiles.has(statusFile) &&
+      !statusFileIsFresh()
     ) {
+      console.error(`marking stale video run interrupted: ${statusFile}`);
       const interrupted = markVideoStatusInterrupted(statusFile, parsed);
       return {
         statusFile,
@@ -753,8 +786,10 @@ function startServer({ port = 4173, onPortConflict } = {}) {
     if (
       parsed.clipGeneration &&
       ["started", "waiting"].includes(parsed.clipGeneration.status) &&
-      !activeClipGenerationStatusFiles.has(statusFile)
+      !activeClipGenerationStatusFiles.has(statusFile) &&
+      !statusFileIsFresh()
     ) {
+      console.error(`marking stale clip run interrupted: ${statusFile}`);
       parsed.clipGeneration = markClipGenerationInterrupted(
         statusFile,
         parsed.clipGeneration,
@@ -835,7 +870,7 @@ function startServer({ port = 4173, onPortConflict } = {}) {
         res.statusCode = 200;
         res.setHeader("Content-Type", contentTypeForImage(imagePath));
         res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-        fs.createReadStream(imagePath).pipe(res);
+        pipeFileToResponse(imagePath, res);
       } catch {
         res.statusCode = 404;
         res.end("Not Found");
@@ -884,16 +919,16 @@ function startServer({ port = 4173, onPortConflict } = {}) {
             `bytes ${range.start}-${range.end}/${stat.size}`,
           );
           res.setHeader("Content-Length", range.end - range.start + 1);
-          fs.createReadStream(audioPath, {
+          pipeFileToResponse(audioPath, res, {
             start: range.start,
             end: range.end,
-          }).pipe(res);
+          });
           return;
         }
 
         res.statusCode = 200;
         res.setHeader("Content-Length", stat.size);
-        fs.createReadStream(audioPath).pipe(res);
+        pipeFileToResponse(audioPath, res);
       } catch {
         res.statusCode = 404;
         res.end("Not Found");
