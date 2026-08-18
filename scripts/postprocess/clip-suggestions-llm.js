@@ -322,6 +322,7 @@ async function suggestClipsLlmCached({ cacheDir, ...options }) {
 }
 
 module.exports = {
+  REQUIRED_CLIP_HASHTAGS,
   buildCueSearchIndex,
   ensureRequiredHashtags,
   locateClipInCues,

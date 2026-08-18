@@ -50,6 +50,9 @@ episode title, burned-in subtitles and a progress bar.
   page title as an editable default.
 - **Audio QC**: warning-only loudness / true peak / long-silence check on the MP3
   during discovery, cached until the file changes.
+- **YouTube Description** converts the episode's current index.md (chapters in
+  YouTube's timestamp format, links included) into `youtube-description.txt` next to
+  the MP4, and copies it to the clipboard. Run it after any final shownotes edits.
 - Suggestions, links and unapplied fixes are stored in the episode's
   `postprocess-report.json` and restored after a refresh or restart; **Clear & Restart
   Process** wipes that state for a fresh start.

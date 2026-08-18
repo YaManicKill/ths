@@ -4,10 +4,9 @@ Waiting on a full end-to-end episode run before anything that writes off this ma
 
 1. Upload the finished MP3 to DigitalOcean Spaces from the UI (S3-compatible API;
    credentials belong in the gitignored local config).
-2. Upload the chapter MP4 to YouTube from the UI, with the description generated from
-   the completed index.md (chapter timestamps in YouTube format, links carried over)
-   and the publish time scheduled via the API - collapsing the upload/describe/schedule
-   steps into one click.
+2. Upload the chapter MP4 to YouTube from the UI, with the description taken from the
+   existing YouTube Description generator and the publish time scheduled via the API -
+   collapsing the upload/describe/schedule steps into one click.
 
 ## Maybe
 
