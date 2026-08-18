@@ -43,6 +43,9 @@ const recheckTranscriptButton = document.getElementById(
   "recheck-transcript-button",
 );
 const cancelClipsButton = document.getElementById("cancel-clips-button");
+const youtubeDescriptionButton = document.getElementById(
+  "youtube-description-button",
+);
 const generateClipVideosButton = document.getElementById(
   "generate-clip-videos-button",
 );
@@ -2821,6 +2824,46 @@ async function postTranscriptReview({ recheck }) {
     recheckTranscriptButton.disabled = false;
   }
 }
+
+youtubeDescriptionButton.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+
+  youtubeDescriptionButton.disabled = true;
+  try {
+    const response = await fetch("/api/youtube-description", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+      }),
+    });
+    const body = await response.json();
+    if (!response.ok || !body.success) {
+      throw new Error(body.error || "YouTube description request failed");
+    }
+
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(body.description);
+      copied = true;
+    } catch {
+      // Clipboard access can be denied; the file still exists.
+    }
+    addStatus(
+      `✓ YouTube description ${copied ? "copied to clipboard and " : ""}written to ${body.outputPath}`,
+    );
+  } catch (error) {
+    addStatus(`❌ YouTube description failed: ${error.message}`);
+  } finally {
+    youtubeDescriptionButton.disabled = false;
+  }
+});
 
 cancelClipsButton.addEventListener("click", async () => {
   if (!activeClipStatusFile) {

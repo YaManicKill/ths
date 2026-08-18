@@ -15,6 +15,10 @@ const { resolveLlm } = require("../llm");
 const { buildClipSuggestions } = require("../clip-suggestions");
 const { suggestClipsLlmCached } = require("../clip-suggestions-llm");
 const { stripSpeakerPrefix } = require("../clip-subtitles");
+const {
+  buildYoutubeDescription,
+  readShowLinksFromConfig,
+} = require("../youtube-description");
 const { parseVttCues } = require("../vtt");
 const { generateClipVideos, generateVideoFromChapters } = require("../video");
 const { loadPostprocessConfig } = require("../config");
@@ -1279,6 +1283,80 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           }));
 
         sendJson(res, 200, { success: true, editable, cues });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Builds the YouTube description from the episode's index.md AS IT IS NOW - after
+    // the run baked in the shownotes links, and after any later hand edits - writing
+    // it next to the MP4 and returning the text for the clipboard.
+    if (req.method === "POST" && pathname === "/api/youtube-description") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        const mp3Path = String(payload.mp3Path || "").trim();
+        if (!mp3Path || !path.isAbsolute(mp3Path)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid mp3Path",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path,
+        });
+        const indexPath = path.join(episodeDir, "index.md");
+        if (!fs.existsSync(indexPath)) {
+          sendJson(res, 400, {
+            success: false,
+            error:
+              "index.md not found - approve and generate the episode first",
+          });
+          return;
+        }
+
+        // Platform links, Patreon and the site URL all come from the site's own
+        // config.toml; Hugo maps content/<...> straight to the site path, so the
+        // episode's URL falls out of its content directory.
+        const showLinks = readShowLinksFromConfig(
+          fs.readFileSync(path.join(repoRoot, "config.toml"), "utf8"),
+        );
+        const baseUrl = (
+          showLinks.baseUrl || "https://harvestseason.club/"
+        ).replace(/\/+$/, "");
+        const episodeUrl = `${baseUrl}/${path
+          .relative(path.join(repoRoot, "content"), episodeDir)
+          .split(path.sep)
+          .join("/")}/`;
+
+        const description = buildYoutubeDescription({
+          indexMdText: fs.readFileSync(indexPath, "utf8"),
+          episodeUrl,
+          showLinks,
+        });
+        const outputPath = path.join(
+          path.dirname(mp3Path),
+          "youtube-description.txt",
+        );
+        fs.writeFileSync(outputPath, description, "utf8");
+
+        sendJson(res, 200, { success: true, outputPath, description });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
       }
