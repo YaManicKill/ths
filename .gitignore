@@ -13,3 +13,4 @@ content/**/postprocess-report.json
 content/**/video-status.json
 postprocess.config.local.json
 .DS_Store
+scripts/.env
