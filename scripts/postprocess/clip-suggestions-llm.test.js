@@ -5,6 +5,7 @@ const path = require("node:path");
 const {
   buildCueSearchIndex,
   ensureRequiredHashtags,
+  formatClipCaptionBlock,
   locateClipInCues,
   suggestClipsLlm,
   suggestClipsLlmCached,
@@ -126,10 +127,10 @@ async function main() {
   assert.equal(clip.summary, "A chicken standing on a cow");
   assert.equal(clip.speaker, "Codey");
   assert.equal(clip.reason, "funny moment");
-  // The show hashtags are guaranteed even when the model leaves them out.
+  // The show hashtags are guaranteed and lead; the model's own tags follow.
   assert.equal(
     clip.caption,
-    "The barn had a surprise this morning 🐔🐄 #podcast #farm #cottagecore #farminggames #theharvestseason",
+    "The barn had a surprise this morning 🐔🐄 #theharvestseason #cottagecore #farminggames #podcast #farm",
   );
   assert.equal(clip.source, "llm");
   assert.ok(clip.text.includes("chicken standing on the cow"));
@@ -146,20 +147,29 @@ async function main() {
   });
   assert.deepEqual(noVtt, { suggestions: [], candidatesReturned: 0 });
 
-  // Hashtag guarantee: appended when missing, not duplicated when present in any case.
+  // Hashtag guarantee: the brand trio always leads (platforms surface the first
+  // tags), model tags follow deduped case-insensitively and capped at two extras.
   assert.equal(
     ensureRequiredHashtags("Great clip! #FarmingGames"),
-    "Great clip! #FarmingGames #cottagecore #theharvestseason",
+    "Great clip! #theharvestseason #cottagecore #farminggames",
   );
   assert.equal(
-    ensureRequiredHashtags(
-      "All there #cottagecore #farminggames #theharvestseason",
-    ),
-    "All there #cottagecore #farminggames #theharvestseason",
+    ensureRequiredHashtags("Wow #bees #honey #hive #extra"),
+    "Wow #theharvestseason #cottagecore #farminggames #bees #honey",
   );
   assert.equal(
     ensureRequiredHashtags(""),
-    "#cottagecore #farminggames #theharvestseason",
+    "#theharvestseason #cottagecore #farminggames",
+  );
+
+  // The captions-file block: text, identity line, hashtags - one per line.
+  assert.equal(
+    formatClipCaptionBlock("Wild moment! #bees"),
+    [
+      "Wild moment!",
+      "From The Harvest Season, a podcast about farming and cottagecore games — new episodes every Wednesday.",
+      "#theharvestseason #cottagecore #farminggames #bees",
+    ].join("\n"),
   );
 
   // Cache: unchanged transcript is a hit, edited transcript re-runs.

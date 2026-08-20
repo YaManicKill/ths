@@ -17,8 +17,10 @@ const { suggestClipsLlmCached } = require("../clip-suggestions-llm");
 const { stripSpeakerPrefix } = require("../clip-subtitles");
 const {
   buildYoutubeDescription,
+  parseFrontmatterDescription,
   readShowLinksFromConfig,
 } = require("../youtube-description");
+const { generateSocialPostsCached } = require("../social-posts");
 const { parseVttCues } = require("../vtt");
 const { generateClipVideos, generateVideoFromChapters } = require("../video");
 const { loadPostprocessConfig } = require("../config");
@@ -1357,6 +1359,116 @@ function startServer({ port = 4173, onPortConflict } = {}) {
         fs.writeFileSync(outputPath, description, "utf8");
 
         sendJson(res, 200, { success: true, outputPath, description });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Bluesky and Tumblr announcement posts, drafted by the LLM from the episode's
+    // current description plus the AI clip hooks (template fallback without a key),
+    // written next to the MP4. Runs after the shownotes are final, like the YouTube
+    // description.
+    if (req.method === "POST" && pathname === "/api/social-posts") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        const mp3Path = String(payload.mp3Path || "").trim();
+        if (!mp3Path || !path.isAbsolute(mp3Path)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid mp3Path",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path,
+        });
+        const indexPath = path.join(episodeDir, "index.md");
+        if (!fs.existsSync(indexPath)) {
+          sendJson(res, 400, {
+            success: false,
+            error:
+              "index.md not found - approve and generate the episode first",
+          });
+          return;
+        }
+
+        const showLinks = readShowLinksFromConfig(
+          fs.readFileSync(path.join(repoRoot, "config.toml"), "utf8"),
+        );
+        const baseUrl = (
+          showLinks.baseUrl || "https://harvestseason.club/"
+        ).replace(/\/+$/, "");
+        const episodeUrl = `${baseUrl}/${path
+          .relative(path.join(repoRoot, "content"), episodeDir)
+          .split(path.sep)
+          .join("/")}/`;
+
+        const episodeReport = readJson(
+          path.join(episodeDir, "postprocess-report.json"),
+          {},
+        );
+        const episode = {
+          title: discovered.episodeTitle,
+          // The description is read from index.md rather than discovery data, so
+          // hand edits made after the run are what get announced.
+          description:
+            parseFrontmatterDescription(fs.readFileSync(indexPath, "utf8")) ||
+            discovered.description,
+          chapters: (discovered.chapters || []).map((ch) => ch.title),
+          clipHooks: (episodeReport.clipSuggestions || []).map(
+            (suggestion) => ({
+              title: suggestion.title,
+              caption: suggestion.llmReason || "",
+            }),
+          ),
+          episodeUrl,
+          mainTopic: discovered.mainTopic,
+        };
+
+        const result = await generateSocialPostsCached({
+          cacheDir: path.join(
+            repoRoot,
+            ".cache",
+            "postprocess",
+            "social-posts",
+          ),
+          episode,
+          llm: resolveLlm(loadPostprocessConfig(repoRoot)),
+        });
+
+        const blueskyPath = path.join(
+          path.dirname(mp3Path),
+          "bluesky-post.txt",
+        );
+        const tumblrPath = path.join(path.dirname(mp3Path), "tumblr-post.txt");
+        fs.writeFileSync(blueskyPath, result.bluesky, "utf8");
+        fs.writeFileSync(tumblrPath, result.tumblr, "utf8");
+
+        sendJson(res, 200, {
+          success: true,
+          blueskyPath,
+          tumblrPath,
+          bluesky: result.bluesky,
+          tumblr: result.tumblr,
+          blueskyLength: result.blueskyLength,
+          blueskyOverLimit: result.blueskyOverLimit,
+        });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
       }

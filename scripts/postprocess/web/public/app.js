@@ -46,6 +46,7 @@ const cancelClipsButton = document.getElementById("cancel-clips-button");
 const youtubeDescriptionButton = document.getElementById(
   "youtube-description-button",
 );
+const socialPostsButton = document.getElementById("social-posts-button");
 const generateClipVideosButton = document.getElementById(
   "generate-clip-videos-button",
 );
@@ -2862,6 +2863,51 @@ youtubeDescriptionButton.addEventListener("click", async () => {
     addStatus(`❌ YouTube description failed: ${error.message}`);
   } finally {
     youtubeDescriptionButton.disabled = false;
+  }
+});
+
+socialPostsButton.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+
+  socialPostsButton.disabled = true;
+  try {
+    const response = await fetch("/api/social-posts", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+      }),
+    });
+    const body = await response.json();
+    if (!response.ok || !body.success) {
+      throw new Error(body.error || "Social posts request failed");
+    }
+
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(body.bluesky.trim());
+      copied = true;
+    } catch {
+      // Clipboard access can be denied; the files still exist.
+    }
+    addStatus(
+      `✓ Social posts written: ${body.blueskyPath} (${body.blueskyLength}/300 chars) and ${body.tumblrPath}${copied ? " - Bluesky post copied to clipboard" : ""}`,
+    );
+    if (body.blueskyOverLimit) {
+      addStatus(
+        "⚠ The Bluesky post is over the 300-character limit - trim it before posting.",
+      );
+    }
+  } catch (error) {
+    addStatus(`❌ Social posts failed: ${error.message}`);
+  } finally {
+    socialPostsButton.disabled = false;
   }
 });
 

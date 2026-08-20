@@ -107,7 +107,7 @@ assert.equal(
     "Al on Mastodon: https://mastodon.scot/@TheScotBot",
     "Email Us: https://harvestseason.club/contact/",
     "",
-    "#cottagecore #farminggames #theharvestseason",
+    "#theharvestseason #cottagecore #farminggames",
     "",
   ].join("\n"),
 );
@@ -134,7 +134,7 @@ assert.ok(bare.startsWith("Test.\n\nChapters:\n0:00 Intro\n"));
 assert.ok(!bare.includes("Links:"));
 assert.ok(!bare.includes("Listen to the podcast:"));
 assert.ok(
-  bare.trimEnd().endsWith("#cottagecore #farminggames #theharvestseason"),
+  bare.trimEnd().endsWith("#theharvestseason #cottagecore #farminggames"),
 );
 
 console.log("youtube-description test passed");

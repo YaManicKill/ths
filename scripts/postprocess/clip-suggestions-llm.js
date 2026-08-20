@@ -17,24 +17,55 @@ const MAX_CLIP_SECONDS = 90;
 
 const CLIP_CATEGORIES = ["funny moment", "hot take", "story", "wholesome"];
 
-// Every posted clip carries the show's hashtags. The prompt asks for them so the model
-// weaves them in naturally, and ensureRequiredHashtags guarantees them even when it
-// forgets.
+// Every posted clip carries the show's hashtags, and they go FIRST: platforms surface
+// the first few hashtags (YouTube shows three above the title), so the brand tags must
+// not hide behind the model's clip-specific ones. The caption is normalised by
+// stripping whatever tags the model produced and reassembling: text, then brand tags,
+// then up to two clip-specific extras (3-5 total, per platform guidance).
 const REQUIRED_CLIP_HASHTAGS = [
+  "#theharvestseason",
   "#cottagecore",
   "#farminggames",
-  "#theharvestseason",
 ];
 
+// One line of show identity on every caption: feed viewers often can't tell what a
+// clip is from, and this is the slot that converts them into listeners.
+const CAPTION_IDENTITY_LINE =
+  "From The Harvest Season, a podcast about farming and cottagecore games — new episodes every Wednesday.";
+
+function splitCaptionHashtags(caption) {
+  const tags = [];
+  const body = String(caption || "")
+    .replace(/#[A-Za-z0-9_]+/g, (tag) => {
+      tags.push(tag);
+      return "";
+    })
+    .replace(/\s+/g, " ")
+    .trim();
+  return { body, tags };
+}
+
+function normalizeCaption(caption) {
+  const { body, tags } = splitCaptionHashtags(caption);
+  const brandLower = REQUIRED_CLIP_HASHTAGS.map((tag) => tag.toLowerCase());
+  const extras = tags
+    .filter((tag) => !brandLower.includes(tag.toLowerCase()))
+    .slice(0, 2);
+  return { body, tags: [...REQUIRED_CLIP_HASHTAGS, ...extras] };
+}
+
 function ensureRequiredHashtags(caption) {
-  const base = String(caption || "").trim();
-  const missing = REQUIRED_CLIP_HASHTAGS.filter(
-    (tag) => !new RegExp(tag, "i").test(base),
-  );
-  if (missing.length === 0) {
-    return base;
-  }
-  return [base, ...missing].filter(Boolean).join(" ");
+  const { body, tags } = normalizeCaption(caption);
+  return [body, ...tags].filter(Boolean).join(" ");
+}
+
+// The paste-ready block for captions.txt: caption text, identity line, hashtags -
+// single newlines only, since blank lines separate the file's per-clip blocks.
+function formatClipCaptionBlock(caption) {
+  const { body, tags } = normalizeCaption(caption);
+  return [body, CAPTION_IDENTITY_LINE, tags.join(" ")]
+    .filter(Boolean)
+    .join("\n");
 }
 
 const CLIP_SCHEMA = {
@@ -325,6 +356,7 @@ module.exports = {
   REQUIRED_CLIP_HASHTAGS,
   buildCueSearchIndex,
   ensureRequiredHashtags,
+  formatClipCaptionBlock,
   locateClipInCues,
   suggestClipsLlm,
   suggestClipsLlmCached,

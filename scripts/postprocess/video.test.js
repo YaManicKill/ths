@@ -109,17 +109,19 @@ generateClipVideos({
       path.join(base, "out", "captions.txt"),
       "utf8",
     );
+    const identityLine =
+      "From The Harvest Season, a podcast about farming and cottagecore games — new episodes every Wednesday.";
     assert.ok(
       captions.includes(
-        `${path.basename(outputs[0].outputPath)}\nYou will not believe this one 🐝 #podcast #cottagecore #farminggames #theharvestseason\n`,
+        `${path.basename(outputs[0].outputPath)}\nYou will not believe this one 🐝\n${identityLine}\n#theharvestseason #cottagecore #farminggames #podcast\n`,
       ),
-      "AI caption missing from captions.txt",
+      "AI caption block missing from captions.txt",
     );
     assert.ok(
       captions.includes(
-        `${path.basename(outputs[1].outputPath)}\nSecond clip #cottagecore #farminggames #theharvestseason\n`,
+        `${path.basename(outputs[1].outputPath)}\nSecond clip\n${identityLine}\n#theharvestseason #cottagecore #farminggames\n`,
       ),
-      "summary fallback missing from captions.txt",
+      "summary fallback block missing from captions.txt",
     );
 
     // The overlay files are what drawtext actually rendered: wrapped title lines in one,
