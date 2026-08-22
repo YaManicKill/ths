@@ -1,7 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { ensureDir, runCommand, runCommandStream } = require("./utils");
-const { ensureRequiredHashtags } = require("./clip-suggestions-llm");
+const { formatClipCaptionBlock } = require("./clip-suggestions-llm");
 const {
   formatEpisodeDateForOverlay,
   resolveClipBoldFontPath,
@@ -819,7 +819,7 @@ function writeClipCaptionsFile({ outputDir, outputs }) {
     .map((output) => {
       const caption = output.caption || output.summary || output.title;
       return caption
-        ? `${path.basename(output.outputPath)}\n${ensureRequiredHashtags(caption)}\n`
+        ? `${path.basename(output.outputPath)}\n${formatClipCaptionBlock(caption)}\n`
         : null;
     })
     .filter(Boolean);

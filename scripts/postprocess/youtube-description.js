@@ -142,5 +142,6 @@ function buildYoutubeDescription({ indexMdText, episodeUrl, showLinks }) {
 
 module.exports = {
   buildYoutubeDescription,
+  parseFrontmatterDescription,
   readShowLinksFromConfig,
 };
