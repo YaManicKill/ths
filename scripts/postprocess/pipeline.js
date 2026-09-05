@@ -21,6 +21,7 @@ const {
 } = require("./transcript-review");
 const { suggestClipsLlmCached } = require("./clip-suggestions-llm");
 const { analyzeAudioCached, buildAudioQcWarnings } = require("./audio-qc");
+const episodeState = require("./episode-state");
 const {
   assertToolAvailable,
   chapterImageOverridesPath,
@@ -404,14 +405,6 @@ function buildIndexMarkdown({
   return lines.join("\n");
 }
 
-function writeVideoStatusPreserveClipGeneration(statusFilePath, nextStatus) {
-  const existing = readJson(statusFilePath, {});
-  if (existing.clipGeneration && nextStatus.clipGeneration === undefined) {
-    nextStatus.clipGeneration = existing.clipGeneration;
-  }
-  writeJson(statusFilePath, nextStatus);
-}
-
 function resolveSeasonInfo(episodeMeta) {
   const targetSeasonCode = String(episodeMeta.seasonCode || "").padStart(
     2,
@@ -692,23 +685,20 @@ async function runPipeline(inputOptions = {}) {
   }
 
   // Medium-confidence fixes the user applied after an earlier run exist only in the
-  // episode's previous report; a re-run regenerates the transcripts from source, so
+  // episode's previous state; a re-run regenerates the transcripts from source, so
   // without carrying them forward those approved corrections would silently vanish.
-  const previousReportPath = path.join(episodeDir, "postprocess-report.json");
-  const previousReport = fileExists(previousReportPath)
-    ? readJson(previousReportPath, {})
-    : null;
+  const previousState = await episodeState.readState(episodeDir);
   const carriedTranscriptFixes = Array.isArray(
-    previousReport?.appliedTranscriptFixes,
+    previousState?.appliedTranscriptFixes,
   )
-    ? previousReport.appliedTranscriptFixes
+    ? previousState.appliedTranscriptFixes
     : [];
 
   // Shownotes links: the UI's edited list wins; a re-run without one keeps the last
   // run's links rather than resetting to the auto-resolved Steam set.
   const shownotesLinks =
     sanitizeShownotesLinks(inputOptions.shownotesLinks) ??
-    sanitizeShownotesLinks(previousReport?.shownotesLinks) ??
+    sanitizeShownotesLinks(previousState?.shownotesLinks) ??
     discovered.shownotesLinkSeeds ??
     discovered.hiddenLinks;
 
@@ -819,6 +809,15 @@ async function runPipeline(inputOptions = {}) {
   onProgress("Creating episode directory...");
 
   ensureDir(episodeDir);
+
+  // The phase flips to "generating" before the first episode file is written, so a
+  // crash mid-run is distinguishable from a finished one. Prior run data rides along
+  // untouched until the completed run replaces it.
+  await episodeState.updateState(episodeDir, (state) => ({
+    ...(state || {}),
+    phase: "generating",
+    jobs: state?.jobs || {},
+  }));
 
   onProgress("Writing transcripts...");
 
@@ -955,22 +954,22 @@ async function runPipeline(inputOptions = {}) {
 
   fs.writeFileSync(path.join(episodeDir, "index.md"), indexMarkdown, "utf8");
 
+  // Content is on disk: the episode is "generated". The MP4 render is a job on top of
+  // that phase, not a phase of its own - re-renders and clip runs happen here too.
+  await episodeState.updateState(episodeDir, (state) => ({
+    ...report,
+    phase: "generated",
+    jobs: state?.jobs || {},
+  }));
+
   if (inputOptions.skipVideo) {
     onProgress("Skipping MP4 generation (requested)");
     report.videoStatus = { skipped: true };
-  }
-
-  if (!inputOptions.skipVideo) {
+  } else {
     onProgress("Generating MP4 video...");
-    const videoStatusPath = path.join(episodeDir, "video-status.json");
-    const startedAt = new Date().toISOString();
+    await episodeState.startJob(episodeDir, "mp4Render", { percent: 0 });
 
     setImmediate(async () => {
-      writeVideoStatusPreserveClipGeneration(videoStatusPath, {
-        status: "started",
-        startedAt,
-        percent: 0,
-      });
       try {
         await generateVideoFromChapters({
           chapters: chaptersWithImages,
@@ -978,16 +977,16 @@ async function runPipeline(inputOptions = {}) {
           outputPath: videoPath,
           workDir: path.join(workDir, "video"),
           onProgress: (progress) => {
-            writeVideoStatusPreserveClipGeneration(videoStatusPath, {
-              status: "started",
-              startedAt,
-              ...progress,
-            });
+            episodeState
+              .patchJob(episodeDir, "mp4Render", {
+                status: "running",
+                ...progress,
+              })
+              .catch(() => {});
           },
         });
-        writeVideoStatusPreserveClipGeneration(videoStatusPath, {
+        await episodeState.finishJob(episodeDir, "mp4Render", {
           status: "completed",
-          completedAt: new Date().toISOString(),
           videoPath,
           percent: 100,
         });
@@ -1001,20 +1000,17 @@ async function runPipeline(inputOptions = {}) {
       } catch (error) {
         // Log error but don't throw since we're background
         console.error("Video generation error:", error.message);
-        writeVideoStatusPreserveClipGeneration(videoStatusPath, {
-          status: "failed",
-          failedAt: new Date().toISOString(),
-          error: error.message,
-        });
+        await episodeState
+          .finishJob(episodeDir, "mp4Render", {
+            status: "failed",
+            error: error.message,
+          })
+          .catch(() => {});
       }
     });
 
-    report.videoStatus = { statusFile: videoStatusPath };
+    report.videoStatus = { started: true };
   }
-
-  // Written last so the saved report includes videoStatus, which is only known once the
-  // video branch above has run.
-  writeJson(path.join(episodeDir, "postprocess-report.json"), report);
 
   if (inputOptions.skipVideo) {
     onProgress("Pipeline complete.");

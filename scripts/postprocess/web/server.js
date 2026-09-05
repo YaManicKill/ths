@@ -24,6 +24,7 @@ const { generateSocialPostsCached } = require("../social-posts");
 const { parseVttCues } = require("../vtt");
 const { generateClipVideos, generateVideoFromChapters } = require("../video");
 const { loadPostprocessConfig } = require("../config");
+const episodeState = require("../episode-state");
 const {
   chapterImageOverridesPath,
   computeWaveformPeaks,
@@ -485,7 +486,6 @@ function deriveEpisodeOutputPaths({ repoRoot, discovered, mp3Path }) {
     String(discovered.seasonInfo.folder || ""),
     episodeFolderName,
   );
-  const videoStatusFile = path.join(episodeDir, "video-status.json");
   const videoPath = path.join(
     path.dirname(mp3Path),
     `ths-${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}.mp4`,
@@ -493,12 +493,48 @@ function deriveEpisodeOutputPaths({ repoRoot, discovered, mp3Path }) {
 
   return {
     episodeDir,
-    videoStatusFile,
     videoPath,
   };
 }
 
-function startServer({ port = 4173, onPortConflict } = {}) {
+function pidIsAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error.code === "EPERM";
+  }
+}
+
+// Turns the single-instance assumption into an enforced invariant: only one server may
+// write episode state at a time, which is what makes runId-based interruption
+// detection safe. A lock whose pid is dead is stale (a crash, a SIGKILL) and is
+// reclaimed; a live pid means another instance really is running.
+function acquireServerLock(lockPath) {
+  fs.mkdirSync(path.dirname(lockPath), { recursive: true });
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      fs.writeFileSync(
+        lockPath,
+        `${JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }, null, 2)}\n`,
+        { flag: "wx" },
+      );
+      return true;
+    } catch (error) {
+      if (error.code !== "EEXIST") {
+        throw error;
+      }
+      const existing = readJson(lockPath, {});
+      if (existing.pid && pidIsAlive(existing.pid)) {
+        return false;
+      }
+      fs.rmSync(lockPath, { force: true });
+    }
+  }
+  return false;
+}
+
+function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
   const publicDir = path.join(__dirname, "public");
   const repoRoot = path.resolve(__dirname, "..", "..", "..");
   const manualImageDir = path.join(
@@ -508,9 +544,35 @@ function startServer({ port = 4173, onPortConflict } = {}) {
     "manual-images",
   );
   const chapterOverridesPath = chapterImageOverridesPath(repoRoot);
-  const activeVideoStatusFiles = new Set();
-  const activeClipGenerationStatusFiles = new Set();
-  const clipGenerationAbortControllers = new Map();
+
+  const serverLockPath =
+    lockPath || path.join(repoRoot, ".cache", "postprocess", "server.lock");
+  if (!acquireServerLock(serverLockPath)) {
+    // The Electron app treats this like the port conflict it would have hit a moment
+    // later: a dialog saying another instance is running, then quit.
+    if (typeof onPortConflict === "function") {
+      const server = http.createServer();
+      setImmediate(() =>
+        onPortConflict(new Error("Another postprocess server is running")),
+      );
+      return server;
+    }
+    console.error(
+      `Another postprocess server is already running (${serverLockPath}).\n` +
+        `Stop it first, or delete the lock file if it is stale.`,
+    );
+    process.exit(1);
+  }
+  const releaseServerLock = () => {
+    try {
+      if (readJson(serverLockPath, {}).pid === process.pid) {
+        fs.rmSync(serverLockPath, { force: true });
+      }
+    } catch {
+      // Releasing best-effort: a leftover lock self-heals via the pid check.
+    }
+  };
+  process.on("exit", releaseServerLock);
 
   function saveChapterOverride(chapterTitle, filePath) {
     const key = normalizeTitle(chapterTitle);
@@ -536,66 +598,19 @@ function startServer({ port = 4173, onPortConflict } = {}) {
     return true;
   }
 
-  function markVideoStatusInterrupted(statusFile, statusData = {}) {
-    const interrupted = {
-      ...statusData,
-      status: "failed",
-      failedAt: new Date().toISOString(),
-      error:
-        statusData.error ||
-        "Video generation was interrupted (server process restarted or exited)",
-    };
-    writeJson(statusFile, interrupted);
-    activeVideoStatusFiles.delete(statusFile);
-    return interrupted;
-  }
-
-  function markClipGenerationInterrupted(statusFile, clipStatus = {}) {
-    const existing = readJson(statusFile, { status: "unknown" });
-    existing.clipGeneration = {
-      ...clipStatus,
-      status: "failed",
-      failedAt: new Date().toISOString(),
-      error:
-        clipStatus.error ||
-        "Clip generation was interrupted (server process restarted or exited)",
-    };
-    writeJson(statusFile, existing);
-    activeClipGenerationStatusFiles.delete(statusFile);
-    return existing.clipGeneration;
-  }
-
-  function writeVideoStatusPreserveClipGeneration(statusFile, nextStatus) {
-    const existing = readJson(statusFile, {});
-    if (existing.clipGeneration && nextStatus.clipGeneration === undefined) {
-      nextStatus.clipGeneration = existing.clipGeneration;
-    }
-    writeJson(statusFile, nextStatus);
-  }
-
-  function updateClipGenerationStatus(statusFile, patch) {
-    const existing = readJson(statusFile, { status: "unknown" });
-    existing.clipGeneration = {
-      ...(existing.clipGeneration || {}),
-      ...patch,
-    };
-    writeJson(statusFile, existing);
-    return existing.clipGeneration;
-  }
-
-  async function waitForVideoCompletion(statusFile, signal) {
+  async function waitForVideoCompletion(episodeDir, signal) {
     for (;;) {
       if (signal?.aborted) {
         const error = new Error("Clip generation cancelled");
         error.name = "AbortError";
         throw error;
       }
-      const current = readNormalizedVideoStatus(statusFile);
-      if (current.status === "completed" || current.status === "skipped") {
-        return current;
+      const mp4 = (await episodeState.readState(episodeDir))?.jobs?.mp4Render;
+      if (["failed", "interrupted"].includes(mp4?.status)) {
+        throw new Error(mp4.error || "MP4 generation failed");
       }
-      if (current.status === "failed") {
-        throw new Error(current.error || "MP4 generation failed");
+      if (mp4?.status !== "running") {
+        return;
       }
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
@@ -631,7 +646,7 @@ function startServer({ port = 4173, onPortConflict } = {}) {
   }
 
   async function startQueuedClipGeneration({
-    statusFile,
+    episodeDir,
     clipSuggestions,
     preferredClipImagePath,
     resolvedMp3Path,
@@ -639,24 +654,23 @@ function startServer({ port = 4173, onPortConflict } = {}) {
     episodeDateString,
     transcriptVttText,
   }) {
-    activeClipGenerationStatusFiles.add(statusFile);
     const abortController = new AbortController();
-    clipGenerationAbortControllers.set(statusFile, abortController);
-
     const total = clipSuggestions.length;
-    const initialVideoStatus = readNormalizedVideoStatus(statusFile);
-    const shouldWaitForVideo = initialVideoStatus.status === "started";
+    const initialState = await episodeState.readState(episodeDir);
+    const shouldWaitForVideo =
+      initialState?.jobs?.mp4Render?.status === "running";
 
-    updateClipGenerationStatus(
-      statusFile,
+    await episodeState.startJob(
+      episodeDir,
+      "clipGeneration",
       buildClipGenerationState({
-        status: shouldWaitForVideo ? "waiting" : "started",
+        status: shouldWaitForVideo ? "waiting" : "running",
         total,
         current: 0,
         outputs: [],
         waitingForVideo: shouldWaitForVideo,
-        startedAt: new Date().toISOString(),
       }),
+      abortController,
     );
 
     setImmediate(async () => {
@@ -668,11 +682,12 @@ function startServer({ port = 4173, onPortConflict } = {}) {
 
       try {
         if (shouldWaitForVideo) {
-          await waitForVideoCompletion(statusFile, abortController.signal);
-          updateClipGenerationStatus(
-            statusFile,
+          await waitForVideoCompletion(episodeDir, abortController.signal);
+          await episodeState.patchJob(
+            episodeDir,
+            "clipGeneration",
             buildClipGenerationState({
-              status: "started",
+              status: "running",
               total,
               current: 0,
               outputs: [],
@@ -693,127 +708,54 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           signal: abortController.signal,
           onProgress: (progress) => {
             lastProgress = progress;
-            updateClipGenerationStatus(
-              statusFile,
-              buildClipGenerationState({
-                status: "started",
-                total: progress.total,
-                current: progress.current,
-                percent: progress.percent,
-                outputs: [],
-                waitingForVideo: false,
-              }),
-            );
+            episodeState
+              .patchJob(
+                episodeDir,
+                "clipGeneration",
+                buildClipGenerationState({
+                  status: "running",
+                  total: progress.total,
+                  current: progress.current,
+                  percent: progress.percent,
+                  outputs: [],
+                  waitingForVideo: false,
+                }),
+              )
+              .catch(() => {});
           },
         });
 
-        updateClipGenerationStatus(statusFile, {
-          ...buildClipGenerationState({
+        await episodeState.finishJob(
+          episodeDir,
+          "clipGeneration",
+          buildClipGenerationState({
             status: "completed",
             total,
             current: total,
             outputs,
             waitingForVideo: false,
           }),
-          completedAt: new Date().toISOString(),
-          // Status patches merge, so a transient earlier failure marking would
-          // otherwise ride along with the completed state and read as a crash.
-          failedAt: null,
-          error: null,
-        });
+        );
       } catch (error) {
-        if (abortController.signal.aborted) {
-          updateClipGenerationStatus(statusFile, {
-            ...buildClipGenerationState({
-              status: "cancelled",
+        const outcome = abortController.signal.aborted
+          ? { status: "cancelled" }
+          : { status: "failed", error: error.message };
+        await episodeState
+          .finishJob(
+            episodeDir,
+            "clipGeneration",
+            buildClipGenerationState({
+              ...outcome,
               total,
               current: lastProgress.current,
               percent: lastProgress.percent,
               outputs: [],
               waitingForVideo: false,
             }),
-            cancelledAt: new Date().toISOString(),
-          });
-        } else {
-          updateClipGenerationStatus(statusFile, {
-            ...buildClipGenerationState({
-              status: "failed",
-              total,
-              current: lastProgress.current,
-              percent: lastProgress.percent,
-              outputs: [],
-              waitingForVideo: false,
-              error: error.message,
-            }),
-            failedAt: new Date().toISOString(),
-          });
-        }
-      } finally {
-        activeClipGenerationStatusFiles.delete(statusFile);
-        clipGenerationAbortControllers.delete(statusFile);
+          )
+          .catch(() => {});
       }
     });
-  }
-
-  function readNormalizedVideoStatus(statusFile) {
-    if (!fs.existsSync(statusFile)) {
-      return {
-        statusFile,
-        status: "missing",
-      };
-    }
-
-    // An actively-running render rewrites its status file constantly, so a fresh
-    // mtime means someone is still working on it - even if it is missing from THIS
-    // process's in-memory set (a second instance answering polls, a restart race).
-    // Only a file that has gone quiet is truly orphaned.
-    const statusFileIsFresh = () => {
-      try {
-        return Date.now() - fs.statSync(statusFile).mtimeMs < 120_000;
-      } catch {
-        return false;
-      }
-    };
-
-    const parsed = readJson(statusFile, { status: "unknown" });
-    if (
-      parsed.status === "started" &&
-      !activeVideoStatusFiles.has(statusFile) &&
-      !statusFileIsFresh()
-    ) {
-      console.error(`marking stale video run interrupted: ${statusFile}`);
-      const interrupted = markVideoStatusInterrupted(statusFile, parsed);
-      return {
-        statusFile,
-        ...interrupted,
-      };
-    }
-
-    if (
-      parsed.clipGeneration &&
-      ["started", "waiting"].includes(parsed.clipGeneration.status) &&
-      !activeClipGenerationStatusFiles.has(statusFile) &&
-      !statusFileIsFresh()
-    ) {
-      console.error(`marking stale clip run interrupted: ${statusFile}`);
-      parsed.clipGeneration = markClipGenerationInterrupted(
-        statusFile,
-        parsed.clipGeneration,
-      );
-    }
-
-    if (
-      parsed.status === "completed" ||
-      parsed.status === "failed" ||
-      parsed.status === "skipped"
-    ) {
-      activeVideoStatusFiles.delete(statusFile);
-    }
-
-    return {
-      statusFile,
-      ...parsed,
-    };
   }
 
   const server = http.createServer(async (req, res) => {
@@ -960,42 +902,26 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           onProgress: stream.progress,
         });
 
-        const { videoStatusFile: derivedVideoStatusFile } =
-          deriveEpisodeOutputPaths({
-            repoRoot,
-            discovered,
-            mp3Path: payload.mp3Path,
-          });
-        const discoveredVideoStatus = readNormalizedVideoStatus(
-          derivedVideoStatusFile,
-        );
-
-        // Clip suggestions from a previous run/regenerate, so the cards (and the
-        // generate button) come back after a page refresh instead of requiring a
-        // fresh - and differently-picked - regeneration.
-        const episodeReportPath = path.join(
-          path.dirname(derivedVideoStatusFile),
-          "postprocess-report.json",
-        );
-        const episodeReport = fs.existsSync(episodeReportPath)
-          ? readJson(episodeReportPath, {})
-          : null;
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: payload.mp3Path,
+        });
+        // The single per-episode state file: phase, jobs, and everything a previous
+        // run persisted. Reading it also settles any job orphaned by a dead process.
+        const state = await episodeState.readState(episodeDir);
 
         // Medium-confidence review findings come back too, minus any whose quote no
         // longer appears in the episode transcript - those were applied (or hand-
         // fixed) and would only offer a fix that cannot land.
-        const episodeMdPath = path.join(
-          path.dirname(derivedVideoStatusFile),
-          "transcript.md",
-        );
+        const episodeMdPath = path.join(episodeDir, "transcript.md");
         const episodeMdText =
-          episodeReport && fs.existsSync(episodeMdPath)
+          state && fs.existsSync(episodeMdPath)
             ? fs.readFileSync(episodeMdPath, "utf8")
             : null;
         const existingTranscriptFindings =
-          episodeMdText &&
-          Array.isArray(episodeReport?.transcriptReview?.findings)
-            ? episodeReport.transcriptReview.findings.filter(
+          episodeMdText && Array.isArray(state?.transcriptReview?.findings)
+            ? state.transcriptReview.findings.filter(
                 (finding) =>
                   finding.confidence !== "high" &&
                   quoteOccursIn(episodeMdText, finding.quote),
@@ -1028,20 +954,20 @@ function startServer({ port = 4173, onPortConflict } = {}) {
               transcriptVtt: discovered.profanityMatches.transcriptVtt,
             },
             audioQc: discovered.audioQc,
-            videoStatus: discoveredVideoStatus,
-            existingClipSuggestions: Array.isArray(
-              episodeReport?.clipSuggestions,
-            )
-              ? episodeReport.clipSuggestions
+            episodeDir,
+            phase: state?.phase || null,
+            jobs: state?.jobs || {},
+            existingClipSuggestions: Array.isArray(state?.clipSuggestions)
+              ? state.clipSuggestions
               : [],
-            existingClipApprovals: Array.isArray(episodeReport?.clipApprovals)
-              ? episodeReport.clipApprovals
+            existingClipApprovals: Array.isArray(state?.clipApprovals)
+              ? state.clipApprovals
               : null,
             existingTranscriptFindings,
             shownotesLinkSeeds:
               discovered.shownotesLinkSeeds || discovered.hiddenLinks,
-            existingShownotesLinks: Array.isArray(episodeReport?.shownotesLinks)
-              ? episodeReport.shownotesLinks
+            existingShownotesLinks: Array.isArray(state?.shownotesLinks)
+              ? state.shownotesLinks
               : null,
           },
           discoveryData: JSON.stringify(discovered),
@@ -1133,22 +1059,27 @@ function startServer({ port = 4173, onPortConflict } = {}) {
       return;
     }
 
-    if (req.method === "GET" && pathname === "/api/video-status") {
-      const statusFile = parsedUrl.searchParams.get("statusFile");
-      if (!statusFile || !path.isAbsolute(statusFile)) {
+    if (req.method === "GET" && pathname === "/api/episode-state") {
+      const episodeDir = parsedUrl.searchParams.get("dir");
+      if (!episodeDir || !path.isAbsolute(episodeDir)) {
         sendJson(res, 400, {
-          error: "Missing or invalid statusFile parameter",
+          error: "Missing or invalid dir parameter",
         });
         return;
       }
       try {
-        // "missing" is reported honestly: a run that is about to start writes the
-        // file within moments, so the poller can tell that apart from a status file
-        // that was deleted (or an episode folder renamed) and stop tracking it,
-        // instead of showing "in progress" - and locking the UI - forever.
-        sendJson(res, 200, readNormalizedVideoStatus(statusFile));
+        // exists:false is reported honestly: a run that is about to start writes the
+        // file within moments, so the poller can tell that apart from state that was
+        // deleted (or an episode folder renamed) and stop tracking it, instead of
+        // showing "in progress" - and locking the UI - forever.
+        const state = await episodeState.readState(episodeDir);
+        sendJson(
+          res,
+          200,
+          state ? { exists: true, ...state } : { exists: false },
+        );
       } catch {
-        sendJson(res, 200, { status: "missing" });
+        sendJson(res, 200, { exists: false });
       }
       return;
     }
@@ -1419,10 +1350,7 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           .split(path.sep)
           .join("/")}/`;
 
-        const episodeReport = readJson(
-          path.join(episodeDir, "postprocess-report.json"),
-          {},
-        );
+        const state = await episodeState.readState(episodeDir);
         const episode = {
           title: discovered.episodeTitle,
           // The description is read from index.md rather than discovery data, so
@@ -1431,12 +1359,10 @@ function startServer({ port = 4173, onPortConflict } = {}) {
             parseFrontmatterDescription(fs.readFileSync(indexPath, "utf8")) ||
             discovered.description,
           chapters: (discovered.chapters || []).map((ch) => ch.title),
-          clipHooks: (episodeReport.clipSuggestions || []).map(
-            (suggestion) => ({
-              title: suggestion.title,
-              caption: suggestion.llmReason || "",
-            }),
-          ),
+          clipHooks: (state?.clipSuggestions || []).map((suggestion) => ({
+            title: suggestion.title,
+            caption: suggestion.llmReason || "",
+          })),
           episodeUrl,
           mainTopic: discovered.mainTopic,
         };
@@ -1507,29 +1433,27 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           discovered,
           mp3Path: String(payload.mp3Path || ""),
         });
-        const reportPath = path.join(episodeDir, "postprocess-report.json");
-        if (!fs.existsSync(reportPath)) {
-          sendJson(res, 200, { success: true, saved: false });
-          return;
-        }
-
-        const report = readJson(reportPath, {});
-        report.clipSuggestions = payload.clipSuggestions;
-        report.clipApprovals = Array.isArray(payload.clipApprovals)
-          ? payload.clipApprovals
-          : null;
-        writeJson(reportPath, report);
-        sendJson(res, 200, { success: true, saved: true });
+        const saved = await episodeState.updateState(episodeDir, (state) => {
+          if (!state) {
+            return null;
+          }
+          state.clipSuggestions = payload.clipSuggestions;
+          state.clipApprovals = Array.isArray(payload.clipApprovals)
+            ? payload.clipApprovals
+            : null;
+          return state;
+        });
+        sendJson(res, 200, { success: true, saved: Boolean(saved) });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
       }
       return;
     }
 
-    // Clear & Restart's server half: the run status and the report are what discovery
-    // uses to restore completed-run state, suggestions, links and fix memory - without
-    // deleting them a "restart" resurrects everything it just cleared. Generated media
-    // and episode content files are left alone; a re-approve rewrites those.
+    // Clear & Restart's server half: the state file is what discovery uses to restore
+    // completed-run state, suggestions, links and fix memory - without deleting it a
+    // "restart" resurrects everything it just cleared. Generated media and episode
+    // content files are left alone; a re-approve rewrites those.
     if (req.method === "POST" && pathname === "/api/clear-episode-state") {
       try {
         const body = await readRequestBody(req);
@@ -1546,28 +1470,15 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           return;
         }
 
-        const { episodeDir, videoStatusFile } = deriveEpisodeOutputPaths({
+        const { episodeDir } = deriveEpisodeOutputPaths({
           repoRoot,
           discovered,
           mp3Path: String(payload.mp3Path || ""),
         });
 
-        if (
-          activeVideoStatusFiles.has(videoStatusFile) ||
-          activeClipGenerationStatusFiles.has(videoStatusFile)
-        ) {
-          sendJson(res, 400, {
-            success: false,
-            error:
-              "A render or clip generation is in progress for this episode - wait or cancel first",
-          });
-          return;
-        }
-
-        fs.rmSync(videoStatusFile, { force: true });
-        fs.rmSync(path.join(episodeDir, "postprocess-report.json"), {
-          force: true,
-        });
+        // Refused while a job runs, and the delete is serialized behind any of that
+        // job's queued writes; a straggler after the delete no-ops on the runId check.
+        await episodeState.resetEpisodeState(episodeDir);
         sendJson(res, 200, { success: true });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
@@ -1576,17 +1487,19 @@ function startServer({ port = 4173, onPortConflict } = {}) {
     }
 
     // Aborts an in-flight clip generation: the signal kills the current ffmpeg child,
-    // the truncated output file is removed, and the status file records "cancelled".
+    // the truncated output file is removed, and the job records "cancelled".
     if (req.method === "POST" && pathname === "/api/cancel-clip-generation") {
       try {
         const body = await readRequestBody(req);
         const payload = JSON.parse(body || "{}");
-        const statusFile = String(payload.statusFile || "").trim();
-        const controller = clipGenerationAbortControllers.get(statusFile);
+        const episodeDir = String(payload.episodeDir || "").trim();
+        const controller = episodeDir
+          ? episodeState.getJobAbortController(episodeDir, "clipGeneration")
+          : null;
         if (!controller) {
           sendJson(res, 400, {
             success: false,
-            error: "No clip generation in progress for that status file",
+            error: "No clip generation in progress for that episode",
           });
           return;
         }
@@ -1656,17 +1569,15 @@ function startServer({ port = 4173, onPortConflict } = {}) {
         }
 
         const clipOutputDir = path.join(clipBaseDirectory, "clip-videos");
-        const { episodeDir, videoStatusFile } = deriveEpisodeOutputPaths({
+        const { episodeDir } = deriveEpisodeOutputPaths({
           repoRoot,
           discovered,
           mp3Path: resolvedMp3Path,
         });
 
-        // A second run for the same episode would overwrite the first's abort
-        // controller (making it uncancellable), race it over identical output and
-        // work-dir file names, and be marked "interrupted" the moment the first run's
-        // cleanup removes the status file from the active set.
-        if (activeClipGenerationStatusFiles.has(videoStatusFile)) {
+        // A second run for the same episode would race the first over identical
+        // output and work-dir file names.
+        if (episodeState.isJobActive(episodeDir, "clipGeneration")) {
           sendJson(res, 409, {
             success: false,
             error:
@@ -1684,7 +1595,7 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           : discovered.transcriptVttText;
 
         await startQueuedClipGeneration({
-          statusFile: videoStatusFile,
+          episodeDir,
           clipSuggestions,
           preferredClipImagePath,
           resolvedMp3Path,
@@ -1697,7 +1608,7 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           success: true,
           outputDirectory: clipBaseDirectory,
           imagePathUsed: preferredClipImagePath,
-          clipStatusFile: videoStatusFile,
+          episodeDir,
         });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
@@ -1775,17 +1686,18 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           });
         }
 
-        // The report is what discovery reads to restore the cards after a page
+        // The state file is what discovery reads to restore the cards after a page
         // refresh, so it must always hold the set the user last saw. A regenerated
         // set voids the saved approvals - they would map by index onto other clips.
-        const reportPath = path.join(episodeDir, "postprocess-report.json");
-        if (fs.existsSync(reportPath)) {
-          const report = readJson(reportPath, {});
-          report.clipSuggestions = clipSuggestions;
-          report.clipSource = source;
-          report.clipApprovals = null;
-          writeJson(reportPath, report);
-        }
+        await episodeState.updateState(episodeDir, (state) => {
+          if (!state) {
+            return null;
+          }
+          state.clipSuggestions = clipSuggestions;
+          state.clipSource = source;
+          state.clipApprovals = null;
+          return state;
+        });
 
         sendJson(res, 200, {
           success: true,
@@ -1878,27 +1790,30 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           fs.writeFileSync(vttPath, vttResult.text, "utf8");
         }
 
-        // Applied fixes are remembered in the report so a later re-run - which
+        // Applied fixes are remembered in the state file so a later re-run - which
         // regenerates the transcripts from source - re-applies them instead of
         // silently dropping corrections the user explicitly approved.
-        const reviewReportPath = path.join(
-          episodeDir,
-          "postprocess-report.json",
-        );
-        if (mdResult.applied.length > 0 && fs.existsSync(reviewReportPath)) {
-          const report = readJson(reviewReportPath, {});
-          const remembered = Array.isArray(report.appliedTranscriptFixes)
-            ? report.appliedTranscriptFixes
-            : [];
-          const seen = new Set(remembered.map((fix) => fix.quote));
-          for (const fix of mdResult.applied) {
-            if (!seen.has(fix.quote)) {
-              remembered.push({ quote: fix.quote, correction: fix.correction });
-              seen.add(fix.quote);
+        if (mdResult.applied.length > 0) {
+          await episodeState.updateState(episodeDir, (state) => {
+            if (!state) {
+              return null;
             }
-          }
-          report.appliedTranscriptFixes = remembered;
-          writeJson(reviewReportPath, report);
+            const remembered = Array.isArray(state.appliedTranscriptFixes)
+              ? state.appliedTranscriptFixes
+              : [];
+            const seen = new Set(remembered.map((fix) => fix.quote));
+            for (const fix of mdResult.applied) {
+              if (!seen.has(fix.quote)) {
+                remembered.push({
+                  quote: fix.quote,
+                  correction: fix.correction,
+                });
+                seen.add(fix.quote);
+              }
+            }
+            state.appliedTranscriptFixes = remembered;
+            return state;
+          });
         }
 
         sendJson(res, 200, {
@@ -1949,10 +1864,6 @@ function startServer({ port = 4173, onPortConflict } = {}) {
         }
 
         const { report } = await runPipeline(runOptions);
-        if (report?.videoStatus?.statusFile) {
-          activeVideoStatusFiles.add(report.videoStatus.statusFile);
-        }
-
         stream.result(report);
       } catch (error) {
         stream.error(error.message);
@@ -1986,22 +1897,15 @@ function startServer({ port = 4173, onPortConflict } = {}) {
           return;
         }
 
-        const { videoStatusFile, videoPath } = deriveEpisodeOutputPaths({
+        const { episodeDir, videoPath } = deriveEpisodeOutputPaths({
           repoRoot,
           discovered,
           mp3Path,
         });
 
-        const startedAt = new Date().toISOString();
-        activeVideoStatusFiles.add(videoStatusFile);
+        await episodeState.startJob(episodeDir, "mp4Render", { percent: 0 });
 
         setImmediate(async () => {
-          writeVideoStatusPreserveClipGeneration(videoStatusFile, {
-            status: "started",
-            startedAt,
-            percent: 0,
-          });
-
           try {
             await generateVideoFromChapters({
               chapters: discovered.chapters,
@@ -2014,36 +1918,33 @@ function startServer({ port = 4173, onPortConflict } = {}) {
                 `rerender-${Date.now()}`,
               ),
               onProgress: (progress) => {
-                writeVideoStatusPreserveClipGeneration(videoStatusFile, {
-                  status: "started",
-                  startedAt,
-                  ...progress,
-                });
+                episodeState
+                  .patchJob(episodeDir, "mp4Render", {
+                    status: "running",
+                    ...progress,
+                  })
+                  .catch(() => {});
               },
             });
 
-            writeVideoStatusPreserveClipGeneration(videoStatusFile, {
+            await episodeState.finishJob(episodeDir, "mp4Render", {
               status: "completed",
-              completedAt: new Date().toISOString(),
               videoPath,
               percent: 100,
             });
           } catch (error) {
-            writeVideoStatusPreserveClipGeneration(videoStatusFile, {
-              status: "failed",
-              failedAt: new Date().toISOString(),
-              error: error.message,
-            });
-          } finally {
-            activeVideoStatusFiles.delete(videoStatusFile);
+            await episodeState
+              .finishJob(episodeDir, "mp4Render", {
+                status: "failed",
+                error: error.message,
+              })
+              .catch(() => {});
           }
         });
 
         sendJson(res, 200, {
           success: true,
-          videoStatus: {
-            statusFile: videoStatusFile,
-          },
+          episodeDir,
         });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
@@ -2071,9 +1972,10 @@ function startServer({ port = 4173, onPortConflict } = {}) {
     throw error;
   });
 
+  server.on("close", releaseServerLock);
+
   // The Electron app asks before quitting mid-render.
-  server.hasActiveJobs = () =>
-    activeVideoStatusFiles.size > 0 || activeClipGenerationStatusFiles.size > 0;
+  server.hasActiveJobs = () => episodeState.hasActiveJobs();
 
   // Loopback only. This server reads local files and runs the pipeline with no auth,
   // so it must not be reachable from the network.

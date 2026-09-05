@@ -56,9 +56,9 @@ episode title, burned-in subtitles and a progress bar.
 - **Social Posts** drafts Bluesky and Tumblr announcements from the episode
   description and clip hooks into `bluesky-post.txt` / `tumblr-post.txt` next to the
   MP4, copying the Bluesky one to the clipboard.
-- Suggestions, links and unapplied fixes are stored in the episode's
-  `postprocess-report.json` and restored after a refresh or restart; **Clear & Restart
-  Process** wipes that state for a fresh start.
+- Suggestions, links, unapplied fixes and run/job status all live in the episode's
+  `postprocess-state.json` and are restored after a refresh or restart; **Clear &
+  Restart Process** wipes that state for a fresh start.
 - LLM results are cached by content and all AI checks are warning-only — failures never
   block a run. A full episode costs ~4 requests; free-tier quotas are per model, so
   switching `llm.model` gets a fresh daily bucket.
