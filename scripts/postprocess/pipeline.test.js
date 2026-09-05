@@ -231,6 +231,22 @@ async function main() {
   assert.ok(writtenMd.includes("Why would somebody genuinely do that"));
   assert.ok(writtenMd.includes("honestly"), "medium fix must not auto-apply");
   assert.ok(writtenVtt.includes("Why would somebody do that?"));
+
+  // The raw transcript is staged before fixes land, so `git diff` shows exactly what
+  // the AI changed against the pristine version.
+  const stagedMd = runCommand(
+    "git",
+    [
+      "show",
+      `:${path.relative(runRoot, path.join(episodeDir, "transcript.md"))}`,
+    ],
+    { cwd: runRoot },
+  );
+  assert.equal(stagedMd.status, 0, "raw transcript.md must be staged");
+  assert.ok(
+    stagedMd.stdout.includes("Why would anyone actually do that"),
+    "the staged copy must be the unfixed transcript",
+  );
   assert.deepEqual(report.transcriptFixes, {
     attempted: 2,
     mdApplied: 2,
@@ -256,25 +272,24 @@ async function main() {
   assert.equal(report.clipSuggestions[0].endSeconds, 72);
   assert.equal(report.clipSuggestions[0].summary, "A good idea at the time");
   assert.equal(report.clipSuggestions[0].speaker, "Al");
-  const savedReport = JSON.parse(
-    fs.readFileSync(path.join(episodeDir, "postprocess-report.json"), "utf8"),
+  const savedState = JSON.parse(
+    fs.readFileSync(path.join(episodeDir, "postprocess-state.json"), "utf8"),
   );
 
-  // The report is written after the video branch runs, so videoStatus must be present.
-  assert.ok(
-    savedReport.videoStatus,
-    "postprocess-report.json is missing videoStatus",
-  );
-  assert.equal(savedReport.videoStatus.skipped, true);
+  // Content is on disk, so the state machine must have landed in "generated"; a
+  // skipped video leaves no mp4Render job behind.
+  assert.equal(savedState.phase, "generated");
+  assert.equal(savedState.jobs.mp4Render, undefined);
+  assert.equal(savedState.clipSource, "llm");
 
-  // Medium fixes applied after a run (recorded in the report by the review endpoint)
+  // Medium fixes applied after a run (recorded in the state by the review endpoint)
   // must survive a re-run, which regenerates the transcripts from source.
-  savedReport.appliedTranscriptFixes = [
+  savedState.appliedTranscriptFixes = [
     { quote: "honestly", correction: "frankly" },
   ];
   fs.writeFileSync(
-    path.join(episodeDir, "postprocess-report.json"),
-    JSON.stringify(savedReport),
+    path.join(episodeDir, "postprocess-state.json"),
+    JSON.stringify(savedState),
   );
 
   const { report: rerunReport } = await runPipeline({

@@ -9,6 +9,7 @@ node_modules/
 .tmp/
 
 data/
+content/**/postprocess-state.json
 content/**/postprocess-report.json
 content/**/video-status.json
 postprocess.config.local.json

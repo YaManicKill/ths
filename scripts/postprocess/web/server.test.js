@@ -5,7 +5,11 @@ const path = require("node:path");
 const { startServer } = require("./server");
 
 const PORT = 41994;
-const server = startServer({ port: PORT });
+const lockPath = path.join(
+  fs.mkdtempSync(path.join(os.tmpdir(), "ths-server-lock-")),
+  "server.lock",
+);
+const server = startServer({ port: PORT, lockPath });
 
 function once(event) {
   return new Promise((resolve, reject) => {
@@ -51,11 +55,27 @@ async function main() {
     );
   }
 
-  // Polled status responses must never be reused from cache.
+  // Polled status responses must never be reused from cache, and an episode with no
+  // state file must read as not existing rather than erroring.
   const status = await fetch(
-    `http://127.0.0.1:${PORT}/api/video-status?statusFile=${encodeURIComponent("/nope/missing.json")}`,
+    `http://127.0.0.1:${PORT}/api/episode-state?dir=${encodeURIComponent("/nope/missing-episode")}`,
   );
   assert.equal(status.headers.get("cache-control"), "no-store");
+  assert.deepEqual(await status.json(), { exists: false });
+
+  // The lockfile enforces one server per repo: a second start must be refused while
+  // the first is alive.
+  assert.ok(fs.existsSync(lockPath), "the running server must hold the lock");
+  let conflictReported = false;
+  startServer({
+    port: PORT + 1,
+    lockPath,
+    onPortConflict: () => {
+      conflictReported = true;
+    },
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.ok(conflictReported, "a second instance must be refused via the lock");
 
   fs.rmSync(realImage, { force: true });
   console.log("server test passed");

@@ -55,9 +55,9 @@ let currentDiscoveryData = null;
 let currentRunResult = null;
 let currentClipSuggestions = [];
 let clipApprovalState = [];
-let activeVideoStatusFile = null;
+let activeVideoEpisodeDir = null;
 let activeVideoStatusPoll = null;
-let activeClipStatusFile = null;
+let activeClipEpisodeDir = null;
 let activeClipStatusPoll = null;
 let isGeneratingClips = false;
 let isVideoRenderInProgress = false;
@@ -78,8 +78,17 @@ const clipEditorDirtyChecks = new Set();
 let mediumFixAccepted = {};
 const statusLines = [];
 let statusLineSeq = 0;
-const VIDEO_STATUS_STORAGE_KEY = "ths-postprocess-active-video-status-file";
-const CLIP_STATUS_STORAGE_KEY = "ths-postprocess-active-clip-status-file";
+const VIDEO_STATUS_STORAGE_KEY = "ths-postprocess-video-episode-dir";
+const CLIP_STATUS_STORAGE_KEY = "ths-postprocess-clip-episode-dir";
+
+// Both trackers poll the episode's single state file; each job lives under its own
+// key in the response's jobs object.
+async function fetchEpisodeState(episodeDir) {
+  const res = await fetch(
+    `/api/episode-state?dir=${encodeURIComponent(episodeDir)}`,
+  );
+  return res.json();
+}
 
 function setVideoRenderUiState(inProgress) {
   isVideoRenderInProgress = Boolean(inProgress);
@@ -140,31 +149,31 @@ function getDiscoverySnapshot() {
   }
 }
 
-function persistActiveVideoStatusFile(statusFile) {
+function persistActiveVideoEpisodeDir(episodeDir) {
   try {
-    if (!statusFile) {
+    if (!episodeDir) {
       localStorage.removeItem(VIDEO_STATUS_STORAGE_KEY);
       return;
     }
-    localStorage.setItem(VIDEO_STATUS_STORAGE_KEY, String(statusFile));
+    localStorage.setItem(VIDEO_STATUS_STORAGE_KEY, String(episodeDir));
   } catch {
     // localStorage may be unavailable; ignore persistence failures.
   }
 }
 
-function persistActiveClipStatusFile(statusFile) {
+function persistActiveClipEpisodeDir(episodeDir) {
   try {
-    if (!statusFile) {
+    if (!episodeDir) {
       localStorage.removeItem(CLIP_STATUS_STORAGE_KEY);
       return;
     }
-    localStorage.setItem(CLIP_STATUS_STORAGE_KEY, String(statusFile));
+    localStorage.setItem(CLIP_STATUS_STORAGE_KEY, String(episodeDir));
   } catch {
     // Ignore persistence failures.
   }
 }
 
-function readPersistedVideoStatusFile() {
+function readPersistedVideoEpisodeDir() {
   try {
     return String(localStorage.getItem(VIDEO_STATUS_STORAGE_KEY) || "").trim();
   } catch {
@@ -172,7 +181,7 @@ function readPersistedVideoStatusFile() {
   }
 }
 
-function readPersistedClipStatusFile() {
+function readPersistedClipEpisodeDir() {
   try {
     return String(localStorage.getItem(CLIP_STATUS_STORAGE_KEY) || "").trim();
   } catch {
@@ -2001,8 +2010,8 @@ async function runDiscovery() {
       payload.transcriptMdPath,
     );
     renderAudioQc(result.discovered?.audioQc);
-    resumeVideoStatusPollingFromDiscover(result.discovered?.videoStatus);
-    resumeClipStatusPollingFromDiscover(result.discovered?.videoStatus);
+    resumeVideoStatusPollingFromDiscover(result.discovered);
+    resumeClipStatusPollingFromDiscover(result.discovered);
 
     currentDiscoveryData = {
       discoveryData: result.discoveryData,
@@ -2010,11 +2019,11 @@ async function runDiscovery() {
     setProcessActionsVisibility();
     currentRunResult = null;
 
-    const videoStatusState = String(
-      result.discovered?.videoStatus?.status || "",
+    const mp4RenderStatus = String(
+      result.discovered?.jobs?.mp4Render?.status || "",
     );
-    const hasActiveVideoRun = videoStatusState === "started";
-    const hasCompletedVideoRun = videoStatusState === "completed";
+    const hasActiveVideoRun = mp4RenderStatus === "running";
+    const hasCompletedVideoRun = mp4RenderStatus === "completed";
 
     setVideoRenderCompletedUiState(false);
     setVideoRenderUiState(hasActiveVideoRun);
@@ -2123,7 +2132,7 @@ form.addEventListener("submit", async (event) => {
   },
 );
 
-async function pollVideoStatus(statusFile) {
+async function pollVideoStatus(episodeDir) {
   function formatEta(etaSeconds) {
     if (!Number.isFinite(Number(etaSeconds)) || Number(etaSeconds) < 0) {
       return "";
@@ -2137,7 +2146,7 @@ async function pollVideoStatus(statusFile) {
     return `, ETA ${seconds}s`;
   }
 
-  persistActiveVideoStatusFile(statusFile);
+  persistActiveVideoEpisodeDir(episodeDir);
 
   function buildProgressDetail(data) {
     const percentSuffix =
@@ -2187,24 +2196,22 @@ async function pollVideoStatus(statusFile) {
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     try {
-      const res = await fetch(
-        `/api/video-status?statusFile=${encodeURIComponent(statusFile)}`,
-      );
-      const data = await res.json();
+      const data = await fetchEpisodeState(episodeDir);
+      const mp4 = data.exists ? data.jobs?.mp4Render : null;
 
-      // A run that is starting writes its status file within moments, so repeated
-      // misses mean the file is gone for good (deleted, or the episode folder was
-      // renamed). Without this bail-out a stale persisted status file kept the UI in
-      // "render in progress" - with every button disabled - forever.
-      if (data.status === "missing") {
+      // A run that is starting writes its job within moments, so repeated misses mean
+      // the state is gone for good (reset, or the episode folder was renamed).
+      // Without this bail-out stale persisted tracking kept the UI in "render in
+      // progress" - with every button disabled - forever.
+      if (!mp4) {
         missingPolls += 1;
         if (missingPolls >= 3) {
           clearInterval(spinner);
-          persistActiveVideoStatusFile("");
+          persistActiveVideoEpisodeDir("");
           setVideoRenderUiState(false);
           setStatusLine(
             videoLineId,
-            "ℹ The tracked MP4 render's status file no longer exists; cleared stale tracking.",
+            "ℹ The tracked MP4 render's state no longer exists; cleared stale tracking.",
           );
           return { status: "missing" };
         }
@@ -2212,9 +2219,9 @@ async function pollVideoStatus(statusFile) {
       }
       missingPolls = 0;
 
-      if (data.status === "completed") {
+      if (mp4.status === "completed") {
         clearInterval(spinner);
-        persistActiveVideoStatusFile("");
+        persistActiveVideoEpisodeDir("");
         setVideoRenderUiState(false);
         setVideoRenderCompletedUiState(true);
         // The completed-state call above hides the clip section, and the suggestions
@@ -2223,9 +2230,22 @@ async function pollVideoStatus(statusFile) {
         renderClipSuggestions(currentClipSuggestions);
         setStatusLine(videoLineId, "✓ MP4 generation complete");
         return { status: "completed" };
-      } else if (data.status === "failed") {
+      } else if (mp4.status === "interrupted") {
         clearInterval(spinner);
-        persistActiveVideoStatusFile("");
+        persistActiveVideoEpisodeDir("");
+        setVideoRenderUiState(false);
+        setVideoRenderCompletedUiState(false);
+        previewSection.style.display = "block";
+        shownotesLinksSection.style.display = "block";
+        toggleOverridesButton.style.display = "inline-block";
+        setStatusLine(
+          videoLineId,
+          "ℹ Previous MP4 generation was interrupted by a server restart. Start a new run to continue.",
+        );
+        return { status: "interrupted", error: mp4.error };
+      } else if (mp4.status === "failed") {
+        clearInterval(spinner);
+        persistActiveVideoEpisodeDir("");
         setVideoRenderUiState(false);
         setVideoRenderCompletedUiState(false);
         // Approve is enabled again after a failure, so what it acts on must be
@@ -2233,30 +2253,19 @@ async function pollVideoStatus(statusFile) {
         previewSection.style.display = "block";
         shownotesLinksSection.style.display = "block";
         toggleOverridesButton.style.display = "inline-block";
-        const interruptedByRestart =
-          /interrupted \(server process restarted or exited\)/i.test(
-            String(data.error || ""),
-          );
-        if (interruptedByRestart) {
-          setStatusLine(
-            videoLineId,
-            "ℹ Previous MP4 generation was interrupted by a server restart. Start a new run to continue.",
-          );
-          return { status: "interrupted", error: data.error };
-        }
-        setStatusLine(videoLineId, `❌ MP4 generation failed: ${data.error}`);
-        return { status: "failed", error: data.error };
+        setStatusLine(videoLineId, `❌ MP4 generation failed: ${mp4.error}`);
+        return { status: "failed", error: mp4.error };
       } else {
-        if (typeof data.percent === "number") {
-          latestPercent = Math.max(0, Math.min(100, Math.round(data.percent)));
+        if (typeof mp4.percent === "number") {
+          latestPercent = Math.max(0, Math.min(100, Math.round(mp4.percent)));
         }
-        latestDetail = buildProgressDetail(data);
+        latestDetail = buildProgressDetail(mp4);
         setStatusLine(
           videoLineId,
           `${frames[frameIndex % frames.length]} MP4 generation ${latestPercent}% - ${latestDetail}`,
         );
       }
-      // still "started" or "pending" — keep polling
+      // still "running" — keep polling
     } catch {
       // network error — keep polling
     }
@@ -2269,55 +2278,50 @@ async function pollVideoStatus(statusFile) {
 // tab was closed used to greet the user with "Reconnected to in-progress MP4
 // generation" and only correct itself after the first poll interval.
 async function resumeVideoStatusPollingIfNeeded() {
-  const statusFile = readPersistedVideoStatusFile();
-  if (!statusFile) {
+  const episodeDir = readPersistedVideoEpisodeDir();
+  if (!episodeDir) {
     return;
   }
 
-  let status = null;
+  let data = null;
   try {
-    const res = await fetch(
-      `/api/video-status?statusFile=${encodeURIComponent(statusFile)}`,
-    );
-    status = await res.json();
+    data = await fetchEpisodeState(episodeDir);
   } catch {
     // Server briefly unreachable; the poller's own handling can sort it out.
   }
 
-  if (!status || status.status === "started" || status.status === "pending") {
-    startVideoStatusPolling(statusFile, {
+  const mp4 = data?.exists ? data.jobs?.mp4Render : null;
+  if (!data || mp4?.status === "running") {
+    startVideoStatusPolling(episodeDir, {
       startMessage:
         "⏳ Reconnected to in-progress MP4 generation after refresh",
     });
     return;
   }
 
-  // Terminal or missing: nothing to reconnect to. Discovery reads the same status
-  // file for the current episode and reports it, so no extra message is needed.
-  persistActiveVideoStatusFile("");
+  // Terminal or missing: nothing to reconnect to. Discovery reads the same state for
+  // the current episode and reports it, so no extra message is needed.
+  persistActiveVideoEpisodeDir("");
 }
 
-function resumeVideoStatusPollingFromDiscover(videoStatus) {
-  if (!videoStatus || videoStatus.status !== "started") {
+function resumeVideoStatusPollingFromDiscover(discovered) {
+  if (discovered?.jobs?.mp4Render?.status !== "running") {
     return;
   }
 
-  const statusFile = String(videoStatus.statusFile || "").trim();
-  if (!statusFile) {
-    return;
-  }
-  if (activeVideoStatusFile === statusFile) {
+  const episodeDir = String(discovered.episodeDir || "").trim();
+  if (!episodeDir || activeVideoEpisodeDir === episodeDir) {
     return;
   }
 
-  startVideoStatusPolling(statusFile, {
+  startVideoStatusPolling(episodeDir, {
     startMessage:
       "⏳ Reconnected to in-progress MP4 generation from server status",
   });
 }
 
-async function pollClipGenerationStatus(statusFile) {
-  persistActiveClipStatusFile(statusFile);
+async function pollClipGenerationStatus(episodeDir) {
+  persistActiveClipEpisodeDir(episodeDir);
 
   let lineId = findStatusLineId("Clip generation");
   if (lineId === null) {
@@ -2329,19 +2333,16 @@ async function pollClipGenerationStatus(statusFile) {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     try {
-      const res = await fetch(
-        `/api/video-status?statusFile=${encodeURIComponent(statusFile)}`,
-      );
-      const data = await res.json();
-      const clip = data.clipGeneration;
+      const data = await fetchEpisodeState(episodeDir);
+      const clip = data.exists ? data.jobs?.clipGeneration : null;
 
-      // The clip state is written before the queue endpoint even responds, so
-      // repeatedly finding no file (or no clip state in it) means the tracked run's
-      // file is gone - stop polling instead of holding the Cancel button forever.
-      if (data.status === "missing" || !clip || !clip.status) {
+      // The clip job is written before the queue endpoint even responds, so
+      // repeatedly finding no state (or no clip job in it) means the tracked run's
+      // state is gone - stop polling instead of holding the Cancel button forever.
+      if (!clip || !clip.status) {
         missingPolls += 1;
         if (missingPolls >= 3) {
-          persistActiveClipStatusFile("");
+          persistActiveClipEpisodeDir("");
           setStatusLine(
             lineId,
             "ℹ The tracked clip run's status is no longer available; cleared stale tracking.",
@@ -2360,7 +2361,7 @@ async function pollClipGenerationStatus(statusFile) {
         continue;
       }
 
-      if (clip.status === "started") {
+      if (clip.status === "running") {
         setStatusLine(
           lineId,
           `⏳ Clip generation ${clip.percent || 0}% - ${clip.current || 0}/${clip.total || 0} done (${clip.remaining || 0} remaining)`,
@@ -2369,7 +2370,7 @@ async function pollClipGenerationStatus(statusFile) {
       }
 
       if (clip.status === "completed") {
-        persistActiveClipStatusFile("");
+        persistActiveClipEpisodeDir("");
         setStatusLine(
           lineId,
           `✓ Clip generation complete - ${clip.current || 0}/${clip.total || 0} done`,
@@ -2377,8 +2378,17 @@ async function pollClipGenerationStatus(statusFile) {
         return { status: "completed", clipGeneration: clip };
       }
 
+      if (clip.status === "interrupted") {
+        persistActiveClipEpisodeDir("");
+        setStatusLine(
+          lineId,
+          `ℹ Clip generation was interrupted by a server restart after ${clip.current || 0}/${clip.total || 0} done. Generate again to continue.`,
+        );
+        return { status: "interrupted", clipGeneration: clip };
+      }
+
       if (clip.status === "failed") {
-        persistActiveClipStatusFile("");
+        persistActiveClipEpisodeDir("");
         setStatusLine(
           lineId,
           `❌ Clip generation failed after ${clip.current || 0}/${clip.total || 0} done`,
@@ -2390,7 +2400,7 @@ async function pollClipGenerationStatus(statusFile) {
       }
 
       if (clip.status === "cancelled") {
-        persistActiveClipStatusFile("");
+        persistActiveClipEpisodeDir("");
         setStatusLine(
           lineId,
           `⏹ Clip generation cancelled after ${clip.current || 0}/${clip.total || 0} clip(s) finished`,
@@ -2403,36 +2413,36 @@ async function pollClipGenerationStatus(statusFile) {
   }
 }
 
-function startClipStatusPolling(statusFile, { startMessage = "" } = {}) {
-  const normalizedStatusFile = String(statusFile || "").trim();
-  if (!normalizedStatusFile) {
+function startClipStatusPolling(episodeDir, { startMessage = "" } = {}) {
+  const normalizedEpisodeDir = String(episodeDir || "").trim();
+  if (!normalizedEpisodeDir) {
     return Promise.resolve({ status: "pending" });
   }
 
   if (
     activeClipStatusPoll &&
-    activeClipStatusPoll.statusFile === normalizedStatusFile
+    activeClipStatusPoll.episodeDir === normalizedEpisodeDir
   ) {
     return activeClipStatusPoll.promise;
   }
 
-  activeClipStatusFile = normalizedStatusFile;
+  activeClipEpisodeDir = normalizedEpisodeDir;
   cancelClipsButton.style.display = "inline-block";
   cancelClipsButton.disabled = false;
   if (startMessage) {
     addStatus(startMessage);
   }
 
-  const pollPromise = pollClipGenerationStatus(normalizedStatusFile).finally(
+  const pollPromise = pollClipGenerationStatus(normalizedEpisodeDir).finally(
     () => {
       if (
         activeClipStatusPoll &&
-        activeClipStatusPoll.statusFile === normalizedStatusFile
+        activeClipStatusPoll.episodeDir === normalizedEpisodeDir
       ) {
         activeClipStatusPoll = null;
       }
-      if (activeClipStatusFile === normalizedStatusFile) {
-        activeClipStatusFile = null;
+      if (activeClipEpisodeDir === normalizedEpisodeDir) {
+        activeClipEpisodeDir = null;
         cancelClipsButton.style.display = "none";
       }
       isGeneratingClips = false;
@@ -2440,7 +2450,7 @@ function startClipStatusPolling(statusFile, { startMessage = "" } = {}) {
   );
 
   activeClipStatusPoll = {
-    statusFile: normalizedStatusFile,
+    episodeDir: normalizedEpisodeDir,
     promise: pollPromise,
   };
 
@@ -2448,31 +2458,28 @@ function startClipStatusPolling(statusFile, { startMessage = "" } = {}) {
 }
 
 async function resumeClipStatusPollingIfNeeded() {
-  const statusFile = readPersistedClipStatusFile();
-  if (!statusFile) {
+  const episodeDir = readPersistedClipEpisodeDir();
+  if (!episodeDir) {
     return;
   }
 
   let data = null;
   try {
-    const res = await fetch(
-      `/api/video-status?statusFile=${encodeURIComponent(statusFile)}`,
-    );
-    data = await res.json();
+    data = await fetchEpisodeState(episodeDir);
   } catch {
     // Server briefly unreachable; the poller's own handling can sort it out.
   }
 
-  const clip = data?.clipGeneration;
-  if (!data || (clip && ["waiting", "started"].includes(clip.status))) {
-    startClipStatusPolling(statusFile, {
+  const clip = data?.exists ? data.jobs?.clipGeneration : null;
+  if (!data || (clip && ["waiting", "running"].includes(clip.status))) {
+    startClipStatusPolling(episodeDir, {
       startMessage:
         "⏳ Reconnected to queued/in-progress clip generation after refresh",
     });
     return;
   }
 
-  persistActiveClipStatusFile("");
+  persistActiveClipEpisodeDir("");
   if (clip?.status === "completed") {
     addStatus(
       `✓ Clip generation finished while the tab was closed (${clip.current || 0}/${clip.total || 0} clips).`,
@@ -2486,35 +2493,35 @@ async function resumeClipStatusPollingIfNeeded() {
   }
 }
 
-function resumeClipStatusPollingFromDiscover(videoStatus) {
-  const clip = videoStatus?.clipGeneration;
-  if (!clip || !["waiting", "started"].includes(clip.status)) {
+function resumeClipStatusPollingFromDiscover(discovered) {
+  const clip = discovered?.jobs?.clipGeneration;
+  if (!clip || !["waiting", "running"].includes(clip.status)) {
     return;
   }
 
-  const statusFile = String(videoStatus.statusFile || "").trim();
-  if (!statusFile || activeClipStatusFile === statusFile) {
+  const episodeDir = String(discovered.episodeDir || "").trim();
+  if (!episodeDir || activeClipEpisodeDir === episodeDir) {
     return;
   }
 
-  startClipStatusPolling(statusFile, {
+  startClipStatusPolling(episodeDir, {
     startMessage:
       "⏳ Reconnected to queued/in-progress clip generation from server status",
   });
 }
 
 function startVideoStatusPolling(
-  statusFile,
+  episodeDir,
   { startMessage = "", onComplete = null } = {},
 ) {
-  const normalizedStatusFile = String(statusFile || "").trim();
-  if (!normalizedStatusFile) {
+  const normalizedEpisodeDir = String(episodeDir || "").trim();
+  if (!normalizedEpisodeDir) {
     return Promise.resolve({ status: "pending" });
   }
 
   if (
     activeVideoStatusPoll &&
-    activeVideoStatusPoll.statusFile === normalizedStatusFile
+    activeVideoStatusPoll.episodeDir === normalizedEpisodeDir
   ) {
     if (typeof onComplete === "function") {
       activeVideoStatusPoll.promise.then(onComplete);
@@ -2522,26 +2529,26 @@ function startVideoStatusPolling(
     return activeVideoStatusPoll.promise;
   }
 
-  activeVideoStatusFile = normalizedStatusFile;
+  activeVideoEpisodeDir = normalizedEpisodeDir;
   setVideoRenderUiState(true);
   if (startMessage) {
     addStatus(startMessage);
   }
 
-  const pollPromise = pollVideoStatus(normalizedStatusFile).finally(() => {
+  const pollPromise = pollVideoStatus(normalizedEpisodeDir).finally(() => {
     if (
       activeVideoStatusPoll &&
-      activeVideoStatusPoll.statusFile === normalizedStatusFile
+      activeVideoStatusPoll.episodeDir === normalizedEpisodeDir
     ) {
       activeVideoStatusPoll = null;
     }
-    if (activeVideoStatusFile === normalizedStatusFile) {
-      activeVideoStatusFile = null;
+    if (activeVideoEpisodeDir === normalizedEpisodeDir) {
+      activeVideoEpisodeDir = null;
     }
   });
 
   activeVideoStatusPoll = {
-    statusFile: normalizedStatusFile,
+    episodeDir: normalizedEpisodeDir,
     promise: pollPromise,
   };
 
@@ -2561,7 +2568,7 @@ restartProcessButton.addEventListener("click", async () => {
   }
   // A restart mid-clip-generation would clear the UI while the server keeps rendering,
   // orphaning a run that can no longer be watched or cancelled from here.
-  if (isGeneratingClips || activeClipStatusFile) {
+  if (isGeneratingClips || activeClipEpisodeDir) {
     addStatus(
       "Clip generation is in progress. Cancel it or wait for it to finish before restarting.",
     );
@@ -2609,8 +2616,8 @@ restartProcessButton.addEventListener("click", async () => {
   mediumFixAccepted = {};
   shownotesLinks = [];
   renderTranscriptFixSection();
-  persistActiveVideoStatusFile("");
-  persistActiveClipStatusFile("");
+  persistActiveVideoEpisodeDir("");
+  persistActiveClipEpisodeDir("");
   resetStatus();
   addStatus("↺ Process state cleared. Re-running discovery...");
   await runDiscovery();
@@ -2644,12 +2651,12 @@ rerenderMp4Button.addEventListener("click", async () => {
       }),
     });
     const body = await response.json();
-    if (!response.ok || !body.success || !body.videoStatus?.statusFile) {
+    if (!response.ok || !body.success || !body.episodeDir) {
       throw new Error(body.error || "Failed to start MP4 re-render");
     }
 
     clearClipSuggestionReviewPanel();
-    startVideoStatusPolling(body.videoStatus.statusFile, {
+    startVideoStatusPolling(body.episodeDir, {
       startMessage: "⏳ MP4 re-render started...",
     });
   } catch (error) {
@@ -2736,11 +2743,11 @@ async function executeClipGenerationRequest(request) {
     });
 
     const body = await response.json();
-    if (!response.ok || !body.success || !body.clipStatusFile) {
+    if (!response.ok || !body.success || !body.episodeDir) {
       throw new Error(body.error || "Failed to queue clip generation");
     }
 
-    startClipStatusPolling(body.clipStatusFile, {
+    startClipStatusPolling(body.episodeDir, {
       startMessage: "⏳ Clip generation queued on server...",
     });
   } catch (error) {
@@ -2912,7 +2919,7 @@ socialPostsButton.addEventListener("click", async () => {
 });
 
 cancelClipsButton.addEventListener("click", async () => {
-  if (!activeClipStatusFile) {
+  if (!activeClipEpisodeDir) {
     addStatus("No clip generation in progress.");
     return;
   }
@@ -2924,7 +2931,7 @@ cancelClipsButton.addEventListener("click", async () => {
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify({ statusFile: activeClipStatusFile }),
+      body: JSON.stringify({ episodeDir: activeClipEpisodeDir }),
     });
     const body = await response.json();
     if (!response.ok || !body.success) {
@@ -3065,7 +3072,7 @@ approveButton.addEventListener("click", async () => {
     // must not carry over by index onto different clips.
     clipApprovalState = [];
     renderClipSuggestions(result.clipSuggestions || []);
-    activeVideoStatusFile = null;
+    activeVideoEpisodeDir = null;
 
     if (runFailed) {
       // The approve click set the in-progress state up front; without unwinding it
@@ -3092,17 +3099,18 @@ approveButton.addEventListener("click", async () => {
           `✓ MP3 chapter images embedded (${result.mp3ChapterImages.chaptersEmbedded} chapters)`,
         );
       }
+      const runEpisodeDir = result.episode?.outputDirectory;
       if (result.videoStatus && result.videoStatus.skipped) {
-        persistActiveVideoStatusFile("");
+        persistActiveVideoEpisodeDir("");
         setVideoRenderUiState(false);
         // The earlier render happened while the video-in-progress state still hid the
         // section; with no render coming, show the cards now.
         renderClipSuggestions(currentClipSuggestions);
         addStatus("✓ MP4 generation skipped");
-      } else if (result.videoStatus && result.videoStatus.statusFile) {
-        activeVideoStatusFile = result.videoStatus.statusFile;
+      } else if (result.videoStatus?.started && runEpisodeDir) {
+        activeVideoEpisodeDir = runEpisodeDir;
         setVideoRenderUiState(true);
-        startVideoStatusPolling(result.videoStatus.statusFile, {
+        startVideoStatusPolling(runEpisodeDir, {
           startMessage: "⏳ MP4 generation in progress... (0%)",
         });
       } else {
