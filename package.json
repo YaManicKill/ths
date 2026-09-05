@@ -9,6 +9,7 @@
     "predev": "npm run stats:generate",
     "dev": "rimraf public/ && hugo server --bind 0.0.0.0",
     "postprocess": "node scripts/postprocess/cli.js",
+    "package-app": "cd scripts/postprocess/app && npm install && npm run package",
     "test:postprocess": "node --test scripts/postprocess/",
     "check-release-dates": "node scripts/check-release-dates.js",
     "top-durations": "node scripts/top-durations.js",

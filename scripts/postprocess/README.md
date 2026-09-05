@@ -123,12 +123,11 @@ An Electron wrapper lives in `app/`, isolated in its own package so the main rep
 CI) never installs Chromium. One-time setup:
 
 ```bash
-cd scripts/postprocess/app
-npm install
-npm run dist
+npm run package-app
 ```
 
-That produces `dist/mac-arm64/THS Post-Process.app` with the show icon and this repo's
+That produces `dist/mac-arm64/THS Post-Process.app` (revealed in Finder for copying
+to Applications) with the show icon and this repo's
 location baked in — pin it to the dock. Clicking it runs the pipeline server in-process
 and opens the prefilled UI in its own window; closing the window quits everything. The
 app loads the pipeline code from the repo checkout at launch, so day-to-day changes need
