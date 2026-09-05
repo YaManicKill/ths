@@ -6,7 +6,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --dir -c.extraMetadata.thsRepoRoot=\"$(cd ../../.. && pwd)\""
+    "dist": "electron-builder --dir -c.extraMetadata.thsRepoRoot=\"$(cd ../../.. && pwd)\"",
+    "package": "npm run dist && open -R \"dist/mac-arm64/THS Post-Process.app\""
   },
   "devDependencies": {
     "electron": "^44.0.0",
