@@ -231,6 +231,22 @@ async function main() {
   assert.ok(writtenMd.includes("Why would somebody genuinely do that"));
   assert.ok(writtenMd.includes("honestly"), "medium fix must not auto-apply");
   assert.ok(writtenVtt.includes("Why would somebody do that?"));
+
+  // The raw transcript is staged before fixes land, so `git diff` shows exactly what
+  // the AI changed against the pristine version.
+  const stagedMd = runCommand(
+    "git",
+    [
+      "show",
+      `:${path.relative(runRoot, path.join(episodeDir, "transcript.md"))}`,
+    ],
+    { cwd: runRoot },
+  );
+  assert.equal(stagedMd.status, 0, "raw transcript.md must be staged");
+  assert.ok(
+    stagedMd.stdout.includes("Why would anyone actually do that"),
+    "the staged copy must be the unfixed transcript",
+  );
   assert.deepEqual(report.transcriptFixes, {
     attempted: 2,
     mdApplied: 2,

@@ -821,6 +821,35 @@ async function runPipeline(inputOptions = {}) {
 
   onProgress("Writing transcripts...");
 
+  // The raw transcripts are written and staged before any fixes land, so `git diff`
+  // on the episode files shows exactly what the AI (and later ticked fixes) changed
+  // against the pristine version. Warning-only: a staging hiccup must not block a run.
+  fs.writeFileSync(
+    path.join(episodeDir, "transcript.md"),
+    sourceTranscriptMdText,
+    "utf8",
+  );
+  fs.writeFileSync(
+    path.join(episodeDir, "transcript.vtt"),
+    sourceTranscriptVttText,
+    "utf8",
+  );
+  const stageResult = runCommand(
+    "git",
+    [
+      "add",
+      "--",
+      path.join(episodeDir, "transcript.md"),
+      path.join(episodeDir, "transcript.vtt"),
+    ],
+    { cwd: repoRoot },
+  );
+  if (stageResult.status !== 0) {
+    onProgress(
+      `Warning: could not stage raw transcripts for diffing: ${stageResult.stderr || stageResult.stdout}`,
+    );
+  }
+
   // Fixes rewrite only the copies written into the episode folder; the source
   // transcripts are never touched.
   const selectedFixes = selectTranscriptFixes(
