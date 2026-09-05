@@ -4,6 +4,8 @@
 // Checks the "Release Date" text on every game in the Notion games database
 // against IGDB and reports contradictions, windows that can be tightened,
 // EA games whose 1.0 has been announced, and possibly-abandoned games.
+// Games IGDB doesn't know (or has no date for) fall back to a Steam store
+// lookup — smaller games are often on Steam before IGDB curates them.
 //
 // Credentials live in scripts/.env (see scripts/.env keys):
 //   NOTION_TOKEN, NOTION_DATABASE_ID, TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET
@@ -329,23 +331,94 @@ function bestIgdbWindow(game, eaDate) {
   return windows[0];
 }
 
+// --- Steam fallback ---
+
+function parsedToWindow(parsed, label) {
+  if (!parsed || parsed.kind !== 'date') return null;
+  return {
+    precision: parsed.precision, y: parsed.y, m: parsed.m, d: parsed.d,
+    start: parsed.start, end: parsed.end, human: label,
+  };
+}
+
+function parseSteamDate(text) {
+  if (!text) return null;
+  let t = text.trim();
+  const dayFirst = t.match(/^(\d{1,2}) ([A-Za-z]{3,9}),? (\d{4})$/);
+  if (dayFirst) t = `${dayFirst[2]} ${dayFirst[1]}, ${dayFirst[3]}`;
+  return parsedToWindow(parseNotionDate(t), text.trim());
+}
+
+async function steamSearchItems(term) {
+  const res = await fetch(
+    `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(term)}&l=english&cc=US`
+  );
+  if (!res.ok) return [];
+  return (await res.json()).items || [];
+}
+
+// Exact name matches only — a fallback source picking "close" titles reports
+// the wrong game with full confidence.
+async function steamLookup(title) {
+  const target = normalize(title);
+  let item = (await steamSearchItems(title)).find((i) => normalize(i.name) === target);
+  if (!item) {
+    // Steam's search chokes on subtitled titles ("Kloa - Child of the Forest")
+    // that a search for just the lead segment finds.
+    const lead = title.split(/\s+[-–:]\s+|:\s+/)[0];
+    if (lead && lead !== title) {
+      item = (await steamSearchItems(lead)).find((i) => normalize(i.name) === target);
+    }
+  }
+  if (!item) return null;
+  const appRes = await fetch(`https://store.steampowered.com/api/appdetails?appids=${item.id}`);
+  if (!appRes.ok) return null;
+  const appData = (await appRes.json())[item.id];
+  if (!appData || !appData.success || !appData.data) return null;
+  const releaseDate = appData.data.release_date || {};
+  return {
+    name: appData.data.name || item.name,
+    window: parseSteamDate(releaseDate.date),
+    comingSoon: Boolean(releaseDate.coming_soon),
+  };
+}
+
+function judgeSteam(game, parsed, steam) {
+  if (!steam) return null;
+  if (!steam.window) {
+    // "Coming soon" / "To be announced" — confirms a TBA entry, says nothing
+    // about a concrete date.
+    return parsed.kind === 'tba'
+      ? { verdict: 'OK', detail: 'Steam lists it as TBA too' }
+      : null;
+  }
+  let result;
+  if (parsed.kind === 'tba') {
+    result = { verdict: 'UPGRADE', detail: `Steam now lists ${steam.window.human}` };
+  } else {
+    result = compareWindows(parsed, steam.window, 'Steam');
+    if (result.verdict === 'OK') result.detail = 'agrees with Steam (IGDB lacks data)';
+  }
+  return result;
+}
+
 // --- Comparison ---
 
-function compareWindows(n, g) {
+function compareWindows(n, g, source = 'IGDB') {
   if (n.precision === 'day' && g.precision === 'day') {
     return n.y === g.y && n.m === g.m && n.d === g.d
       ? { verdict: 'OK' }
-      : { verdict: 'MISMATCH', detail: `IGDB says ${g.human}` };
+      : { verdict: 'MISMATCH', detail: `${source} says ${g.human}` };
   }
   const nInG = n.start >= g.start && n.end <= g.end;
   const gInN = g.start >= n.start && g.end <= n.end;
   const overlap = n.start <= g.end && g.start <= n.end;
   if (gInN && RANK[g.precision] > RANK[n.precision]) {
-    return { verdict: 'UPGRADE', detail: `IGDB now lists ${g.human}` };
+    return { verdict: 'UPGRADE', detail: `${source} now lists ${g.human}` };
   }
   if (gInN || nInG) return { verdict: 'OK' };
-  if (overlap) return { verdict: 'CHECK', detail: `your window and IGDB's (${g.human}) only partially overlap` };
-  return { verdict: 'MISMATCH', detail: `IGDB says ${g.human}` };
+  if (overlap) return { verdict: 'CHECK', detail: `your window and ${source}'s (${g.human}) only partially overlap` };
+  return { verdict: 'MISMATCH', detail: `${source} says ${g.human}` };
 }
 
 function judge(game, parsed, candidate) {
@@ -453,6 +526,16 @@ async function main() {
     } catch (err) {
       if (/401|auth/i.test(err.message)) throw err;
       verdict = { verdict: 'CHECK', detail: `lookup failed: ${err.message}` };
+    }
+    // Steam can't distinguish an EA launch from 1.0, so it only backs up IGDB
+    // for games that haven't launched into EA.
+    if (
+      (verdict.verdict === 'NOTFOUND' || verdict.verdict === 'UNVERIFIABLE') &&
+      !game.eaDate &&
+      (parsed.kind === 'tba' || parsed.kind === 'date')
+    ) {
+      const steamVerdict = judgeSteam(game, parsed, await steamLookup(game.title).catch(() => null));
+      if (steamVerdict) verdict = steamVerdict;
     }
     results.push({ game, parsed, ...verdict });
     await sleep(IGDB_DELAY_MS);
