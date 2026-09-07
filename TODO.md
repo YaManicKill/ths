@@ -8,6 +8,11 @@ Waiting on a full end-to-end episode run before anything that writes off this ma
    existing YouTube Description generator and the publish time scheduled via the API -
    collapsing the upload/describe/schedule steps into one click.
 
+3. Podcast chapters: publish a podcast-namespace chapters JSON file per episode from the
+   chapter list the pipeline already has, and reference it from the feed with
+   `<podcast:chapters>`. Apps such as Pocket Casts and Apple Podcasts show these as
+   tappable chapter markers.
+
 ## Maybe
 
 - Back-catalog clip mining: a quota-aware batch mode that runs the AI clip picker over

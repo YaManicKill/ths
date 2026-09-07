@@ -5,6 +5,10 @@ theme = "hyde"
 
 [outputs]
   home = ["HTML", "RSS", "JSON"]
+  # Only the home feed is the podcast feed; section and tag feeds would be full duplicate copies of it.
+  section = ["HTML"]
+  taxonomy = ["HTML"]
+  term = ["HTML"]
 
 [taxonomies]
   tag = "tags"
@@ -23,7 +27,6 @@ theme = "hyde"
   email = "ths@10people.co.uk"
   category = "Leisure"
   subcategory = "Video Games"
-  year = "2019"
   applepodcasts = "https://itunes.apple.com/podcast/the-harvest-season/id1449112246?mt=2"
   youtubemusic = "https://music.youtube.com/channel/UCQFJD0AzhVTQCAlHTQS7RMQ"
   pocketcasts = "https://pca.st/z5HX"

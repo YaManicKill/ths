@@ -359,7 +359,6 @@ function buildIndexMarkdown({
   lines.push(`podcast_duration: \"${podcastDuration}\"`);
   lines.push(`date: ${dateString}`);
   lines.push(`author: \"${author}\"`);
-  lines.push("transcript_files: true");
   lines.push("---");
   lines.push("");
   lines.push("## Timings");

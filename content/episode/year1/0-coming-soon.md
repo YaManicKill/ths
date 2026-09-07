@@ -2,6 +2,8 @@
 title: "Coming soon"
 episode: "0"
 season: "1"
+seasonName: "Spring"
+year: "1"
 Description: "The Harvest Season: Coming Soon"
 guid: "https://dts.podtrac.com/redirect.mp3/ymk.nyc3.digitaloceanspaces.com/ths-0.mp3"
 podcast: "ths/ths-0.mp3"

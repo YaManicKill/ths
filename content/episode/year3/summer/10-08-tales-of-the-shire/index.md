@@ -12,7 +12,6 @@ podcast_duration: "01:34:27"
 date: 2025-09-03T19:00:00+01:00
 author: "Al McKinlay"
 transcript_files: true
-transcript_vtt: false
 ---
 
 ## Timings
