@@ -5,6 +5,10 @@ theme = "hyde"
 
 [outputs]
   home = ["HTML", "RSS", "JSON"]
+  # Only the home feed is the podcast feed; section and tag feeds would be full duplicate copies of it.
+  section = ["HTML"]
+  taxonomy = ["HTML"]
+  term = ["HTML"]
 
 [taxonomies]
   tag = "tags"
