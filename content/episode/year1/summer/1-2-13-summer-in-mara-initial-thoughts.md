@@ -7,7 +7,7 @@ year: "1"
 Description: "Al goes through the news of the fortnight, and then gives his initial thoughts about Sumemr in Mara"
 guid: "ths-1-2-13"
 podcast: "ths/year1/summer/ths-1-2-13.mp3" 
-podcast_bytes: "20054016"
+podcast_bytes: "20026095"
 podcast_duration: "00:20:51"
 date: 2020-06-24T18:00:00+00:00
 

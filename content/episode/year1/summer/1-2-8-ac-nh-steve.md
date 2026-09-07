@@ -7,7 +7,7 @@ year: "1"
 Description: "Al talks to Steve, from It's Super Effective, about Animal Crossing: New Horizons"
 guid: "ths-1-2-8"
 podcast: "ths/year1/summer/ths-1-2-8.mp3"
-podcast_bytes: "41156608"
+podcast_bytes: "41103777"
 podcast_duration: "00:42:48"
 date: 2020-04-15T18:00:00+00:00
 

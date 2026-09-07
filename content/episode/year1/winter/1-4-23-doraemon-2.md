@@ -7,7 +7,7 @@ year: "1"
 Description: "Al and Micah talk about Doraemon Story of Seasons: Friends of the Great Kingdom"
 guid: "ths-1-4-23"
 podcast: "ths/year1/winter/ths-1-4-23.mp3"
-podcast_bytes: "160683387"
+podcast_bytes: "161018133"
 podcast_duration: "01:51:35"
 date: 2022-11-16T19:00:00+00:00
 

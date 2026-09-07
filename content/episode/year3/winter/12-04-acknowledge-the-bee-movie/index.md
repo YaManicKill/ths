@@ -7,7 +7,7 @@ year: "3"
 Description: "Codey and Kevin talk about Budgie's Bug Shop."
 guid: "ths-12-04"
 podcast: "ths/year3/winter/ths-12-04.mp3"
-podcast_bytes: "155296051"
+podcast_bytes: "155139917"
 podcast_duration: "01:47:04"
 date: 2026-07-29T18:00:00.000Z
 author: "Al McKinlay"

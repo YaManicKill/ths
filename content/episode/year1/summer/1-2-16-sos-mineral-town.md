@@ -7,7 +7,7 @@ year: "1"
 Description: "Raschelle, Al, and Micah talk about Story of Seasons: Friends of Mineral Town"
 guid: "ths-1-2-16"
 podcast: "ths/year1/summer/ths-1-2-16.mp3"
-podcast_bytes: "203493839"
+podcast_bytes: "203691925"
 podcast_duration: "02:21:18"
 date: 2020-08-05T18:00:00+00:00
 
