@@ -1,6 +1,9 @@
 {{- /* Generate a site-wide JSON index for client-side search */ -}}
 [
+{{- /* Untitled pages are form responses (error, thanks) that would show up as blank results; the search page itself is not a useful hit either. */ -}}
 {{- $pages := where .Site.RegularPages "Type" "in" (slice "episode" "page" ) -}}
+{{- $pages = where $pages "Title" "!=" "" -}}
+{{- $pages = where $pages "Layout" "!=" "search" -}}
 {{- range $i, $p := $pages -}}
   {{- if gt $i 0 }},{{ end -}}
   {
