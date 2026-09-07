@@ -7,7 +7,7 @@ year: "3"
 Description: "Al and Aislinn talk about Snacko!"
 guid: "ths-10-23"
 podcast: "ths/year3/summer/ths-10-23.mp3"
-podcast_bytes: "148891300"
+podcast_bytes: "148686916"
 podcast_duration: "01:43:12"
 date: 2025-12-17T19:00:00+00:00
 author: "Al McKinlay"

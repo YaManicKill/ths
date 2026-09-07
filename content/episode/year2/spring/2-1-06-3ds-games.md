@@ -7,7 +7,7 @@ year: "2"
 Description: "Kev and Jonnie talk about the 3DS and Wii U farming games we are about to lose"
 guid: "ths-2-1-06"
 podcast: "ths/year2/spring/ths-2-1-06.mp3"
-podcast_bytes: "246044894"
+podcast_bytes: "107207920"
 podcast_duration: "01:14:15"
 date: 2023-02-08T19:00:00+01:00
 

@@ -7,7 +7,7 @@ year: "1"
 Description: "Al and Kevin go through all of the updates for Animal Crossing in the first year."
 guid: "ths-1-3-03"
 podcast: "ths/year1/autumn/ths-1-3-03.mp3"
-podcast_bytes: "120037376"
+podcast_bytes: "120034793"
 podcast_duration: "01:23:13"
 date: 2021-02-03T19:00:00+00:00
 

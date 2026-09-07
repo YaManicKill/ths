@@ -7,7 +7,7 @@ year: "1"
 Description: "We talk about a couple of mobile farming games."
 guid: "ths-1-1-19"
 podcast: "ths/year1/spring/ths-1-1-19.mp3"
-podcast_bytes: "67729866"
+podcast_bytes: "66133940"
 podcast_duration: "01:09:58"
 date: 2019-09-18T20:00:00+00:00
 

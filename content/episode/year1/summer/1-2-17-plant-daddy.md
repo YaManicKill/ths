@@ -7,7 +7,7 @@ year: "1"
 Description: "Al and Codey talk about the amazing free to play game Plant Daddy"
 guid: "ths-1-2-17"
 podcast: "ths/year1/summer/ths-1-2-17.mp3"
-podcast_bytes: "91725824"
+podcast_bytes: "91722780"
 podcast_duration: "01:03:33"
 date: 2020-08-19T18:00:00+00:00
 

@@ -7,7 +7,7 @@ year: "1"
 Description: "Al talks about a bunch of new information about Story of Seasons: Pioneers of Olive Town"
 guid: "ths-1-24"
 podcast: "ths/year1/summer/ths-1-2-24.mp3"
-podcast_bytes: "34333868"
+podcast_bytes: "34531920"
 podcast_duration: "00:23:50"
 date: 2020-11-25T19:00:00+00:00
 

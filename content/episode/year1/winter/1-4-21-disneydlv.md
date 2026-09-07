@@ -7,7 +7,7 @@ year: "1"
 Description: "Al and Jonnie talk about Disney Dreamlight Valley"
 guid: "ths-1-4-21"
 podcast: "ths/year1/winter/ths-1-4-21.mp3"
-podcast_bytes: "121031680"
+podcast_bytes: "121031326"
 podcast_duration: "01:23:48"
 date: 2022-10-19T19:00:00+01:00
 
