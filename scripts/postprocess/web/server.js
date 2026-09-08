@@ -23,6 +23,12 @@ const {
   readShowLinksFromConfig,
 } = require("../youtube-description");
 const { generateSocialPostsCached } = require("../social-posts");
+const {
+  resolveSpaces,
+  setObjectAcl,
+  sha256FileHex,
+  uploadFileToSpaces,
+} = require("../spaces");
 const { parseVttCues } = require("../vtt");
 const { generateClipVideos, generateVideoFromChapters } = require("../video");
 const { loadPostprocessConfig } = require("../config");
@@ -959,6 +965,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
             episodeDir,
             phase: state?.phase || null,
             jobs: state?.jobs || {},
+            mp3Upload: state?.mp3Upload || null,
             existingClipSuggestions: Array.isArray(state?.clipSuggestions)
               ? state.clipSuggestions
               : [],
@@ -1692,6 +1699,224 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           added: llmClips.suggestions.length,
           source: "llm",
         });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Pushes the finished MP3 to DigitalOcean Spaces at the feed's enclosure key.
+    // Only a generated episode qualifies: the file uploaded must be the one with the
+    // chapter images embedded, and the embed happens during the run. Streamed NDJSON
+    // so upload progress reaches the UI live; a repeat click with an unchanged file is
+    // a no-op answered from the state file's upload record.
+    if (req.method === "POST" && pathname === "/api/upload-mp3") {
+      const body = await readRequestBody(req);
+      const stream = startNdjsonStream(res);
+      try {
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          stream.error("Missing or invalid discoveryData");
+          return;
+        }
+        const mp3Path = String(payload.mp3Path || "").trim();
+        if (!mp3Path || !path.isAbsolute(mp3Path) || !fs.existsSync(mp3Path)) {
+          stream.error("Missing or invalid mp3Path");
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path,
+        });
+        const state = await episodeState.readState(episodeDir);
+        if (
+          state?.phase !== "generated" ||
+          !state.mp3ChapterImages?.completed
+        ) {
+          stream.error(
+            "Approve and generate the episode first - the uploaded MP3 must carry the embedded chapter images",
+          );
+          return;
+        }
+        const key = String(state.episode?.podcastPath || "").trim();
+        if (!key) {
+          stream.error("The episode state has no podcastPath to upload to");
+          return;
+        }
+        const spaces = resolveSpaces(loadPostprocessConfig(repoRoot));
+        if (!spaces) {
+          stream.error(
+            "Spaces credentials are not configured - add spaces.accessKeyId and spaces.secretAccessKey to postprocess.config.local.json",
+          );
+          return;
+        }
+
+        const fileSha256 = await sha256FileHex(mp3Path);
+        if (state.mp3Upload?.sha256 === fileSha256) {
+          stream.result({
+            success: true,
+            alreadyUploaded: true,
+            url: state.mp3Upload.url,
+            size: state.mp3Upload.size,
+            acl: state.mp3Upload.acl,
+          });
+          return;
+        }
+
+        const sizeMb = (fs.statSync(mp3Path).size / (1024 * 1024)).toFixed(1);
+        stream.progress(`Uploading ${sizeMb} MB to ${spaces.bucket}/${key}...`);
+        await episodeState.startJob(episodeDir, "mp3Upload", { percent: 0 });
+        try {
+          let lastReportedPercent = 0;
+          const uploaded = await uploadFileToSpaces({
+            filePath: mp3Path,
+            key,
+            ...spaces,
+            contentType: "audio/mpeg",
+            payloadSha256: fileSha256,
+            onProgress: (progress) => {
+              if (progress.percent >= lastReportedPercent + 10) {
+                lastReportedPercent = progress.percent;
+                stream.progress(`Uploading... ${progress.percent}%`);
+                episodeState
+                  .patchJob(episodeDir, "mp3Upload", {
+                    status: "running",
+                    percent: progress.percent,
+                  })
+                  .catch(() => {});
+              }
+            },
+          });
+          await episodeState.finishJob(episodeDir, "mp3Upload", {
+            status: "completed",
+            percent: 100,
+          });
+          await episodeState.updateState(episodeDir, (current) =>
+            current
+              ? {
+                  ...current,
+                  mp3Upload: {
+                    sha256: fileSha256,
+                    url: uploaded.url,
+                    size: uploaded.size,
+                    acl: "private",
+                    uploadedAt: new Date().toISOString(),
+                  },
+                }
+              : null,
+          );
+          stream.result({
+            success: true,
+            url: uploaded.url,
+            size: uploaded.size,
+            acl: "private",
+          });
+        } catch (error) {
+          await episodeState
+            .finishJob(episodeDir, "mp3Upload", {
+              status: "failed",
+              error: error.message,
+            })
+            .catch(() => {});
+          throw error;
+        }
+      } catch (error) {
+        stream.error(error.message);
+      }
+      return;
+    }
+
+    // Flips the staged (private) MP3 public at release time - an ACL rewrite, no
+    // re-upload. Refused when the local file no longer matches what was uploaded, so a
+    // stale copy can never be what goes live.
+    if (req.method === "POST" && pathname === "/api/publish-mp3") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        const mp3Path = String(payload.mp3Path || "").trim();
+        if (!mp3Path || !path.isAbsolute(mp3Path) || !fs.existsSync(mp3Path)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid mp3Path",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path,
+        });
+        const state = await episodeState.readState(episodeDir);
+        if (!state?.mp3Upload?.sha256) {
+          sendJson(res, 400, {
+            success: false,
+            error: "No uploaded MP3 to publish - upload it first",
+          });
+          return;
+        }
+        if (state.mp3Upload.acl === "public-read") {
+          sendJson(res, 200, {
+            success: true,
+            alreadyPublic: true,
+            url: state.mp3Upload.url,
+          });
+          return;
+        }
+        const fileSha256 = await sha256FileHex(mp3Path);
+        if (fileSha256 !== state.mp3Upload.sha256) {
+          sendJson(res, 400, {
+            success: false,
+            error:
+              "The local MP3 has changed since it was uploaded - upload it again before making it public",
+          });
+          return;
+        }
+        const spaces = resolveSpaces(loadPostprocessConfig(repoRoot));
+        if (!spaces) {
+          sendJson(res, 400, {
+            success: false,
+            error:
+              "Spaces credentials are not configured - add spaces.accessKeyId and spaces.secretAccessKey to postprocess.config.local.json",
+          });
+          return;
+        }
+
+        await setObjectAcl({
+          key: state.episode.podcastPath,
+          ...spaces,
+          acl: "public-read",
+        });
+        await episodeState.updateState(episodeDir, (current) =>
+          current
+            ? {
+                ...current,
+                mp3Upload: {
+                  ...current.mp3Upload,
+                  acl: "public-read",
+                  publishedAt: new Date().toISOString(),
+                },
+              }
+            : null,
+        );
+        sendJson(res, 200, { success: true, url: state.mp3Upload.url });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
       }

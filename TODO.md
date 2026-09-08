@@ -2,13 +2,11 @@
 
 Waiting on a full end-to-end episode run before anything that writes off this machine:
 
-1. Upload the finished MP3 to DigitalOcean Spaces from the UI (S3-compatible API;
-   credentials belong in the gitignored local config).
-2. Upload the chapter MP4 to YouTube from the UI, with the description taken from the
+1. Upload the chapter MP4 to YouTube from the UI, with the description taken from the
    existing YouTube Description generator and the publish time scheduled via the API -
    collapsing the upload/describe/schedule steps into one click.
 
-3. Podcast chapters: publish a podcast-namespace chapters JSON file per episode from the
+2. Podcast chapters: publish a podcast-namespace chapters JSON file per episode from the
    chapter list the pipeline already has, and reference it from the feed with
    `<podcast:chapters>`. Apps such as Pocket Casts and Apple Podcasts show these as
    tappable chapter markers.

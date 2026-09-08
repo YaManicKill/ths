@@ -44,6 +44,8 @@ const youtubeDescriptionButton = document.getElementById(
   "youtube-description-button",
 );
 const socialPostsButton = document.getElementById("social-posts-button");
+const uploadMp3Button = document.getElementById("upload-mp3-button");
+const publishMp3Button = document.getElementById("publish-mp3-button");
 const generateClipVideosButton = document.getElementById(
   "generate-clip-videos-button",
 );
@@ -69,6 +71,9 @@ let isVideoRenderCompleted = false;
 // Mirrors the stored phase: true once the episode's files exist on disk. Gates the
 // publish buttons and the transcript-fixes section, which act on those files.
 let isEpisodeGenerated = false;
+// The episode state's upload record (or null): Make MP3 Public needs a staged upload
+// to act on.
+let currentMp3Upload = null;
 let chapterImageOverrides = {}; // Track uploaded replacement images by chapter index
 let currentTranscriptFindings = [];
 let shownotesLinks = [];
@@ -140,8 +145,15 @@ function setProcessActionsVisibility() {
   // YouTube description and social posts read the generated index.md; before the
   // episode exists they can only error.
   const publishDisplay = isEpisodeGenerated ? "inline-block" : "none";
+  uploadMp3Button.style.display = publishDisplay;
+  publishMp3Button.style.display = publishDisplay;
   youtubeDescriptionButton.style.display = publishDisplay;
   socialPostsButton.style.display = publishDisplay;
+  // An in-flight Approve rewrites the MP3 (the chapter-image embed), so uploading
+  // mid-run would ship a half-written file; and there is nothing to make public until
+  // an upload has been recorded.
+  uploadMp3Button.disabled = isRunRequestInFlight;
+  publishMp3Button.disabled = !currentMp3Upload;
 }
 
 function getDiscoverySnapshot() {
@@ -2161,6 +2173,7 @@ async function runDiscovery() {
       discoveryData: result.discoveryData,
     };
     isEpisodeGenerated = result.discovered?.phase === "generated";
+    currentMp3Upload = result.discovered?.mp3Upload || null;
     setProcessActionsVisibility();
     renderTranscriptFixSection();
     currentRunResult = null;
@@ -2231,6 +2244,14 @@ async function runDiscovery() {
       addStatus("✓ MP4 generation is already complete for this episode.");
     } else {
       addStatus("✓ Chapter images ready for review");
+    }
+    if (result.discovered?.mp3Upload?.uploadedAt) {
+      const isPublic = result.discovered.mp3Upload.acl === "public-read";
+      addStatus(
+        `✓ MP3 uploaded to Spaces (${isPublic ? "public" : "private"}) ${new Date(
+          result.discovered.mp3Upload.uploadedAt,
+        ).toLocaleString()}`,
+      );
     }
 
     if (!hasActiveVideoRun && !hasCompletedVideoRun) {
@@ -2762,6 +2783,7 @@ restartProcessButton.addEventListener("click", async () => {
   mediumFixAccepted = {};
   shownotesLinks = [];
   isEpisodeGenerated = false;
+  currentMp3Upload = null;
   setProcessActionsVisibility();
   renderTranscriptFixSection();
   persistActiveVideoEpisodeDir("");
@@ -3071,6 +3093,90 @@ socialPostsButton.addEventListener("click", async () => {
   }
 });
 
+uploadMp3Button.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+
+  uploadMp3Button.disabled = true;
+  const stopSpinner = startStatusSpinner(
+    "Uploading MP3 to DigitalOcean Spaces...",
+  );
+  try {
+    const body = await postWithProgress(
+      "/api/upload-mp3",
+      {
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+      },
+      (message) => addStatus(`• ${message}`),
+    );
+    if (body.type === "error" || !body.success) {
+      throw new Error(body.error || "Upload failed");
+    }
+
+    const sizeMb = body.size
+      ? ` (${(body.size / (1024 * 1024)).toFixed(1)} MB)`
+      : "";
+    const aclNote = body.acl === "public-read" ? "public" : "private";
+    currentMp3Upload = { acl: body.acl || "private" };
+    if (body.alreadyUploaded) {
+      stopSpinner("ℹ MP3 unchanged since its last upload - nothing to do");
+      addStatus(`ℹ Staged (${aclNote}) at ${body.url}${sizeMb}`);
+      return;
+    }
+    stopSpinner("✓ MP3 uploaded (private)");
+    addStatus(
+      `✓ Staged at ${body.url}${sizeMb} - use "Make MP3 Public" at release time`,
+    );
+  } catch (error) {
+    stopSpinner();
+    addStatus(`❌ MP3 upload failed: ${error.message}`);
+  } finally {
+    setProcessActionsVisibility();
+  }
+});
+
+publishMp3Button.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+
+  publishMp3Button.disabled = true;
+  const stopSpinner = startStatusSpinner("Making the MP3 public...");
+  try {
+    const response = await fetch("/api/publish-mp3", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+      }),
+    });
+    const body = await response.json();
+    if (!response.ok || !body.success) {
+      throw new Error(body.error || "Publish request failed");
+    }
+
+    currentMp3Upload = { ...(currentMp3Upload || {}), acl: "public-read" };
+    if (body.alreadyPublic) {
+      stopSpinner("ℹ MP3 is already public");
+      return;
+    }
+    stopSpinner("✓ MP3 is now public");
+    addStatus(`✓ Live at ${body.url}`);
+  } catch (error) {
+    stopSpinner();
+    addStatus(`❌ Making the MP3 public failed: ${error.message}`);
+  } finally {
+    setProcessActionsVisibility();
+  }
+});
+
 cancelClipsButton.addEventListener("click", async () => {
   if (!activeClipEpisodeDir) {
     addStatus("No clip generation in progress.");
@@ -3116,6 +3222,7 @@ approveButton.addEventListener("click", async () => {
   approveButton.disabled = true;
   toggleOverridesButton.style.display = "none";
   isRunRequestInFlight = true;
+  setProcessActionsVisibility();
   setVideoRenderUiState(true);
   resetStatus();
   const runFormData = new FormData(form);
@@ -3281,6 +3388,7 @@ approveButton.addEventListener("click", async () => {
     addStatus(`❌ Request failed: ${error.message}`);
   } finally {
     isRunRequestInFlight = false;
+    setProcessActionsVisibility();
     renderClipSuggestions(currentClipSuggestions);
     if (!isVideoRenderInProgress) {
       approveButton.disabled = false;

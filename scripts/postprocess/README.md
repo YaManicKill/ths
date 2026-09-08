@@ -54,6 +54,11 @@ episode title, burned-in subtitles and a progress bar.
   page title as an editable default.
 - **Audio QC**: warning-only loudness / true peak / long-silence check on the MP3
   during discovery, cached until the file changes.
+- **Upload MP3** stages the finished MP3 (chapter images embedded) privately on
+  DigitalOcean Spaces at the feed's enclosure path, with a checksum guard so an
+  unchanged file is never re-uploaded; **Make MP3 Public** flips it live at release
+  time, refusing if the local file changed since the upload. Needs the Spaces
+  credentials in the local config.
 - **YouTube Description** converts the episode's current index.md (chapters in
   YouTube's timestamp format, links included) into `youtube-description.txt` next to
   the MP4, and copies it to the clipboard. Run it after any final shownotes edits.
@@ -84,18 +89,20 @@ on the site:
 Main config is `postprocess.config.json` at the repo root; every key is optional, with
 defaults in `config.js`.
 
-| Key                | Default                       | What it does                                                                                                     |
-| ------------------ | ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `episodesRoot`     | `~/Google Drive/.../Episodes` | Where source assets are searched for (MP3, transcripts). `~` is expanded. Searched up to 4 directories deep.     |
-| `outputRoot`       | `content/episode`             | Where generated episode folders are written, relative to the repo root. Also where episode inference reads from. |
-| `defaultAuthor`    | `Al McKinlay`                 | The `author` field in generated `index.md` frontmatter.                                                          |
-| `releaseTimeLocal` | `19:00:00`                    | Local time of day used for inferred publish dates.                                                               |
-| `timezone`         | `Europe/London`               | IANA zone the release time is interpreted in. The UTC offset is computed per date, so DST is handled.            |
-| `profanityWords`   | built-in list                 | Word list for the warning-only transcript check; setting it replaces the defaults. Wildcards like `shit*` work.  |
-| `hostNames`        | the five regulars             | Correct spellings of the recurring hosts. The AI transcript check flags any other spelling of them as a mistake. |
-| `llm.provider`     | `gemini`                      | Which LLM backs the AI features. Only `gemini` is implemented so far.                                            |
-| `llm.model`        | `gemini-3.6-flash`            | The model used for the AI features.                                                                              |
-| `llm.apiKey`       | unset                         | API key for the LLM provider. **Never put this in the main config** — see below.                                 |
+| Key                  | Default                       | What it does                                                                                                     |
+| -------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `episodesRoot`       | `~/Google Drive/.../Episodes` | Where source assets are searched for (MP3, transcripts). `~` is expanded. Searched up to 4 directories deep.     |
+| `outputRoot`         | `content/episode`             | Where generated episode folders are written, relative to the repo root. Also where episode inference reads from. |
+| `defaultAuthor`      | `Al McKinlay`                 | The `author` field in generated `index.md` frontmatter.                                                          |
+| `releaseTimeLocal`   | `19:00:00`                    | Local time of day used for inferred publish dates.                                                               |
+| `timezone`           | `Europe/London`               | IANA zone the release time is interpreted in. The UTC offset is computed per date, so DST is handled.            |
+| `profanityWords`     | built-in list                 | Word list for the warning-only transcript check; setting it replaces the defaults. Wildcards like `shit*` work.  |
+| `hostNames`          | the five regulars             | Correct spellings of the recurring hosts. The AI transcript check flags any other spelling of them as a mistake. |
+| `llm.provider`       | `gemini`                      | Which LLM backs the AI features. Only `gemini` is implemented so far.                                            |
+| `llm.model`          | `gemini-3.6-flash`            | The model used for the AI features.                                                                              |
+| `llm.apiKey`         | unset                         | API key for the LLM provider. **Never put this in the main config** — see below.                                 |
+| `spaces.bucket`      | `ymk`                         | DigitalOcean Space the MP3 uploads to; `spaces.region` (default `nyc3`) picks the endpoint.                      |
+| `spaces.accessKeyId` | unset                         | Spaces credentials, with `spaces.secretAccessKey`. **Local config only** — see below.                            |
 
 Secrets go in `postprocess.config.local.json` (gitignored — the main config is committed
 to a public repo). It is deep-merged over the main config:

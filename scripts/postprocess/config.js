@@ -15,6 +15,14 @@ const DEFAULT_CONFIG = {
     model: "gemini-3.6-flash",
     apiKey: null,
   },
+  // Where the finished MP3 uploads to. Bucket and region are public knowledge (they
+  // are in the feed's enclosure URLs); the credentials belong in the local config.
+  spaces: {
+    bucket: "ymk",
+    region: "nyc3",
+    accessKeyId: null,
+    secretAccessKey: null,
+  },
   // Correct spellings of the recurring hosts. The AI transcript check treats any other
   // spelling of these names as a mistranscription.
   hostNames: ["Al", "Codey", "Jonnie", "Kevin", "Chelsea"],
@@ -110,6 +118,11 @@ function loadPostprocessConfig(repoRoot, configPath) {
       ...DEFAULT_CONFIG.llm,
       ...(fileConfig.llm || {}),
       ...(localConfig.llm || {}),
+    },
+    spaces: {
+      ...DEFAULT_CONFIG.spaces,
+      ...(fileConfig.spaces || {}),
+      ...(localConfig.spaces || {}),
     },
     profanityWords: [...new Set(configuredProfanityWords)],
   };
