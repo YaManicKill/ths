@@ -311,6 +311,9 @@ async function suggestClipsLlm({
     const score = Math.max(0, Math.min(100, Number(raw.score) || 0));
 
     candidates.push({
+      // A stable identity that survives trims, expands and re-ordering, so clip
+      // rendering can tell "this clip changed" from "this is a new clip".
+      id: crypto.randomUUID(),
       startSeconds: round3(startSeconds),
       endSeconds: round3(endSeconds),
       durationSeconds: round3(durationSeconds),

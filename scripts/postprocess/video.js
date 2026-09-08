@@ -1,6 +1,13 @@
+const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
-const { ensureDir, runCommand, runCommandStream } = require("./utils");
+const {
+  ensureDir,
+  readJson,
+  runCommand,
+  runCommandStream,
+  writeJson,
+} = require("./utils");
 const { formatClipCaptionBlock } = require("./clip-suggestions-llm");
 const {
   formatEpisodeDateForOverlay,
@@ -660,6 +667,55 @@ function clipCancelledError() {
   return error;
 }
 
+// Every Generate click sends the whole approved set, so without this each run
+// re-rendered every clip. The manifest (next to the clips) remembers what each clip
+// was rendered from; an unchanged clip is reused, a changed one replaces its old file.
+// Bump when the render pipeline itself changes (layout, fonts, encoder settings).
+const CLIP_RENDER_VERSION = 1;
+const CLIP_RENDER_MANIFEST_NAME = ".clip-renders.json";
+
+// Suggestions carry a stable id from creation; older stored sets fall back to the
+// title slug, which is stable across trims and expands too.
+function clipRenderIdentity(clipSuggestion) {
+  return clipSuggestion?.id
+    ? String(clipSuggestion.id)
+    : `slug:${buildClipSlugText(clipSuggestion).slice(0, 64)}`;
+}
+
+// Everything that shapes the rendered file. The caption is deliberately absent: it
+// only lives in captions.txt, which is rewritten on every run regardless.
+function computeClipRenderHash({
+  clipSuggestion,
+  subtitleCues,
+  imagePath,
+  hasAudio,
+  episodeTitle,
+  episodeDateString,
+  startSeconds,
+  durationSeconds,
+}) {
+  return crypto
+    .createHash("sha1")
+    .update(
+      JSON.stringify({
+        version: CLIP_RENDER_VERSION,
+        startSeconds,
+        durationSeconds,
+        title: clipSuggestion?.title || "",
+        imagePath: imagePath || "",
+        hasAudio,
+        episodeTitle: episodeTitle || "",
+        episodeDateString: episodeDateString || "",
+        cues: subtitleCues.map((cue) => [
+          cue.startSeconds,
+          cue.endSeconds,
+          cue.text,
+        ]),
+      }),
+    )
+    .digest("hex");
+}
+
 async function generateClipVideos({
   clipSuggestions,
   imagePath,
@@ -724,26 +780,75 @@ async function generateClipVideos({
     });
   };
 
+  const manifestPath = path.join(outputDir, CLIP_RENDER_MANIFEST_NAME);
+  const manifest = readJson(manifestPath, {});
+
   for (let index = 0; index < clipSuggestions.length; index += 1) {
     const clipSuggestion = clipSuggestions[index];
     const absoluteIndex = indexOffset + index;
     const durationSeconds = clipDurations[index];
     const startSeconds = Math.max(0, Number(clipSuggestion?.startSeconds || 0));
-    const outputPath = path.join(
-      outputDir,
-      buildClipVideoOutputName({ index: absoluteIndex, clipSuggestion }),
-    );
+    const fileName = buildClipVideoOutputName({
+      index: absoluteIndex,
+      clipSuggestion,
+    });
+    const outputPath = path.join(outputDir, fileName);
     const onRenderProgress = (seconds) => reportProgress(index, seconds);
 
+    const subtitleCues = sliceCuesForClip({
+      cues,
+      clipStartSeconds: startSeconds,
+      clipEndSeconds: startSeconds + durationSeconds,
+      excludedCueStarts: Array.isArray(clipSuggestion?.excludedCueStarts)
+        ? clipSuggestion.excludedCueStarts
+        : [],
+    });
+
+    const identity = clipRenderIdentity(clipSuggestion);
+    const renderHash = computeClipRenderHash({
+      clipSuggestion,
+      subtitleCues,
+      imagePath,
+      hasAudio: Boolean(mp3Path),
+      episodeTitle,
+      episodeDateString,
+      startSeconds,
+      durationSeconds,
+    });
+    const previous = manifest[identity];
+    const previousPath = previous
+      ? path.join(outputDir, previous.fileName)
+      : null;
+
+    // Nothing that reaches the frame changed: reuse the file. A bare position shift
+    // (an earlier clip was denied) is a rename, not a re-render.
+    if (
+      previous &&
+      previous.hash === renderHash &&
+      fs.existsSync(previousPath)
+    ) {
+      if (previous.fileName !== fileName) {
+        fs.renameSync(previousPath, outputPath);
+      }
+      manifest[identity] = { hash: renderHash, fileName };
+      writeJson(manifestPath, manifest);
+      outputs.push({
+        title: clipSuggestion?.title || clipSuggestion?.summary || fileName,
+        summary: clipSuggestion?.summary || clipSuggestion?.title || fileName,
+        caption: clipSuggestion?.caption || "",
+        outputPath,
+        durationSeconds,
+        startSeconds,
+        endSeconds: clipSuggestion?.endSeconds,
+        reused: true,
+      });
+      completedDurationSeconds += durationSeconds;
+      reportProgress(index + 1, 0);
+      continue;
+    }
+
     const subtitlesFile = writeClipSubtitles({
-      cues: sliceCuesForClip({
-        cues,
-        clipStartSeconds: startSeconds,
-        clipEndSeconds: startSeconds + durationSeconds,
-        excludedCueStarts: Array.isArray(clipSuggestion?.excludedCueStarts)
-          ? clipSuggestion.excludedCueStarts
-          : [],
-      }),
+      cues: subtitleCues,
       workDir,
       name: `subs-${String(absoluteIndex + 1).padStart(3, "0")}`,
     });
@@ -788,6 +893,16 @@ async function generateClipVideos({
       throw error;
     }
 
+    // The re-render replaced this clip; its previous file (old bounds, old content)
+    // would otherwise linger as an orphan, stale captions block included.
+    if (previousPath && previous.fileName !== fileName) {
+      fs.rmSync(previousPath, { force: true });
+    }
+    // Written per clip, not at the end, so a cancelled run keeps credit for the clips
+    // it did finish.
+    manifest[identity] = { hash: renderHash, fileName };
+    writeJson(manifestPath, manifest);
+
     const summary =
       clipSuggestion?.summary ||
       clipSuggestion?.title ||
@@ -800,11 +915,20 @@ async function generateClipVideos({
       durationSeconds,
       startSeconds,
       endSeconds: clipSuggestion?.endSeconds,
+      reused: false,
     });
 
     completedDurationSeconds += durationSeconds;
     reportProgress(index + 1, 0);
   }
+
+  // Entries whose file was deleted by hand carry no useful memory.
+  for (const [identity, entry] of Object.entries(manifest)) {
+    if (!fs.existsSync(path.join(outputDir, entry.fileName))) {
+      delete manifest[identity];
+    }
+  }
+  writeJson(manifestPath, manifest);
 
   writeClipCaptionsFile({ outputDir, outputs });
 

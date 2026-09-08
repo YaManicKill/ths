@@ -40,8 +40,9 @@ episode title, burned-in subtitles and a progress bar.
 - **AI clip suggestions**: up to 10 moments picked from the whole transcript, each with
   a hook title, reason, and a paste-ready caption (the show hashtags are always
   included). Heuristic suggestions are the fallback without a key; **Suggest More
-  Clips** adds new moments the existing picks don't cover. Rendering clips also writes
-  a `captions.txt` next to them, merged across generation batches.
+  Clips** adds new moments the existing picks don't cover. Rendering is incremental:
+  clips whose content hasn't changed since their last render are reused, changed ones
+  replace their old file, and `captions.txt` is merged to match.
 - **Clip cards** have audio preview, approve/deny, a waveform trim for the clip's
   start/end, an AI **Expand** that re-bounds the clip to its whole conversation, and an
   inline transcript editor whose edits land in both episode transcripts (approving a

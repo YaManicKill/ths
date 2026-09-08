@@ -63,25 +63,27 @@ fs.writeFileSync(
   "clip-old-keeper.mp4\nAn older clip's caption\n\nclip-gone.mp4\nOrphaned caption\n",
 );
 
-generateClipVideos({
-  clipSuggestions: [
-    // Unequal durations, so count-based percent (50 after clip one) and time-based
-    // percent (25 after clip one) disagree and the test can tell them apart.
-    {
-      title: "One",
-      summary: "First clip",
-      caption: "You will not believe this one 🐝 #podcast",
-      startSeconds: 0,
-      durationSeconds: 2,
-    },
-    // No caption: the captions file must fall back to the summary.
-    {
-      title: "Two",
-      summary: "Second clip",
-      startSeconds: 3,
-      durationSeconds: 6,
-    },
-  ],
+const clipSuggestions = [
+  // Unequal durations, so count-based percent (50 after clip one) and time-based
+  // percent (25 after clip one) disagree and the test can tell them apart.
+  {
+    id: "clip-one",
+    title: "One",
+    summary: "First clip",
+    caption: "You will not believe this one 🐝 #podcast",
+    startSeconds: 0,
+    durationSeconds: 2,
+  },
+  // No caption: the captions file must fall back to the summary.
+  {
+    id: "clip-two",
+    title: "Two",
+    summary: "Second clip",
+    startSeconds: 3,
+    durationSeconds: 6,
+  },
+];
+const renderOptions = {
   imagePath,
   mp3Path,
   outputDir: path.join(base, "out"),
@@ -103,8 +105,10 @@ generateClipVideos({
     "Chelsea: Subtitle in the second clip.",
   ].join("\n"),
   onProgress: (progress) => progressEvents.push(progress),
-})
-  .then((outputs) => {
+};
+
+generateClipVideos({ clipSuggestions, ...renderOptions })
+  .then(async (outputs) => {
     assert.equal(outputs.length, 2);
     for (const output of outputs) {
       const stat = fs.statSync(output.outputPath);
@@ -112,6 +116,7 @@ generateClipVideos({
         stat.size > 10_000,
         `${output.outputPath} looks empty (${stat.size} bytes)`,
       );
+      assert.equal(output.reused, false);
     }
 
     // Paste-ready captions land next to the clips: the AI caption when there is one,
@@ -195,6 +200,59 @@ generateClipVideos({
         "percent went backwards",
       );
     }
+
+    // A second run with unchanged clips reuses every file instead of re-rendering.
+    const firstRunMtimes = outputs.map(
+      (output) => fs.statSync(output.outputPath).mtimeMs,
+    );
+    const rerun = await generateClipVideos({
+      clipSuggestions,
+      ...renderOptions,
+    });
+    assert.deepEqual(
+      rerun.map((output) => output.reused),
+      [true, true],
+      "unchanged clips must be reused",
+    );
+    rerun.forEach((output, index) => {
+      assert.equal(
+        fs.statSync(output.outputPath).mtimeMs,
+        firstRunMtimes[index],
+        "a reused clip must not be re-rendered",
+      );
+    });
+
+    // A changed clip (expanded bounds -> new filename) re-renders and replaces its
+    // old file; the unchanged one is still reused.
+    const expanded = [
+      clipSuggestions[0],
+      { ...clipSuggestions[1], startSeconds: 2, durationSeconds: 7 },
+    ];
+    const third = await generateClipVideos({
+      clipSuggestions: expanded,
+      ...renderOptions,
+    });
+    assert.deepEqual(
+      third.map((output) => output.reused),
+      [true, false],
+    );
+    assert.notEqual(third[1].outputPath, rerun[1].outputPath);
+    assert.ok(
+      !fs.existsSync(rerun[1].outputPath),
+      "the superseded clip file must be deleted",
+    );
+    const mergedCaptions = fs.readFileSync(
+      path.join(base, "out", "captions.txt"),
+      "utf8",
+    );
+    assert.ok(
+      !mergedCaptions.includes(path.basename(rerun[1].outputPath)),
+      "the superseded clip's captions block must be pruned",
+    );
+    assert.ok(
+      mergedCaptions.includes(path.basename(third[1].outputPath)),
+      "the replacement clip's captions block is missing",
+    );
 
     fs.rmSync(base, { recursive: true, force: true });
     console.log("video label test passed", {
