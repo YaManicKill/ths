@@ -24,8 +24,9 @@ is touched until you press **Approve**.
 | `--new-season`                 | Force the next season, episode 01, instead of incrementing the episode number.                                                                                |
 | `--episode-number <EE\|SS-EE>` | Target a specific episode and infer its publish date from that position in the sequence. `5` keeps the inferred season; `12-05` sets both season and episode. |
 
-Pressing Approve creates the `ep-SS-EE` branch, generates `index.md` and the transcripts
-(with AI fixes applied — see below), embeds chapter images into the MP3 (keeping a
+Pressing Approve creates the `ep-SS-EE` branch, generates `index.md`, the transcripts
+(with AI fixes applied — see below) and a podcast-namespace `chapters.json` (advertised
+from the feed as `<podcast:chapters>`), embeds chapter images into the MP3 (keeping a
 `.bak`), and renders the full-episode MP4. Clip videos are generated separately from the
 suggestion cards; they use the show logo rather than chapter images, and carry the
 episode title, burned-in subtitles and a progress bar.

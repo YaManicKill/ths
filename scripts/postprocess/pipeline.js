@@ -1017,6 +1017,19 @@ async function runPipeline(inputOptions = {}) {
 
   fs.writeFileSync(path.join(episodeDir, "index.md"), indexMarkdown, "utf8");
 
+  // Podcast-namespace chapter markers: committed with the episode bundle, published
+  // by Hugo at the episode's URL, and advertised from the feed via <podcast:chapters>.
+  // Hidden chapters ride along with toc: false - mirroring the MP3's CHAP/CTOC split,
+  // they are absent from the chapter list but still mark the segment during playback.
+  writeJson(path.join(episodeDir, "chapters.json"), {
+    version: "1.2.0",
+    chapters: chaptersWithImages.map((chapter) => ({
+      startTime: Math.round(chapter.startSeconds * 1000) / 1000,
+      title: chapter.title,
+      ...(chapter.toc === false ? { toc: false } : {}),
+    })),
+  });
+
   // Content is on disk: the episode is "generated". The MP4 render is a job on top of
   // that phase, not a phase of its own - re-renders and clip runs happen here too.
   await episodeState.updateState(episodeDir, (state) => ({
