@@ -5,9 +5,6 @@ const processActionsSection = document.getElementById(
 );
 const restartProcessButton = document.getElementById("restart-process-button");
 const rerenderMp4Button = document.getElementById("rerender-mp4-button");
-const regenerateClipsButton = document.getElementById(
-  "regenerate-clips-button",
-);
 const previewSection = document.getElementById("image-preview-section");
 const chaptersGrid = document.getElementById("chapters-grid");
 const approveButton = document.getElementById("approve-button");
@@ -50,6 +47,9 @@ const socialPostsButton = document.getElementById("social-posts-button");
 const generateClipVideosButton = document.getElementById(
   "generate-clip-videos-button",
 );
+const moreClipSuggestionsButton = document.getElementById(
+  "more-clip-suggestions-button",
+);
 
 let currentDiscoveryData = null;
 let currentRunResult = null;
@@ -66,6 +66,9 @@ let isVideoRenderInProgress = false;
 // response even though the clip section stays visible.
 let isRunRequestInFlight = false;
 let isVideoRenderCompleted = false;
+// Mirrors the stored phase: true once the episode's files exist on disk. Gates the
+// publish buttons and the transcript-fixes section, which act on those files.
+let isEpisodeGenerated = false;
 let chapterImageOverrides = {}; // Track uploaded replacement images by chapter index
 let currentTranscriptFindings = [];
 let shownotesLinks = [];
@@ -130,11 +133,15 @@ function setVideoRenderCompletedUiState(completed) {
   generateClipVideosButton.style.display = "none";
   rerenderMp4Button.disabled = false;
   restartProcessButton.disabled = false;
-  regenerateClipsButton.disabled = false;
 }
 
 function setProcessActionsVisibility() {
   processActionsSection.style.display = currentDiscoveryData ? "block" : "none";
+  // YouTube description and social posts read the generated index.md; before the
+  // episode exists they can only error.
+  const publishDisplay = isEpisodeGenerated ? "inline-block" : "none";
+  youtubeDescriptionButton.style.display = publishDisplay;
+  socialPostsButton.style.display = publishDisplay;
 }
 
 function getDiscoverySnapshot() {
@@ -802,12 +809,17 @@ function renderTranscriptReview(review) {
 function renderTranscriptFixSection() {
   transcriptReviewList.innerHTML = "";
 
+  // Once the episode is generated the section stays up even with nothing pending, so
+  // the re-check button has a home after hand edits.
+  transcriptReviewSection.style.display =
+    currentTranscriptFindings.length > 0 || isEpisodeGenerated
+      ? "block"
+      : "none";
+  applyTranscriptFixesButton.style.display =
+    currentTranscriptFindings.length > 0 ? "inline-block" : "none";
   if (currentTranscriptFindings.length === 0) {
-    transcriptReviewSection.style.display = "none";
     return;
   }
-
-  transcriptReviewSection.style.display = "block";
 
   currentTranscriptFindings.forEach((finding) => {
     const row = document.createElement("div");
@@ -1483,16 +1495,21 @@ function renderClipCueEditor(container, suggestion, { cues, editable }) {
   const originals = cues.map((cue) => cue.speech);
   const inputs = [];
   // Excluded rows are skipped: they are clip-local cuts, not transcript edits.
-  clipEditorDirtyChecks.add(
-    () =>
-      inputs.filter(
-        (input, index) =>
-          !input.disabled &&
-          !isExcluded(cues[index]) &&
-          input.value.trim() !== "" &&
-          input.value.trim() !== originals[index].trim(),
-      ).length,
-  );
+  const dirtyCheck = () =>
+    inputs.filter(
+      (input, index) =>
+        !input.disabled &&
+        !isExcluded(cues[index]) &&
+        input.value.trim() !== "" &&
+        input.value.trim() !== originals[index].trim(),
+    ).length;
+  clipEditorDirtyChecks.add(dirtyCheck);
+  // The card's Approve button and the Expand replacement need handles on the editor:
+  // container is the details' body div, so the details element hosts them.
+  const detailsHost = container.parentElement;
+  if (detailsHost) {
+    detailsHost.clipEditorDirtyCheck = dirtyCheck;
+  }
 
   cues.forEach((cue) => {
     const row = document.createElement("div");
@@ -1558,7 +1575,9 @@ function renderClipCueEditor(container, suggestion, { cues, editable }) {
   saveButton.type = "button";
   saveButton.textContent = "Save Transcript Edits";
   saveButton.style.marginTop = "6px";
-  saveButton.addEventListener("click", async () => {
+  // Also invoked (quietly) by the card's Approve button, so approving a clip never
+  // leaves edits unsaved.
+  const saveEdits = async ({ quiet = false } = {}) => {
     const fixes = [];
     let emptiedRows = 0;
     inputs.forEach((input, index) => {
@@ -1583,7 +1602,7 @@ function renderClipCueEditor(container, suggestion, { cues, editable }) {
       );
     }
     if (!fixes.length) {
-      if (!emptiedRows) {
+      if (!emptiedRows && !quiet) {
         addStatus("No transcript edits to save.");
       }
       return;
@@ -1625,7 +1644,11 @@ function renderClipCueEditor(container, suggestion, { cues, editable }) {
     } finally {
       saveButton.disabled = false;
     }
-  });
+  };
+  saveButton.addEventListener("click", () => saveEdits());
+  if (detailsHost) {
+    detailsHost.clipEditorSaveEdits = saveEdits;
+  }
   container.appendChild(saveButton);
 }
 
@@ -1725,16 +1748,20 @@ function renderClipSuggestions(suggestions) {
       card.appendChild(why);
     }
 
+    let trimEditor = null;
+    let transcriptEditor = null;
     if (
       typeof suggestion.startSeconds === "number" &&
       typeof suggestion.endSeconds === "number"
     ) {
-      card.appendChild(buildClipTrimEditor(suggestion, updateMeta));
-      card.appendChild(buildClipTranscriptEditor(suggestion));
+      trimEditor = buildClipTrimEditor(suggestion, updateMeta);
+      transcriptEditor = buildClipTranscriptEditor(suggestion);
+      card.appendChild(trimEditor);
+      card.appendChild(transcriptEditor);
     }
 
     const controls = document.createElement("div");
-    controls.style.cssText = "display:flex; gap:8px;";
+    controls.style.cssText = "display:flex; gap:8px; flex-wrap:wrap;";
 
     const previewButton = document.createElement("button");
     previewButton.type = "button";
@@ -1760,6 +1787,75 @@ function renderClipSuggestions(suggestions) {
       playClipPreview(suggestion, endingButton, { lastSeconds: 5 });
     });
     controls.appendChild(endingButton);
+
+    // The trim strip covers seconds; this covers minutes - the AI re-bounds the clip
+    // to the whole conversation it sits in, then both editors reload for the new
+    // window (their old cues and waveform belong to the old bounds).
+    if (trimEditor) {
+      const expandButton = document.createElement("button");
+      expandButton.type = "button";
+      expandButton.textContent = "⤢ Expand";
+      expandButton.title =
+        "Ask the AI to widen this clip to cover the whole conversation";
+      expandButton.style.cssText = previewButton.style.cssText;
+      expandButton.addEventListener("click", async () => {
+        expandButton.disabled = true;
+        expandButton.textContent = "Expanding...";
+        try {
+          const response = await fetch("/api/expand-clip", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              mp3Path: buildDiscoverPayload().mp3Path,
+              discoveryData: currentDiscoveryData?.discoveryData,
+              clip: {
+                startSeconds: suggestion.startSeconds,
+                endSeconds: suggestion.endSeconds,
+                title: suggestion.title || suggestion.summary || "",
+              },
+            }),
+          });
+          const body = await response.json();
+          if (!response.ok || !body.success) {
+            throw new Error(body.error || "Expand request failed");
+          }
+          if (body.durationSeconds === suggestion.durationSeconds) {
+            addStatus(
+              "ℹ The AI thinks this clip already covers the whole conversation.",
+            );
+            return;
+          }
+
+          suggestion.startSeconds = body.startSeconds;
+          suggestion.endSeconds = body.endSeconds;
+          suggestion.durationSeconds = body.durationSeconds;
+          suggestion.timestampLabel = body.timestampLabel;
+          updateMeta();
+
+          const nextTrim = buildClipTrimEditor(suggestion, updateMeta);
+          card.replaceChild(nextTrim, trimEditor);
+          trimEditor = nextTrim;
+          if (transcriptEditor) {
+            clipEditorDirtyChecks.delete(transcriptEditor.clipEditorDirtyCheck);
+            const nextTranscript = buildClipTranscriptEditor(suggestion);
+            card.replaceChild(nextTranscript, transcriptEditor);
+            transcriptEditor = nextTranscript;
+          }
+          scheduleClipCurationSave();
+          addStatus(
+            `✓ Clip expanded to ${Math.round(body.durationSeconds)}s (${body.timestampLabel})`,
+          );
+        } catch (error) {
+          addStatus(`❌ Expand failed: ${error.message}`);
+        } finally {
+          expandButton.disabled = false;
+          expandButton.textContent = "⤢ Expand";
+        }
+      });
+      controls.appendChild(expandButton);
+    }
 
     const approveButton = document.createElement("button");
     approveButton.type = "button";
@@ -1791,7 +1887,18 @@ function renderClipSuggestions(suggestions) {
     };
     refreshDecision();
 
-    approveButton.addEventListener("click", () => {
+    approveButton.addEventListener("click", async () => {
+      // Approving a clip means "done reviewing it": unsaved transcript edits are
+      // saved, and the open trim/transcript panels fold away.
+      if (transcriptEditor?.clipEditorSaveEdits) {
+        await transcriptEditor.clipEditorSaveEdits({ quiet: true });
+      }
+      if (trimEditor) {
+        trimEditor.open = false;
+      }
+      if (transcriptEditor) {
+        transcriptEditor.open = false;
+      }
       clipApprovalState[index] = true;
       refreshDecision();
       updateClipSuggestionsSummary();
@@ -2016,7 +2123,9 @@ async function runDiscovery() {
     currentDiscoveryData = {
       discoveryData: result.discoveryData,
     };
+    isEpisodeGenerated = result.discovered?.phase === "generated";
     setProcessActionsVisibility();
+    renderTranscriptFixSection();
     currentRunResult = null;
 
     const mp4RenderStatus = String(
@@ -2615,6 +2724,8 @@ restartProcessButton.addEventListener("click", async () => {
   currentTranscriptFindings = [];
   mediumFixAccepted = {};
   shownotesLinks = [];
+  isEpisodeGenerated = false;
+  setProcessActionsVisibility();
   renderTranscriptFixSection();
   persistActiveVideoEpisodeDir("");
   persistActiveClipEpisodeDir("");
@@ -2668,14 +2779,25 @@ rerenderMp4Button.addEventListener("click", async () => {
   }
 });
 
-regenerateClipsButton.addEventListener("click", async () => {
+moreClipSuggestionsButton.addEventListener("click", async () => {
   if (!currentDiscoveryData?.discoveryData) {
     addStatus("Run discovery first.");
     return;
   }
+  // Appending re-renders every card, which would destroy open editors' unsaved edits.
+  const unsavedEdits = [...clipEditorDirtyChecks].reduce(
+    (sum, check) => sum + check(),
+    0,
+  );
+  if (unsavedEdits > 0) {
+    addStatus(
+      `⚠ ${unsavedEdits} unsaved transcript edit(s) - press "Save Transcript Edits" on the open card(s) first.`,
+    );
+    return;
+  }
 
-  regenerateClipsButton.disabled = true;
-  const stopSpinner = startStatusSpinner("Regenerating clip suggestions...");
+  moreClipSuggestionsButton.disabled = true;
+  const stopSpinner = startStatusSpinner("Asking the AI for more clips...");
   try {
     const response = await fetch("/api/clip-suggestions", {
       method: "POST",
@@ -2685,33 +2807,27 @@ regenerateClipsButton.addEventListener("click", async () => {
       body: JSON.stringify({
         mp3Path: buildDiscoverPayload().mp3Path,
         discoveryData: currentDiscoveryData.discoveryData,
+        existingClipSuggestions: currentClipSuggestions,
       }),
     });
     const result = await response.json();
     if (!response.ok || !result.success) {
-      throw new Error(result.error || "Failed to regenerate clip suggestions");
+      throw new Error(result.error || "Failed to get more clip suggestions");
     }
 
-    stopSpinner("✓ Clip suggestions regenerated");
-    if (result.warning) {
-      addStatus(
-        `⚠ AI clip selection unavailable (${result.warning}) — showing heuristic suggestions`,
-      );
+    if (!result.added) {
+      stopSpinner("ℹ No new distinct moments found beyond the existing clips");
+      return;
     }
-    // Fresh suggestions get fresh approvals; carrying old ones over by index would
-    // approve different clips than the ones the user looked at.
-    clipApprovalState = [];
-    renderClipSuggestions(result.clipSuggestions || []);
-    addStatus(
-      result.source === "llm"
-        ? "✓ AI clip suggestions ready for review."
-        : "✓ Heuristic clip suggestions ready for review.",
-    );
+    stopSpinner(`✓ ${result.added} new clip suggestion(s) added`);
+    // Existing approvals keep their positions; the new clips arrive undecided.
+    renderClipSuggestions(result.clipSuggestions || currentClipSuggestions);
+    scheduleClipCurationSave();
   } catch (error) {
     stopSpinner();
-    addStatus(`❌ Failed to regenerate clip suggestions: ${error.message}`);
+    addStatus(`❌ More suggestions failed: ${error.message}`);
   } finally {
-    regenerateClipsButton.disabled = false;
+    moreClipSuggestionsButton.disabled = false;
   }
 });
 
@@ -3094,6 +3210,9 @@ approveButton.addEventListener("click", async () => {
         addStatus(`✓ ${verb} branch: ${result.gitBranch.name}`);
       }
       addStatus("✓ Episode files written");
+      isEpisodeGenerated = true;
+      setProcessActionsVisibility();
+      renderTranscriptFixSection();
       if (result.mp3ChapterImages && result.mp3ChapterImages.completed) {
         addStatus(
           `✓ MP3 chapter images embedded (${result.mp3ChapterImages.chaptersEmbedded} chapters)`,

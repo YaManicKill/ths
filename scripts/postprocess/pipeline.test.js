@@ -325,6 +325,26 @@ async function main() {
     "shownotes links were not carried through the re-run",
   );
 
+  // Reopening a generated episode skips the review-phase lookups: no audio QC decode,
+  // no Steam requests.
+  const reopenProgress = [];
+  const reopened = await discoverEpisodeData({
+    repoRoot: runRoot,
+    mp3Path: runMp3,
+    transcriptMdPath: fixture.transcriptMdPath,
+    transcriptVttPath: fixture.transcriptVttPath,
+    onProgress: (message) => reopenProgress.push(message),
+  });
+  assert.ok(
+    reopenProgress.some((message) => /already generated/.test(message)),
+    "reopen must announce the skipped lookups",
+  );
+  assert.equal(reopened.audioQc.enabled, false, "audio QC must be skipped");
+  assert.ok(
+    !reopenProgress.some((message) => /Steam links|audio levels/.test(message)),
+    "review-phase lookups must not run on a generated episode",
+  );
+
   fs.rmSync(repoRoot, { recursive: true, force: true });
   fs.rmSync(runRoot, { recursive: true, force: true });
   console.log("pipeline test passed", { survivors: survivors.length });

@@ -29,16 +29,16 @@
             Clear & Restart Process
           </button>
           <button type="button" id="rerender-mp4-button">Re-render MP4</button>
-          <button type="button" id="regenerate-clips-button">
-            Re-generate Clip Suggestions
-          </button>
-          <button type="button" id="recheck-transcript-button">
-            Re-run Transcript Check
-          </button>
-          <button type="button" id="youtube-description-button">
+          <button
+            type="button"
+            id="youtube-description-button"
+            style="display: none"
+          >
             YouTube Description
           </button>
-          <button type="button" id="social-posts-button">Social Posts</button>
+          <button type="button" id="social-posts-button" style="display: none">
+            Social Posts
+          </button>
           <button
             type="button"
             id="cancel-clips-button"
@@ -108,6 +108,13 @@
         <div id="transcript-review-list"></div>
         <button
           type="button"
+          id="recheck-transcript-button"
+          style="margin-top: 12px"
+        >
+          Re-run Transcript Check
+        </button>
+        <button
+          type="button"
           id="apply-transcript-fixes-button"
           style="margin-top: 12px"
         >
@@ -154,6 +161,14 @@
             start when it finishes.
           </div>
           <div id="clip-suggestions-list" style="margin-top: 12px"></div>
+          <button
+            type="button"
+            id="more-clip-suggestions-button"
+            style="margin-top: 16px"
+            title="Ask the AI for new moments not covered by the clips above"
+          >
+            Suggest More Clips
+          </button>
           <button
             id="generate-clip-videos-button"
             style="margin-top: 16px; padding: 10px 20px; font-size: 1em"

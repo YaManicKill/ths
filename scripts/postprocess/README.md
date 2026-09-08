@@ -39,11 +39,14 @@ episode title, burned-in subtitles and a progress bar.
   **Re-run Transcript Check** re-reviews the written transcripts after hand edits.
 - **AI clip suggestions**: up to 10 moments picked from the whole transcript, each with
   a hook title, reason, and a paste-ready caption (the show hashtags are always
-  included). Heuristic suggestions are the fallback without a key. Rendering clips also
-  writes a `captions.txt` next to them.
+  included). Heuristic suggestions are the fallback without a key; **Suggest More
+  Clips** adds new moments the existing picks don't cover. Rendering clips also writes
+  a `captions.txt` next to them, merged across generation batches.
 - **Clip cards** have audio preview, approve/deny, a waveform trim for the clip's
-  start/end, and an inline transcript editor whose edits land in both episode
-  transcripts. Generation queues behind an active MP4 render and can be cancelled.
+  start/end, an AI **Expand** that re-bounds the clip to its whole conversation, and an
+  inline transcript editor whose edits land in both episode transcripts (approving a
+  clip saves them and folds the panels). Generation queues behind an active MP4 render
+  and can be cancelled.
 - **Shownotes links**: editable, reorderable rows that become index.md's `## Links`
   section — seeded from the auto-resolved Steam links plus the chapter before Outro
   (the main topic; delete the row when it isn't a game). Pasting a URL fetches the

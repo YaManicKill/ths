@@ -503,36 +503,63 @@ async function discoverEpisodeData(inputOptions = {}) {
     mainTopic,
   });
 
-  onProgress("Looking up exact Steam links...");
-  const hiddenLinks = await resolveHiddenChapterLinks(chapters);
-  const hiddenLinkTitles = hiddenLinks.map((link) => link.title);
-
-  // The chapter before Outro is almost always the main topic, and the main topic is
-  // almost always a game - so it gets a prefilled shownotes row too, deleted in the UI
-  // on the weeks it is not.
-  const shownotesLinkSeeds = [...hiddenLinks];
-  const outroIndex = chapters.findIndex(
-    (chapter) => normalizeTitle(chapter.title) === "outro",
+  // Reopening a finished episode used to re-run every review-phase lookup below; the
+  // stored phase makes them skippable - none of their outputs are shown once the
+  // episode is generated, and the audio QC alone re-decodes the whole MP3.
+  const episodeDir = path.join(
+    repoRoot,
+    config.outputRoot,
+    `year${seasonInfo.year}`,
+    seasonInfo.folder,
+    `${episodeMeta.seasonCode}-${episodeMeta.episodeCode}-${slugify(episodeTitle)}`,
   );
-  const mainTopicChapter = outroIndex > 0 ? chapters[outroIndex - 1] : null;
-  if (
-    mainTopicChapter &&
-    !hiddenLinks.some(
-      (link) =>
-        normalizeTitle(link.title) === normalizeTitle(mainTopicChapter.title),
-    )
-  ) {
-    let mainTopicUrl = null;
-    try {
-      mainTopicUrl = await findExactSteamStoreUrl(mainTopicChapter.title);
-    } catch {
-      // No Steam page is fine; the row still seeds with just the title.
-    }
-    shownotesLinkSeeds.push({
-      title: mainTopicChapter.title,
-      url: mainTopicUrl,
-    });
+  const alreadyGenerated =
+    (await episodeState.readState(episodeDir))?.phase === "generated";
+  if (alreadyGenerated) {
+    onProgress(
+      "Episode already generated - skipping Steam link lookups and audio QC",
+    );
   }
+
+  let hiddenLinks;
+  let shownotesLinkSeeds;
+  if (alreadyGenerated) {
+    hiddenLinks = chapters
+      .filter((chapter) => chapter.toc === false)
+      .map((chapter) => ({ title: chapter.title, url: null }));
+    shownotesLinkSeeds = [...hiddenLinks];
+  } else {
+    onProgress("Looking up exact Steam links...");
+    hiddenLinks = await resolveHiddenChapterLinks(chapters);
+
+    // The chapter before Outro is almost always the main topic, and the main topic is
+    // almost always a game - so it gets a prefilled shownotes row too, deleted in the
+    // UI on the weeks it is not.
+    shownotesLinkSeeds = [...hiddenLinks];
+    const outroIndex = chapters.findIndex(
+      (chapter) => normalizeTitle(chapter.title) === "outro",
+    );
+    const mainTopicChapter = outroIndex > 0 ? chapters[outroIndex - 1] : null;
+    if (
+      mainTopicChapter &&
+      !hiddenLinks.some(
+        (link) =>
+          normalizeTitle(link.title) === normalizeTitle(mainTopicChapter.title),
+      )
+    ) {
+      let mainTopicUrl = null;
+      try {
+        mainTopicUrl = await findExactSteamStoreUrl(mainTopicChapter.title);
+      } catch {
+        // No Steam page is fine; the row still seeds with just the title.
+      }
+      shownotesLinkSeeds.push({
+        title: mainTopicChapter.title,
+        url: mainTopicUrl,
+      });
+    }
+  }
+  const hiddenLinkTitles = hiddenLinks.map((link) => link.title);
 
   const stat = fs.statSync(inputOptions.mp3Path);
   const podcastBytes = stat.size;
@@ -580,27 +607,31 @@ async function discoverEpisodeData(inputOptions = {}) {
   };
 
   // Warning-only, like the profanity check. The first pass decodes the whole episode
-  // (~a minute for a long one); after that it is cached until the MP3 changes.
+  // (~a minute for a long one); after that it is cached until the MP3 changes - and
+  // the image embed changes it, so a reopen of a generated episode skips it entirely
+  // rather than paying the full decode for warnings nobody is reviewing any more.
   let audioQc = { enabled: false, warnings: [] };
-  try {
-    onProgress("Analyzing audio levels (first pass takes about a minute)...");
-    const analysis = await analyzeAudioCached({
-      cacheDir: path.join(workRoot, "audio-qc"),
-      mp3Path: inputOptions.mp3Path,
-    });
-    audioQc = {
-      enabled: true,
-      ...analysis,
-      warnings: buildAudioQcWarnings(analysis),
-    };
-    onProgress(
-      analysis.fromCache
-        ? "Audio QC: using cached analysis for this MP3"
-        : `Audio QC: ${audioQc.warnings.length} warning(s)`,
-    );
-  } catch (error) {
-    audioQc = { enabled: true, error: error.message, warnings: [] };
-    onProgress(`Warning: audio QC failed: ${error.message}`);
+  if (!alreadyGenerated) {
+    try {
+      onProgress("Analyzing audio levels (first pass takes about a minute)...");
+      const analysis = await analyzeAudioCached({
+        cacheDir: path.join(workRoot, "audio-qc"),
+        mp3Path: inputOptions.mp3Path,
+      });
+      audioQc = {
+        enabled: true,
+        ...analysis,
+        warnings: buildAudioQcWarnings(analysis),
+      };
+      onProgress(
+        analysis.fromCache
+          ? "Audio QC: using cached analysis for this MP3"
+          : `Audio QC: ${audioQc.warnings.length} warning(s)`,
+      );
+    } catch (error) {
+      audioQc = { enabled: true, error: error.message, warnings: [] };
+      onProgress(`Warning: audio QC failed: ${error.message}`);
+    }
   }
 
   const clipSuggestions = buildClipSuggestions({

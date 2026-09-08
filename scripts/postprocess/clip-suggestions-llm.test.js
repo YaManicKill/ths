@@ -5,6 +5,7 @@ const path = require("node:path");
 const {
   buildCueSearchIndex,
   ensureRequiredHashtags,
+  expandClipLlm,
   formatClipCaptionBlock,
   locateClipInCues,
   suggestClipsLlm,
@@ -172,6 +173,104 @@ async function main() {
     ].join("\n"),
   );
 
+  // "More suggestions": existing clips go into the prompt as off-limits, and any pick
+  // overlapping them is dropped even if the model returns one anyway.
+  const moreResult = await suggestClipsLlm({
+    transcriptMdText,
+    transcriptVttText,
+    llm: LLM,
+    avoidClips: [
+      {
+        startSeconds: 10,
+        endSeconds: 35,
+        timestampLabel: "00:00:10-00:00:35",
+        title: "A chicken standing on a cow",
+      },
+    ],
+    complete: async ({ prompt }) => {
+      assert.ok(
+        prompt.includes("ALREADY covered"),
+        "avoid instruction missing from prompt",
+      );
+      assert.ok(
+        prompt.includes("A chicken standing on a cow"),
+        "existing clip missing from avoid list",
+      );
+      return {
+        clips: [
+          // Overlaps the avoided range, so it must be dropped post-location.
+          {
+            openingQuote:
+              "So the wildest thing happened when I opened the barn door",
+            closingQuote: "the cow did not care at all",
+            title: "Overlaps existing",
+            category: "funny moment",
+            reason: "overlap",
+            score: 95,
+          },
+          {
+            openingQuote: "That is the most farming podcast sentence",
+            closingQuote: "Anyway, moving on to the news",
+            title: "Fresh moment",
+            category: "funny moment",
+            reason: "new",
+            score: 70,
+          },
+        ],
+      };
+    },
+  });
+  assert.equal(moreResult.suggestions.length, 1);
+  assert.equal(moreResult.suggestions[0].title, "Fresh moment");
+
+  // Expand: the model's wider quotes become new bounds that must contain the original
+  // clip; a shrinking answer is clamped back out to the original edges.
+  const expanded = await expandClipLlm({
+    transcriptVttText,
+    clip: { startSeconds: 20, endSeconds: 35, title: "Cow does not care" },
+    llm: LLM,
+    complete: async ({ prompt }) => {
+      assert.ok(
+        prompt.includes("There was a chicken standing on the cow"),
+        "clip text missing from expand prompt",
+      );
+      return {
+        openingQuote:
+          "So the wildest thing happened when I opened the barn door",
+        closingQuote: "most farming podcast sentence you have ever said",
+      };
+    },
+  });
+  assert.equal(expanded.startSeconds, 10);
+  assert.equal(expanded.endSeconds, 50);
+  assert.equal(expanded.durationSeconds, 40);
+  assert.equal(expanded.timestampLabel, "00:00:10-00:00:50");
+
+  const clamped = await expandClipLlm({
+    transcriptVttText,
+    clip: { startSeconds: 10, endSeconds: 55, title: "Whole chat" },
+    llm: LLM,
+    complete: async () => ({
+      openingQuote: "There was a chicken standing on the cow",
+      closingQuote: "the cow did not care at all",
+    }),
+  });
+  assert.equal(clamped.startSeconds, 10, "expand must never shrink the start");
+  assert.equal(clamped.endSeconds, 55, "expand must never shrink the end");
+
+  await assert.rejects(
+    expandClipLlm({
+      transcriptVttText,
+      clip: { startSeconds: 20, endSeconds: 35, title: "Bad quotes" },
+      llm: LLM,
+      complete: async () => ({
+        openingQuote: "not words from this episode at all",
+        closingQuote: "definitely hallucinated text",
+      }),
+    }),
+    /Could not locate/,
+  );
+
   // Cache: unchanged transcript is a hit, edited transcript re-runs.
   const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "ths-clips-"));
   let calls = 0;
@@ -218,6 +317,28 @@ async function main() {
     complete: fakeComplete,
   });
   assert.equal(calls, 3, "edited vtt must re-run");
+
+  // A different avoid set is a different request; repeating it is a hit.
+  const avoidClips = [{ startSeconds: 10, endSeconds: 35 }];
+  await suggestClipsLlmCached({
+    cacheDir,
+    transcriptMdText,
+    transcriptVttText,
+    llm: LLM,
+    avoidClips,
+    complete: fakeComplete,
+  });
+  assert.equal(calls, 4, "an avoid set must not reuse the base cache entry");
+  const avoidAgain = await suggestClipsLlmCached({
+    cacheDir,
+    transcriptMdText,
+    transcriptVttText,
+    llm: LLM,
+    avoidClips,
+    complete: fakeComplete,
+  });
+  assert.equal(avoidAgain.fromCache, true);
+  assert.equal(calls, 4);
 
   fs.rmSync(cacheDir, { recursive: true, force: true });
   console.log("clip-suggestions-llm test passed");

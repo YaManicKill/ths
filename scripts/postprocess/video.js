@@ -813,21 +813,35 @@ async function generateClipVideos({
 
 // One paste-ready caption per rendered clip, next to the clips themselves. AI picks
 // carry a caption from the model; heuristic picks fall back to their summary so the
-// file is complete either way. Rewritten per generation run.
+// file is complete either way. Clips are generated in batches, so the file merges:
+// this run's blocks replace their filename's old block, other clips' blocks survive,
+// and blocks whose clip file no longer exists are dropped.
 function writeClipCaptionsFile({ outputDir, outputs }) {
-  const blocks = outputs
-    .map((output) => {
-      const caption = output.caption || output.summary || output.title;
-      return caption
-        ? `${path.basename(output.outputPath)}\n${formatClipCaptionBlock(caption)}\n`
-        : null;
-    })
-    .filter(Boolean);
+  const captionsPath = path.join(outputDir, "captions.txt");
+  const blocks = new Map();
 
-  if (blocks.length === 0) {
+  if (fs.existsSync(captionsPath)) {
+    for (const raw of fs.readFileSync(captionsPath, "utf8").split(/\n{2,}/)) {
+      const block = raw.trim();
+      const fileName = block.split("\n")[0]?.trim();
+      if (block && fileName && fs.existsSync(path.join(outputDir, fileName))) {
+        blocks.set(fileName, `${block}\n`);
+      }
+    }
+  }
+
+  for (const output of outputs) {
+    const caption = output.caption || output.summary || output.title;
+    if (caption) {
+      const fileName = path.basename(output.outputPath);
+      blocks.set(fileName, `${fileName}\n${formatClipCaptionBlock(caption)}\n`);
+    }
+  }
+
+  if (blocks.size === 0) {
     return;
   }
-  fs.writeFileSync(path.join(outputDir, "captions.txt"), blocks.join("\n"));
+  fs.writeFileSync(captionsPath, [...blocks.values()].join("\n"));
 }
 
 module.exports = {

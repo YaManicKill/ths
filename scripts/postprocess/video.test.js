@@ -52,6 +52,17 @@ for (const args of [
 
 const progressEvents = [];
 
+// captions.txt merges across generation batches: a block whose clip file still exists
+// survives a later run, one whose clip was deleted is pruned. Seeded here, asserted
+// after the render.
+const outDir = path.join(base, "out");
+fs.mkdirSync(outDir, { recursive: true });
+fs.writeFileSync(path.join(outDir, "clip-old-keeper.mp4"), "x");
+fs.writeFileSync(
+  path.join(outDir, "captions.txt"),
+  "clip-old-keeper.mp4\nAn older clip's caption\n\nclip-gone.mp4\nOrphaned caption\n",
+);
+
 generateClipVideos({
   clipSuggestions: [
     // Unequal durations, so count-based percent (50 after clip one) and time-based
@@ -122,6 +133,14 @@ generateClipVideos({
         `${path.basename(outputs[1].outputPath)}\nSecond clip\n${identityLine}\n#theharvestseason #cottagecore #farminggames\n`,
       ),
       "summary fallback block missing from captions.txt",
+    );
+    assert.ok(
+      captions.includes("clip-old-keeper.mp4\nAn older clip's caption\n"),
+      "existing clip's block was lost in the merge",
+    );
+    assert.ok(
+      !captions.includes("clip-gone.mp4"),
+      "block for a deleted clip must be pruned",
     );
 
     // The overlay files are what drawtext actually rendered: wrapped title lines in one,

@@ -220,17 +220,33 @@ function locateClipInCues({ searchIndex, openingQuote, closingQuote }) {
   return { startCue, endCue };
 }
 
+function normalizeAvoidRanges(avoidClips) {
+  return (Array.isArray(avoidClips) ? avoidClips : [])
+    .map((clip) => ({
+      start: Number(clip.startSeconds),
+      end: Number(clip.endSeconds),
+      label:
+        `${clip.timestampLabel || ""} ${clip.title || clip.summary || ""}`.trim(),
+    }))
+    .filter(
+      (range) => Number.isFinite(range.start) && Number.isFinite(range.end),
+    );
+}
+
 async function suggestClipsLlm({
   transcriptMdText,
   transcriptVttText,
   llm,
   complete = completeJson,
   maxSuggestions = MAX_LLM_SUGGESTIONS,
+  avoidClips = [],
 }) {
   const cues = parseVttCues(transcriptVttText || "");
   if (cues.length === 0) {
     return { suggestions: [], candidatesReturned: 0 };
   }
+
+  const avoidRanges = normalizeAvoidRanges(avoidClips);
 
   // The whole episode goes in one request: clip selection is a global ranking task, and
   // a full transcript is well within the model's context window.
@@ -242,6 +258,16 @@ async function suggestClipsLlm({
     "---",
     transcriptMdText,
     "---",
+    // The "more suggestions" flow: existing picks are declared so the model hunts for
+    // fresh moments instead of re-finding the same highlights.
+    ...(avoidRanges.length
+      ? [
+          "",
+          "These moments are ALREADY covered by existing clips. Do not pick them or",
+          "anything overlapping them; find NEW moments from other parts of the episode:",
+          ...avoidRanges.map((range) => `- ${range.label}`),
+        ]
+      : []),
   ].join("\n");
 
   // A whole episode in one request takes the model well past the default timeout.
@@ -308,7 +334,13 @@ async function suggestClipsLlm({
   candidates
     .sort((left, right) => right.score - left.score)
     .forEach((candidate) => {
-      const overlaps = accepted.some(
+      const overlaps = [
+        ...accepted,
+        ...avoidRanges.map((range) => ({
+          startSeconds: range.start,
+          endSeconds: range.end,
+        })),
+      ].some(
         (existing) =>
           candidate.startSeconds < existing.endSeconds &&
           existing.startSeconds < candidate.endSeconds,
@@ -330,10 +362,15 @@ async function suggestClipsLlm({
 async function suggestClipsLlmCached({ cacheDir, ...options }) {
   const md = String(options.transcriptMdText || "");
   const vtt = String(options.transcriptVttText || "");
+  // Appended only when present, so pre-existing cache entries for the base request
+  // stay valid.
+  const avoidKey = normalizeAvoidRanges(options.avoidClips)
+    .map((range) => `${range.start}-${range.end}`)
+    .join(",");
   const cacheKey = crypto
     .createHash("sha1")
     .update(
-      `${CLIP_PROMPT_VERSION}:${options.llm.provider}:${options.llm.model}:${options.maxSuggestions || MAX_LLM_SUGGESTIONS}:${md.length}:${md}:${vtt.length}:${vtt}`,
+      `${CLIP_PROMPT_VERSION}:${options.llm.provider}:${options.llm.model}:${options.maxSuggestions || MAX_LLM_SUGGESTIONS}:${md.length}:${md}:${vtt.length}:${vtt}${avoidKey ? `:avoid:${avoidKey}` : ""}`,
     )
     .digest("hex");
   const cachePath = cacheDir ? path.join(cacheDir, `${cacheKey}.json`) : null;
@@ -352,10 +389,154 @@ async function suggestClipsLlmCached({ cacheDir, ...options }) {
   return { ...result, fromCache: false };
 }
 
+// "Expand to the whole conversation": the trim strip covers a few seconds either side,
+// but when a pick lands mid-topic the full conversation can start minutes earlier. The
+// model re-bounds the clip against the surrounding transcript instead.
+const EXPAND_PROMPT_VERSION = 1;
+const EXPAND_CONTEXT_SECONDS = 300;
+const MAX_EXPANDED_CLIP_SECONDS = 600;
+
+const EXPAND_SCHEMA = {
+  type: "object",
+  properties: {
+    openingQuote: {
+      type: "string",
+      description:
+        "The first words of the complete conversation, copied verbatim from the transcript. At least 8 words. No speaker names or timestamps.",
+    },
+    closingQuote: {
+      type: "string",
+      description:
+        "The last words of the complete conversation, copied verbatim from the transcript. At least 8 words. No speaker names or timestamps.",
+    },
+  },
+  required: ["openingQuote", "closingQuote"],
+};
+
+const EXPAND_SYSTEM_PROMPT = [
+  "You adjust the boundaries of a social-media clip picked from a podcast transcript.",
+  "",
+  "The clip cuts into the middle of a conversation. Find where that conversation",
+  "actually starts and ends in the surrounding transcript, and return openingQuote and",
+  "closingQuote copied verbatim from it - at least 8 words each, no speaker names or",
+  "timestamps. The bounds must contain the current clip, cover the complete",
+  "conversation (setup through payoff), and stay as tight as the conversation allows -",
+  "do not absorb neighbouring topics.",
+].join("\n");
+
+async function expandClipLlm({
+  transcriptVttText,
+  clip,
+  llm,
+  complete = completeJson,
+}) {
+  const cues = parseVttCues(transcriptVttText || "");
+  const windowCues = cues.filter(
+    (cue) =>
+      cue.endSeconds > clip.startSeconds - EXPAND_CONTEXT_SECONDS &&
+      cue.startSeconds < clip.endSeconds + EXPAND_CONTEXT_SECONDS,
+  );
+  if (windowCues.length === 0) {
+    throw new Error("No transcript cues found around this clip");
+  }
+
+  const clipText = cues
+    .filter(
+      (cue) =>
+        cue.endSeconds > clip.startSeconds &&
+        cue.startSeconds < clip.endSeconds,
+    )
+    .map((cue) => cueSpeechText(cue.text))
+    .join(" ");
+
+  const prompt = [
+    `Clip title: ${clip.title || "Clip"}`,
+    "",
+    "Current clip text:",
+    "---",
+    clipText,
+    "---",
+    "",
+    "Surrounding transcript:",
+    "---",
+    windowCues.map((cue) => cue.text).join("\n"),
+    "---",
+  ].join("\n");
+
+  const result = await complete({
+    llm,
+    system: EXPAND_SYSTEM_PROMPT,
+    prompt,
+    schema: EXPAND_SCHEMA,
+    timeoutMs: 120_000,
+  });
+
+  const searchIndex = buildCueSearchIndex(windowCues);
+  const located = locateClipInCues({
+    searchIndex,
+    openingQuote: result?.openingQuote,
+    closingQuote: result?.closingQuote,
+  });
+  if (!located) {
+    throw new Error(
+      "Could not locate the expanded bounds in the transcript - try again or trim by hand",
+    );
+  }
+
+  // The expansion must contain what the user already liked; a model answer that
+  // shrinks the clip is clamped back to the original bounds.
+  const round3 = (value) => Math.round(value * 1000) / 1000;
+  const startSeconds = round3(
+    Math.min(windowCues[located.startCue].startSeconds, clip.startSeconds),
+  );
+  const endSeconds = round3(
+    Math.max(windowCues[located.endCue].endSeconds, clip.endSeconds),
+  );
+  const durationSeconds = round3(endSeconds - startSeconds);
+  if (durationSeconds > MAX_EXPANDED_CLIP_SECONDS) {
+    throw new Error(
+      `The conversation spans ${Math.round(durationSeconds)}s - too long for a clip`,
+    );
+  }
+
+  return {
+    startSeconds,
+    endSeconds,
+    durationSeconds,
+    timestampLabel: `${formatSecondsToHhmmss(startSeconds)}-${formatSecondsToHhmmss(endSeconds)}`,
+  };
+}
+
+async function expandClipLlmCached({ cacheDir, ...options }) {
+  const vtt = String(options.transcriptVttText || "");
+  const cacheKey = crypto
+    .createHash("sha1")
+    .update(
+      `expand:${EXPAND_PROMPT_VERSION}:${options.llm.provider}:${options.llm.model}:${options.clip.startSeconds}-${options.clip.endSeconds}:${vtt.length}:${vtt}`,
+    )
+    .digest("hex");
+  const cachePath = cacheDir ? path.join(cacheDir, `${cacheKey}.json`) : null;
+
+  if (cachePath && fileExists(cachePath)) {
+    const cached = readJson(cachePath, false);
+    if (cached) {
+      return { ...cached, fromCache: true };
+    }
+  }
+
+  const result = await expandClipLlm(options);
+  if (cachePath) {
+    writeJson(cachePath, result);
+  }
+  return { ...result, fromCache: false };
+}
+
 module.exports = {
   REQUIRED_CLIP_HASHTAGS,
   buildCueSearchIndex,
   ensureRequiredHashtags,
+  expandClipLlm,
+  expandClipLlmCached,
   formatClipCaptionBlock,
   locateClipInCues,
   suggestClipsLlm,

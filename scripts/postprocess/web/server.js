@@ -12,8 +12,10 @@ const {
   selectTranscriptFixes,
 } = require("../transcript-review");
 const { resolveLlm } = require("../llm");
-const { buildClipSuggestions } = require("../clip-suggestions");
-const { suggestClipsLlmCached } = require("../clip-suggestions-llm");
+const {
+  expandClipLlmCached,
+  suggestClipsLlmCached,
+} = require("../clip-suggestions-llm");
 const { stripSpeakerPrefix } = require("../clip-subtitles");
 const {
   buildYoutubeDescription,
@@ -1616,9 +1618,10 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
       return;
     }
 
-    // Rebuilds clip suggestions from the episode's written (fixed) transcripts when
-    // they exist, falling back to discovery-time text before a run. AI picks when a key
-    // is configured (cached by content), heuristics otherwise or on failure.
+    // "Suggest more clips": the existing picks are declared to the model as
+    // off-limits, and the new ones are appended - approvals on the existing set
+    // survive untouched. Reads the episode's written (fixed) transcripts when they
+    // exist, falling back to discovery-time text before a run.
     if (req.method === "POST" && pathname === "/api/clip-suggestions") {
       try {
         const body = await readRequestBody(req);
@@ -1649,62 +1652,120 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           ? fs.readFileSync(vttPath, "utf8")
           : discovered.transcriptVttText;
 
-        let clipSuggestions = null;
-        let source = "heuristic";
-        let warning = null;
-
         const llm = resolveLlm(loadPostprocessConfig(repoRoot));
-        if (llm) {
-          try {
-            const llmClips = await suggestClipsLlmCached({
-              cacheDir: path.join(
-                repoRoot,
-                ".cache",
-                "postprocess",
-                "clip-suggestions",
-              ),
-              transcriptMdText: mdText,
-              transcriptVttText: vttText,
-              llm,
-            });
-            if (llmClips.suggestions.length > 0) {
-              clipSuggestions = llmClips.suggestions;
-              source = "llm";
-            } else {
-              warning = "AI clip selection returned nothing usable";
-            }
-          } catch (error) {
-            warning = error.message;
-          }
+        if (!llm) {
+          sendJson(res, 400, {
+            success: false,
+            error: "More suggestions need an LLM API key",
+          });
+          return;
         }
-
-        if (!clipSuggestions) {
-          clipSuggestions = buildClipSuggestions({
-            transcriptMdText: mdText,
-            transcriptVttText: vttText,
-            maxSuggestions: 8,
+        const existing = Array.isArray(payload.existingClipSuggestions)
+          ? payload.existingClipSuggestions
+          : [];
+        const llmClips = await suggestClipsLlmCached({
+          cacheDir: path.join(
+            repoRoot,
+            ".cache",
+            "postprocess",
+            "clip-suggestions",
+          ),
+          transcriptMdText: mdText,
+          transcriptVttText: vttText,
+          llm,
+          avoidClips: existing,
+          maxSuggestions: 5,
+        });
+        const combined = [...existing, ...llmClips.suggestions];
+        if (llmClips.suggestions.length > 0) {
+          await episodeState.updateState(episodeDir, (state) => {
+            if (!state) {
+              return null;
+            }
+            state.clipSuggestions = combined;
+            return state;
           });
         }
-
-        // The state file is what discovery reads to restore the cards after a page
-        // refresh, so it must always hold the set the user last saw. A regenerated
-        // set voids the saved approvals - they would map by index onto other clips.
-        await episodeState.updateState(episodeDir, (state) => {
-          if (!state) {
-            return null;
-          }
-          state.clipSuggestions = clipSuggestions;
-          state.clipSource = source;
-          state.clipApprovals = null;
-          return state;
-        });
-
         sendJson(res, 200, {
           success: true,
-          clipSuggestions,
-          source,
-          ...(warning ? { warning } : {}),
+          clipSuggestions: combined,
+          added: llmClips.suggestions.length,
+          source: "llm",
         });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Re-bounds one clip to cover the whole conversation it sits in: the LLM reads
+    // the transcript around the clip and returns wider quotes, located back onto cue
+    // timings. The card's trim strip handles seconds; this handles minutes.
+    if (req.method === "POST" && pathname === "/api/expand-clip") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        const clip = payload.clip || {};
+        const startSeconds = Number(clip.startSeconds);
+        const endSeconds = Number(clip.endSeconds);
+        if (
+          !Number.isFinite(startSeconds) ||
+          !Number.isFinite(endSeconds) ||
+          endSeconds <= startSeconds
+        ) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid clip time range",
+          });
+          return;
+        }
+        const llm = resolveLlm(loadPostprocessConfig(repoRoot));
+        if (!llm) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Expanding a clip needs an LLM API key",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const vttPath = path.join(episodeDir, "transcript.vtt");
+        const vttText = fs.existsSync(vttPath)
+          ? fs.readFileSync(vttPath, "utf8")
+          : discovered.transcriptVttText;
+
+        const expanded = await expandClipLlmCached({
+          cacheDir: path.join(
+            repoRoot,
+            ".cache",
+            "postprocess",
+            "clip-suggestions",
+          ),
+          transcriptVttText: vttText,
+          clip: {
+            startSeconds,
+            endSeconds,
+            title: String(clip.title || "").trim(),
+          },
+          llm,
+        });
+
+        sendJson(res, 200, { success: true, ...expanded });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
       }
