@@ -45,9 +45,9 @@ episode title, burned-in subtitles and a progress bar.
   replace their old file, and `captions.txt` is merged to match.
 - **Clip cards** have audio preview, approve/deny, a waveform trim for the clip's
   start/end, an AI **Expand** that re-bounds the clip to its whole conversation, and an
-  inline transcript editor whose edits land in both episode transcripts (approving a
-  clip saves them and folds the panels). Generation queues behind an active MP4 render
-  and can be cancelled.
+  inline transcript editor whose edits land in both episode transcripts (deciding a
+  clip either way saves them and folds the panels). Generation queues behind an active
+  MP4 render and can be cancelled.
 - **Shownotes links**: editable, reorderable rows that become index.md's `## Links`
   section — seeded from the auto-resolved Steam links plus the chapter before Outro
   (the main topic; delete the row when it isn't a game). Pasting a URL fetches the

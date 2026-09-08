@@ -1140,6 +1140,8 @@ let clipPreviewSrcPath = null;
 let clipPreviewStopAt = Infinity;
 let clipPreviewButton = null;
 let clipPreviewIdleLabel = "▶ Preview";
+// Which suggestion is playing, so its trim strip (and only its) draws the playhead.
+let clipPreviewSuggestion = null;
 
 function stopClipPreview() {
   if (clipPreviewAudio) {
@@ -1149,6 +1151,7 @@ function stopClipPreview() {
     clipPreviewButton.textContent = clipPreviewIdleLabel;
     clipPreviewButton = null;
   }
+  clipPreviewSuggestion = null;
 }
 
 // lastSeconds plays just the tail of the clip - the quickest way to hear how a trim
@@ -1206,6 +1209,7 @@ function playClipPreview(suggestion, button, { lastSeconds } = {}) {
   clipPreviewIdleLabel = button.textContent;
   button.textContent = "■ Stop";
   clipPreviewButton = button;
+  clipPreviewSuggestion = suggestion;
 }
 
 function formatCueTime(seconds) {
@@ -1362,7 +1366,40 @@ function renderClipTrimStrip(
     for (const x of [startX, endX]) {
       ctx.fillRect(x - 1.5, 0, 3, canvas.height);
     }
+
+    // The playhead, while this clip's preview is playing: seeing where the audio is
+    // against the handles is most of what trimming needs.
+    if (
+      clipPreviewSuggestion === suggestion &&
+      clipPreviewAudio &&
+      !clipPreviewAudio.paused
+    ) {
+      const t = clipPreviewAudio.currentTime;
+      if (t >= windowStart && t <= windowEnd) {
+        ctx.fillStyle = "#4ade80";
+        ctx.fillRect(xFor(t) - 1, 0, 2, canvas.height);
+      }
+    }
   }
+
+  // Redraw while a preview plays so the playhead moves - plus one frame after it
+  // stops, to clear the line. The loop dies with the canvas (a card rebuild or an
+  // Expand replaces the strip).
+  let playheadWasVisible = false;
+  (function animatePlayhead() {
+    if (!canvas.isConnected) {
+      return;
+    }
+    const playing =
+      clipPreviewSuggestion === suggestion &&
+      clipPreviewAudio &&
+      !clipPreviewAudio.paused;
+    if (playing || playheadWasVisible) {
+      draw();
+    }
+    playheadWasVisible = playing;
+    requestAnimationFrame(animatePlayhead);
+  })();
 
   function setRange(start, end) {
     const round3 = (value) => Math.round(value * 1000) / 1000;
@@ -1372,7 +1409,7 @@ function renderClipTrimStrip(
     suggestion.timestampLabel = `${formatHms(start)}-${formatHms(end)}`;
     rangeLabel.textContent = `${formatHms(start)} – ${formatHms(end)} (${Math.round(
       suggestion.durationSeconds,
-    )}s) — drag the orange handles; sentence boundaries are magnetic`;
+    )}s) — drag the orange handles; sentence boundaries are magnetic, hold Shift to drag freely`;
     draw();
     refreshMeta();
     scheduleClipCurationSave();
@@ -1406,13 +1443,16 @@ function renderClipTrimStrip(
 
   function onDrag(event) {
     const t = timeAt(event);
+    // Shift suspends the magnetism for the times a sentence edge sits exactly where
+    // the trim should NOT land; 0.05s steps are finer than the strip's own pixels.
+    const free = event.shiftKey;
     if (dragging === "start") {
-      const snapped = snap(cueStarts, t);
+      const snapped = free ? Math.round(t * 20) / 20 : snap(cueStarts, t);
       if (snapped < suggestion.endSeconds - 2) {
         setRange(snapped, suggestion.endSeconds);
       }
     } else {
-      const snapped = snap(cueEnds, t);
+      const snapped = free ? Math.round(t * 20) / 20 : snap(cueEnds, t);
       if (snapped > suggestion.startSeconds + 2) {
         setRange(suggestion.startSeconds, snapped);
       }
@@ -1887,9 +1927,10 @@ function renderClipSuggestions(suggestions) {
     };
     refreshDecision();
 
-    approveButton.addEventListener("click", async () => {
-      // Approving a clip means "done reviewing it": unsaved transcript edits are
-      // saved, and the open trim/transcript panels fold away.
+    // Deciding a clip either way means "done reviewing it": unsaved transcript edits
+    // are saved (they land in the episode transcripts, which matter even for a denied
+    // clip), and the open trim/transcript panels fold away.
+    const settleCard = async (decision) => {
       if (transcriptEditor?.clipEditorSaveEdits) {
         await transcriptEditor.clipEditorSaveEdits({ quiet: true });
       }
@@ -1899,17 +1940,13 @@ function renderClipSuggestions(suggestions) {
       if (transcriptEditor) {
         transcriptEditor.open = false;
       }
-      clipApprovalState[index] = true;
+      clipApprovalState[index] = decision;
       refreshDecision();
       updateClipSuggestionsSummary();
       scheduleClipCurationSave();
-    });
-    denyButton.addEventListener("click", () => {
-      clipApprovalState[index] = false;
-      refreshDecision();
-      updateClipSuggestionsSummary();
-      scheduleClipCurationSave();
-    });
+    };
+    approveButton.addEventListener("click", () => settleCard(true));
+    denyButton.addEventListener("click", () => settleCard(false));
 
     controls.appendChild(approveButton);
     controls.appendChild(denyButton);
