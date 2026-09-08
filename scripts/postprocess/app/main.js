@@ -1,7 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const util = require("node:util");
-const { app, BrowserWindow, dialog, nativeImage } = require("electron");
+const { app, BrowserWindow, dialog, nativeImage, shell } = require("electron");
 
 const PORT = Number(process.env.THS_APP_PORT) || 4173;
 
@@ -80,6 +80,16 @@ function createWindow(url, server) {
     title: "THS Post-Process",
   });
   window.loadURL(url);
+
+  // window.open from the UI (the social compose pages) goes to the system browser,
+  // where the user is actually logged in - an in-app window would have a blank
+  // session.
+  window.webContents.setWindowOpenHandler(({ url: openUrl }) => {
+    if (/^https?:/i.test(openUrl)) {
+      shell.openExternal(openUrl);
+    }
+    return { action: "deny" };
+  });
 
   // Closing the window kills the in-process server - and any render with it - so an
   // active job earns a confirmation instead of dying silently.

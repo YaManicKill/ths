@@ -1269,9 +1269,9 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
     }
 
     // Bluesky and Tumblr announcement posts, drafted by the LLM from the episode's
-    // current description plus the AI clip hooks (template fallback without a key),
-    // written next to the MP4. Runs after the shownotes are final, like the YouTube
-    // description.
+    // current description plus the AI clip hooks (template fallback without a key).
+    // The UI opens both platforms' compose pages prefilled from the response - the
+    // posting itself stays manual. Runs after the shownotes are final.
     if (req.method === "POST" && pathname === "/api/social-posts") {
       try {
         const body = await readRequestBody(req);
@@ -1350,20 +1350,11 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           llm: resolveLlm(loadPostprocessConfig(repoRoot)),
         });
 
-        const blueskyPath = path.join(
-          path.dirname(mp3Path),
-          "bluesky-post.txt",
-        );
-        const tumblrPath = path.join(path.dirname(mp3Path), "tumblr-post.txt");
-        fs.writeFileSync(blueskyPath, result.bluesky, "utf8");
-        fs.writeFileSync(tumblrPath, result.tumblr, "utf8");
-
         sendJson(res, 200, {
           success: true,
-          blueskyPath,
-          tumblrPath,
           bluesky: result.bluesky,
           tumblr: result.tumblr,
+          tumblrParts: result.tumblrParts || null,
           blueskyLength: result.blueskyLength,
           blueskyOverLimit: result.blueskyOverLimit,
         });

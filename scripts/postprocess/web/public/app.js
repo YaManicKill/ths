@@ -3039,6 +3039,19 @@ socialPostsButton.addEventListener("click", async () => {
   }
 
   socialPostsButton.disabled = true;
+  // In the desktop app window.open routes straight to the system browser (no popup
+  // blocking, and no way to retarget a placeholder). In a plain browser the blank
+  // windows must open synchronously inside the click, before any await, or popup
+  // blocking eats them; they get their real compose URLs once the drafts arrive.
+  const opensInSystemBrowser = navigator.userAgent.includes("Electron");
+  const blueskyWindow = opensInSystemBrowser
+    ? null
+    : window.open("about:blank");
+  const tumblrWindow = opensInSystemBrowser ? null : window.open("about:blank");
+  const closePlaceholders = () => {
+    blueskyWindow?.close();
+    tumblrWindow?.close();
+  };
   try {
     const response = await fetch("/api/social-posts", {
       method: "POST",
@@ -3055,22 +3068,58 @@ socialPostsButton.addEventListener("click", async () => {
       throw new Error(body.error || "Social posts request failed");
     }
 
+    const blueskyIntent = `https://bsky.app/intent/compose?text=${encodeURIComponent(body.bluesky.trim())}`;
+    // A link post: the episode URL becomes the link card, the paragraphs its caption.
+    // (The text posttype's content parameter is ignored by the share tool.)
+    const tumblrIntent = body.tumblrParts
+      ? `https://www.tumblr.com/widgets/share/tool?${new URLSearchParams({
+          posttype: "link",
+          canonicalUrl: body.tumblrParts.url,
+          content: body.tumblrParts.url,
+          title: body.tumblrParts.title,
+          caption: body.tumblrParts.body,
+          tags: (body.tumblrParts.tags || []).join(","),
+        }).toString()}`
+      : null;
+
+    if (opensInSystemBrowser) {
+      window.open(blueskyIntent);
+      if (tumblrIntent) {
+        window.open(tumblrIntent);
+      }
+    } else {
+      if (blueskyWindow) {
+        blueskyWindow.location = blueskyIntent;
+      }
+      if (tumblrWindow && tumblrIntent) {
+        tumblrWindow.location = tumblrIntent;
+      } else {
+        tumblrWindow?.close();
+      }
+    }
+
     let copied = false;
     try {
       await navigator.clipboard.writeText(body.bluesky.trim());
       copied = true;
     } catch {
-      // Clipboard access can be denied; the files still exist.
+      // Clipboard access can be denied; the compose windows carry the text anyway.
     }
     addStatus(
-      `✓ Social posts written: ${body.blueskyPath} (${body.blueskyLength}/300 chars) and ${body.tumblrPath}${copied ? " - Bluesky post copied to clipboard" : ""}`,
+      `✓ Social drafts opened in Bluesky and Tumblr compose tabs (${body.blueskyLength}/300 chars)${copied ? " - Bluesky text also on the clipboard" : ""}`,
     );
+    if (!opensInSystemBrowser && (!blueskyWindow || !tumblrWindow)) {
+      addStatus(
+        "⚠ A popup was blocked - allow popups for this app to get both compose tabs.",
+      );
+    }
     if (body.blueskyOverLimit) {
       addStatus(
         "⚠ The Bluesky post is over the 300-character limit - trim it before posting.",
       );
     }
   } catch (error) {
+    closePlaceholders();
     addStatus(`❌ Social posts failed: ${error.message}`);
   } finally {
     socialPostsButton.disabled = false;

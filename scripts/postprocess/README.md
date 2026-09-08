@@ -67,8 +67,8 @@ episode title, burned-in subtitles and a progress bar.
   description), and scheduled to go public at the episode's publish time. First use
   opens a one-time Google authorization; see YouTube Setup below.
 - **Social Posts** drafts Bluesky and Tumblr announcements from the episode
-  description and clip hooks into `bluesky-post.txt` / `tumblr-post.txt` next to the
-  MP4, copying the Bluesky one to the clipboard.
+  description and clip hooks, then opens both platforms' compose pages prefilled -
+  posting stays a manual click there. The Bluesky text also lands on the clipboard.
 - Suggestions, links, unapplied fixes and run/job status all live in the episode's
   `postprocess-state.json` and are restored after a refresh or restart; **Clear &
   Restart Process** wipes that state for a fresh start.
