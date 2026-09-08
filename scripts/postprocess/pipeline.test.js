@@ -22,8 +22,14 @@ function makeEpisodeFixture() {
       "[CHAPTER]",
       "TIMEBASE=1/1000",
       "START=30000",
-      "END=60000",
+      "END=45000",
       "title=Stardew Valley",
+      "[CHAPTER]",
+      "TIMEBASE=1/1000",
+      "START=45000",
+      "END=60000",
+      "title=Secret Game",
+      "TOC=false",
       "",
     ].join("\n"),
   );
@@ -265,6 +271,20 @@ async function main() {
   assert.ok(writtenIndex.includes("\nA Game With No Steam Page\n"));
   assert.equal(report.shownotesLinks.length, 2);
 
+  // Podcast-namespace chapters ride the episode bundle for the feed's
+  // <podcast:chapters> tag.
+  const writtenChapters = JSON.parse(
+    fs.readFileSync(path.join(episodeDir, "chapters.json"), "utf8"),
+  );
+  assert.equal(writtenChapters.version, "1.2.0");
+  // The hidden chapter mirrors the MP3's CHAP/CTOC split: present with toc false, so
+  // players mark the segment without listing (or spoiling) it.
+  assert.deepEqual(writtenChapters.chapters, [
+    { startTime: 0, title: "Intro" },
+    { startTime: 30, title: "Stardew Valley" },
+    { startTime: 45, title: "Secret Game", toc: false },
+  ]);
+
   // The AI clip picks replace the heuristic suggestions, grounded in the VTT timings.
   assert.equal(report.clipSource, "llm");
   assert.equal(report.clipSuggestions.length, 1);
@@ -323,6 +343,34 @@ async function main() {
   assert.ok(
     rerunIndex.includes("[Cool Bug](https://example.com/bug)"),
     "shownotes links were not carried through the re-run",
+  );
+
+  // Reopening a generated episode skips the review-phase lookups: no audio QC decode,
+  // no Steam requests.
+  const reopenProgress = [];
+  const reopened = await discoverEpisodeData({
+    repoRoot: runRoot,
+    mp3Path: runMp3,
+    transcriptMdPath: fixture.transcriptMdPath,
+    transcriptVttPath: fixture.transcriptVttPath,
+    // The UI's editable main-topic box arrives as an override and drives the
+    // derived description.
+    mainTopic: "Custom Topic",
+    onProgress: (message) => reopenProgress.push(message),
+  });
+  assert.equal(reopened.mainTopic, "Custom Topic");
+  assert.ok(
+    reopened.description.includes("Custom Topic"),
+    "the derived description must follow the main-topic override",
+  );
+  assert.ok(
+    reopenProgress.some((message) => /already generated/.test(message)),
+    "reopen must announce the skipped lookups",
+  );
+  assert.equal(reopened.audioQc.enabled, false, "audio QC must be skipped");
+  assert.ok(
+    !reopenProgress.some((message) => /Steam links|audio levels/.test(message)),
+    "review-phase lookups must not run on a generated episode",
   );
 
   fs.rmSync(repoRoot, { recursive: true, force: true });

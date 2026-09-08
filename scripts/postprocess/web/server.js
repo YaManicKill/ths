@@ -12,8 +12,10 @@ const {
   selectTranscriptFixes,
 } = require("../transcript-review");
 const { resolveLlm } = require("../llm");
-const { buildClipSuggestions } = require("../clip-suggestions");
-const { suggestClipsLlmCached } = require("../clip-suggestions-llm");
+const {
+  expandClipLlmCached,
+  suggestClipsLlmCached,
+} = require("../clip-suggestions-llm");
 const { stripSpeakerPrefix } = require("../clip-subtitles");
 const {
   buildYoutubeDescription,
@@ -21,6 +23,20 @@ const {
   readShowLinksFromConfig,
 } = require("../youtube-description");
 const { generateSocialPostsCached } = require("../social-posts");
+const {
+  resolveSpaces,
+  setObjectAcl,
+  sha256FileHex,
+  uploadFileToSpaces,
+} = require("../spaces");
+const {
+  buildAuthUrl,
+  exchangeCodeForToken,
+  refreshAccessToken,
+  renderTitleTemplate,
+  resolveYoutube,
+  uploadVideoToYoutube,
+} = require("../youtube");
 const { parseVttCues } = require("../vtt");
 const { generateClipVideos, generateVideoFromChapters } = require("../video");
 const { loadPostprocessConfig } = require("../config");
@@ -475,6 +491,29 @@ function pipeFileToResponse(filePath, res, options) {
   fileStream.pipe(res);
 }
 
+// The YouTube description text is needed both by its copy-paste endpoint and by the
+// upload itself; everything comes from the episode's current index.md and the site's
+// own config.toml.
+function buildEpisodeYoutubeDescription({ repoRoot, episodeDir }) {
+  const showLinks = readShowLinksFromConfig(
+    fs.readFileSync(path.join(repoRoot, "config.toml"), "utf8"),
+  );
+  const baseUrl = (showLinks.baseUrl || "https://harvestseason.club/").replace(
+    /\/+$/,
+    "",
+  );
+  const episodeUrl = `${baseUrl}/${path
+    .relative(path.join(repoRoot, "content"), episodeDir)
+    .split(path.sep)
+    .join("/")}/`;
+  const description = buildYoutubeDescription({
+    indexMdText: fs.readFileSync(path.join(episodeDir, "index.md"), "utf8"),
+    episodeUrl,
+    showLinks,
+  });
+  return { description, episodeUrl };
+}
+
 function deriveEpisodeOutputPaths({ repoRoot, discovered, mp3Path }) {
   const outputRoot = loadPostprocessConfig(repoRoot).outputRoot;
 
@@ -544,6 +583,9 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
     "manual-images",
   );
   const chapterOverridesPath = chapterImageOverridesPath(repoRoot);
+  // Gitignored but persistent (unlike the prunable cache): the YouTube refresh token
+  // from the one-time browser authorization.
+  const youtubeTokenPath = path.join(repoRoot, "data", "youtube-oauth.json");
 
   const serverLockPath =
     lockPath || path.join(repoRoot, ".cache", "postprocess", "server.lock");
@@ -898,6 +940,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           transcriptVttPath: payload.transcriptVttPath,
           episodeTitle: payload.episodeTitle,
           description: payload.description,
+          mainTopic: payload.mainTopic,
           publishDate: payload.publishDate,
           onProgress: stream.progress,
         });
@@ -935,6 +978,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
             episodeMeta: discovered.episodeMeta,
             seasonInfo: discovered.seasonInfo,
             description: discovered.description,
+            mainTopic: discovered.mainTopic,
             dateString: discovered.dateString,
             clipSuggestions: discovered.clipSuggestions,
             chapters: discovered.chapters.map((ch) => ({
@@ -957,6 +1001,8 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
             episodeDir,
             phase: state?.phase || null,
             jobs: state?.jobs || {},
+            mp3Upload: state?.mp3Upload || null,
+            youtubeUpload: state?.youtubeUpload || null,
             existingClipSuggestions: Array.isArray(state?.clipSuggestions)
               ? state.clipSuggestions
               : [],
@@ -1222,84 +1268,10 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
       return;
     }
 
-    // Builds the YouTube description from the episode's index.md AS IT IS NOW - after
-    // the run baked in the shownotes links, and after any later hand edits - writing
-    // it next to the MP4 and returning the text for the clipboard.
-    if (req.method === "POST" && pathname === "/api/youtube-description") {
-      try {
-        const body = await readRequestBody(req);
-        const payload = JSON.parse(body || "{}");
-
-        const discovered = payload.discoveryData
-          ? JSON.parse(payload.discoveryData)
-          : null;
-        if (!discovered || !discovered.episodeMeta) {
-          sendJson(res, 400, {
-            success: false,
-            error: "Missing or invalid discoveryData",
-          });
-          return;
-        }
-        const mp3Path = String(payload.mp3Path || "").trim();
-        if (!mp3Path || !path.isAbsolute(mp3Path)) {
-          sendJson(res, 400, {
-            success: false,
-            error: "Missing or invalid mp3Path",
-          });
-          return;
-        }
-
-        const { episodeDir } = deriveEpisodeOutputPaths({
-          repoRoot,
-          discovered,
-          mp3Path,
-        });
-        const indexPath = path.join(episodeDir, "index.md");
-        if (!fs.existsSync(indexPath)) {
-          sendJson(res, 400, {
-            success: false,
-            error:
-              "index.md not found - approve and generate the episode first",
-          });
-          return;
-        }
-
-        // Platform links, Patreon and the site URL all come from the site's own
-        // config.toml; Hugo maps content/<...> straight to the site path, so the
-        // episode's URL falls out of its content directory.
-        const showLinks = readShowLinksFromConfig(
-          fs.readFileSync(path.join(repoRoot, "config.toml"), "utf8"),
-        );
-        const baseUrl = (
-          showLinks.baseUrl || "https://harvestseason.club/"
-        ).replace(/\/+$/, "");
-        const episodeUrl = `${baseUrl}/${path
-          .relative(path.join(repoRoot, "content"), episodeDir)
-          .split(path.sep)
-          .join("/")}/`;
-
-        const description = buildYoutubeDescription({
-          indexMdText: fs.readFileSync(indexPath, "utf8"),
-          episodeUrl,
-          showLinks,
-        });
-        const outputPath = path.join(
-          path.dirname(mp3Path),
-          "youtube-description.txt",
-        );
-        fs.writeFileSync(outputPath, description, "utf8");
-
-        sendJson(res, 200, { success: true, outputPath, description });
-      } catch (error) {
-        sendJson(res, 400, { success: false, error: error.message });
-      }
-      return;
-    }
-
     // Bluesky and Tumblr announcement posts, drafted by the LLM from the episode's
-    // current description plus the AI clip hooks (template fallback without a key),
-    // written next to the MP4. Runs after the shownotes are final, like the YouTube
-    // description.
+    // current description plus the AI clip hooks (template fallback without a key).
+    // The UI opens both platforms' compose pages prefilled from the response - the
+    // posting itself stays manual. Runs after the shownotes are final.
     if (req.method === "POST" && pathname === "/api/social-posts") {
       try {
         const body = await readRequestBody(req);
@@ -1378,20 +1350,11 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           llm: resolveLlm(loadPostprocessConfig(repoRoot)),
         });
 
-        const blueskyPath = path.join(
-          path.dirname(mp3Path),
-          "bluesky-post.txt",
-        );
-        const tumblrPath = path.join(path.dirname(mp3Path), "tumblr-post.txt");
-        fs.writeFileSync(blueskyPath, result.bluesky, "utf8");
-        fs.writeFileSync(tumblrPath, result.tumblr, "utf8");
-
         sendJson(res, 200, {
           success: true,
-          blueskyPath,
-          tumblrPath,
           bluesky: result.bluesky,
           tumblr: result.tumblr,
+          tumblrParts: result.tumblrParts || null,
           blueskyLength: result.blueskyLength,
           blueskyOverLimit: result.blueskyOverLimit,
         });
@@ -1616,9 +1579,10 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
       return;
     }
 
-    // Rebuilds clip suggestions from the episode's written (fixed) transcripts when
-    // they exist, falling back to discovery-time text before a run. AI picks when a key
-    // is configured (cached by content), heuristics otherwise or on failure.
+    // "Suggest more clips": the existing picks are declared to the model as
+    // off-limits, and the new ones are appended - approvals on the existing set
+    // survive untouched. Reads the episode's written (fixed) transcripts when they
+    // exist, falling back to discovery-time text before a run.
     if (req.method === "POST" && pathname === "/api/clip-suggestions") {
       try {
         const body = await readRequestBody(req);
@@ -1649,62 +1613,588 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           ? fs.readFileSync(vttPath, "utf8")
           : discovered.transcriptVttText;
 
-        let clipSuggestions = null;
-        let source = "heuristic";
-        let warning = null;
-
         const llm = resolveLlm(loadPostprocessConfig(repoRoot));
-        if (llm) {
-          try {
-            const llmClips = await suggestClipsLlmCached({
-              cacheDir: path.join(
-                repoRoot,
-                ".cache",
-                "postprocess",
-                "clip-suggestions",
-              ),
-              transcriptMdText: mdText,
-              transcriptVttText: vttText,
-              llm,
-            });
-            if (llmClips.suggestions.length > 0) {
-              clipSuggestions = llmClips.suggestions;
-              source = "llm";
-            } else {
-              warning = "AI clip selection returned nothing usable";
-            }
-          } catch (error) {
-            warning = error.message;
-          }
+        if (!llm) {
+          sendJson(res, 400, {
+            success: false,
+            error: "More suggestions need an LLM API key",
+          });
+          return;
         }
-
-        if (!clipSuggestions) {
-          clipSuggestions = buildClipSuggestions({
-            transcriptMdText: mdText,
-            transcriptVttText: vttText,
-            maxSuggestions: 8,
+        const existing = Array.isArray(payload.existingClipSuggestions)
+          ? payload.existingClipSuggestions
+          : [];
+        const llmClips = await suggestClipsLlmCached({
+          cacheDir: path.join(
+            repoRoot,
+            ".cache",
+            "postprocess",
+            "clip-suggestions",
+          ),
+          transcriptMdText: mdText,
+          transcriptVttText: vttText,
+          llm,
+          avoidClips: existing,
+          maxSuggestions: 5,
+        });
+        const combined = [...existing, ...llmClips.suggestions];
+        if (llmClips.suggestions.length > 0) {
+          await episodeState.updateState(episodeDir, (state) => {
+            if (!state) {
+              return null;
+            }
+            state.clipSuggestions = combined;
+            return state;
           });
         }
-
-        // The state file is what discovery reads to restore the cards after a page
-        // refresh, so it must always hold the set the user last saw. A regenerated
-        // set voids the saved approvals - they would map by index onto other clips.
-        await episodeState.updateState(episodeDir, (state) => {
-          if (!state) {
-            return null;
-          }
-          state.clipSuggestions = clipSuggestions;
-          state.clipSource = source;
-          state.clipApprovals = null;
-          return state;
-        });
-
         sendJson(res, 200, {
           success: true,
-          clipSuggestions,
-          source,
-          ...(warning ? { warning } : {}),
+          clipSuggestions: combined,
+          added: llmClips.suggestions.length,
+          source: "llm",
         });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Pushes the finished MP3 to DigitalOcean Spaces at the feed's enclosure key.
+    // Only a generated episode qualifies: the file uploaded must be the one with the
+    // chapter images embedded, and the embed happens during the run. Streamed NDJSON
+    // so upload progress reaches the UI live; a repeat click with an unchanged file is
+    // a no-op answered from the state file's upload record.
+    if (req.method === "POST" && pathname === "/api/upload-mp3") {
+      const body = await readRequestBody(req);
+      const stream = startNdjsonStream(res);
+      try {
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          stream.error("Missing or invalid discoveryData");
+          return;
+        }
+        const mp3Path = String(payload.mp3Path || "").trim();
+        if (!mp3Path || !path.isAbsolute(mp3Path) || !fs.existsSync(mp3Path)) {
+          stream.error("Missing or invalid mp3Path");
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path,
+        });
+        const state = await episodeState.readState(episodeDir);
+        if (
+          state?.phase !== "generated" ||
+          !state.mp3ChapterImages?.completed
+        ) {
+          stream.error(
+            "Approve and generate the episode first - the uploaded MP3 must carry the embedded chapter images",
+          );
+          return;
+        }
+        const key = String(state.episode?.podcastPath || "").trim();
+        if (!key) {
+          stream.error("The episode state has no podcastPath to upload to");
+          return;
+        }
+        const spaces = resolveSpaces(loadPostprocessConfig(repoRoot));
+        if (!spaces) {
+          stream.error(
+            "Spaces credentials are not configured - add spaces.accessKeyId and spaces.secretAccessKey to postprocess.config.local.json",
+          );
+          return;
+        }
+
+        const fileSha256 = await sha256FileHex(mp3Path);
+        if (state.mp3Upload?.sha256 === fileSha256) {
+          stream.result({
+            success: true,
+            alreadyUploaded: true,
+            url: state.mp3Upload.url,
+            size: state.mp3Upload.size,
+            acl: state.mp3Upload.acl,
+          });
+          return;
+        }
+
+        const sizeMb = (fs.statSync(mp3Path).size / (1024 * 1024)).toFixed(1);
+        stream.progress(`Uploading ${sizeMb} MB to ${spaces.bucket}/${key}...`);
+        await episodeState.startJob(episodeDir, "mp3Upload", { percent: 0 });
+        try {
+          let lastReportedPercent = 0;
+          const uploaded = await uploadFileToSpaces({
+            filePath: mp3Path,
+            key,
+            ...spaces,
+            contentType: "audio/mpeg",
+            payloadSha256: fileSha256,
+            onProgress: (progress) => {
+              if (progress.percent >= lastReportedPercent + 10) {
+                lastReportedPercent = progress.percent;
+                stream.progress(`Uploading... ${progress.percent}%`);
+                episodeState
+                  .patchJob(episodeDir, "mp3Upload", {
+                    status: "running",
+                    percent: progress.percent,
+                  })
+                  .catch(() => {});
+              }
+            },
+          });
+          await episodeState.finishJob(episodeDir, "mp3Upload", {
+            status: "completed",
+            percent: 100,
+          });
+          await episodeState.updateState(episodeDir, (current) =>
+            current
+              ? {
+                  ...current,
+                  mp3Upload: {
+                    sha256: fileSha256,
+                    url: uploaded.url,
+                    size: uploaded.size,
+                    acl: "private",
+                    uploadedAt: new Date().toISOString(),
+                  },
+                }
+              : null,
+          );
+          stream.result({
+            success: true,
+            url: uploaded.url,
+            size: uploaded.size,
+            acl: "private",
+          });
+        } catch (error) {
+          await episodeState
+            .finishJob(episodeDir, "mp3Upload", {
+              status: "failed",
+              error: error.message,
+            })
+            .catch(() => {});
+          throw error;
+        }
+      } catch (error) {
+        stream.error(error.message);
+      }
+      return;
+    }
+
+    // Lands here from Google after the one-time browser authorization: the code in
+    // the query becomes a refresh token, stored in the gitignored data/ directory
+    // (persistent, unlike the prunable cache).
+    if (req.method === "GET" && pathname === "/api/youtube-oauth-callback") {
+      try {
+        const code = parsedUrl.searchParams.get("code");
+        if (!code) {
+          throw new Error(
+            parsedUrl.searchParams.get("error") || "No authorization code",
+          );
+        }
+        const youtube = resolveYoutube(loadPostprocessConfig(repoRoot));
+        if (!youtube) {
+          throw new Error("YouTube OAuth client is not configured");
+        }
+        const token = await exchangeCodeForToken({
+          clientId: youtube.clientId,
+          clientSecret: youtube.clientSecret,
+          code,
+          redirectUri: `http://127.0.0.1:${port}/api/youtube-oauth-callback`,
+        });
+        if (!token.refresh_token) {
+          throw new Error("Google returned no refresh token - try again");
+        }
+        writeJson(youtubeTokenPath, {
+          refreshToken: token.refresh_token,
+          obtainedAt: new Date().toISOString(),
+        });
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.end(
+          "<h2>YouTube authorized ✓</h2><p>You can close this tab and press <strong>Upload to YouTube</strong> again.</p>",
+        );
+      } catch (error) {
+        res.statusCode = 400;
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.end(`<h2>YouTube authorization failed</h2><p>${error.message}</p>`);
+      }
+      return;
+    }
+
+    // Uploads the chapter MP4 as one click: description from the same generator as
+    // the copy-paste button, scheduled for the episode's publish time (private until
+    // then). YouTube cannot replace a video's file, so a recorded upload is final for
+    // the episode unless its state is cleared.
+    if (req.method === "POST" && pathname === "/api/upload-youtube") {
+      const body = await readRequestBody(req);
+      const stream = startNdjsonStream(res);
+      try {
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          stream.error("Missing or invalid discoveryData");
+          return;
+        }
+        const mp3Path = String(payload.mp3Path || "").trim();
+        if (!mp3Path || !path.isAbsolute(mp3Path)) {
+          stream.error("Missing or invalid mp3Path");
+          return;
+        }
+
+        const { episodeDir, videoPath } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path,
+        });
+        const state = await episodeState.readState(episodeDir);
+        if (state?.phase !== "generated") {
+          stream.error("Approve and generate the episode first");
+          return;
+        }
+        if (episodeState.isJobActive(episodeDir, "mp4Render")) {
+          stream.error("An MP4 render is in progress - wait for it to finish");
+          return;
+        }
+        if (!fs.existsSync(videoPath)) {
+          stream.error(`No MP4 found at ${videoPath} - render it first`);
+          return;
+        }
+
+        if (state.youtubeUpload?.videoId) {
+          const currentSha = await sha256FileHex(videoPath);
+          stream.result({
+            success: true,
+            alreadyUploaded: true,
+            url: state.youtubeUpload.url,
+            ...(currentSha !== state.youtubeUpload.sha256
+              ? {
+                  warning:
+                    "The local MP4 differs from the uploaded video. YouTube cannot replace a video's file - delete it on YouTube and Clear & Restart to upload again.",
+                }
+              : {}),
+          });
+          return;
+        }
+
+        const youtube = resolveYoutube(loadPostprocessConfig(repoRoot));
+        if (!youtube) {
+          stream.error(
+            "YouTube is not configured - add youtube.clientId and youtube.clientSecret to postprocess.config.local.json (see the README)",
+          );
+          return;
+        }
+
+        // readJson treats a null fallback as "throw"; no token yet is the normal
+        // first-run case here, not an error.
+        const storedToken = fs.existsSync(youtubeTokenPath)
+          ? readJson(youtubeTokenPath, {})
+          : null;
+        const redirectUri = `http://127.0.0.1:${port}/api/youtube-oauth-callback`;
+        if (!storedToken?.refreshToken) {
+          stream.result({
+            success: true,
+            needsAuth: true,
+            authUrl: buildAuthUrl({ clientId: youtube.clientId, redirectUri }),
+          });
+          return;
+        }
+
+        stream.progress("Refreshing YouTube access token...");
+        let accessToken;
+        try {
+          const refreshed = await refreshAccessToken({
+            clientId: youtube.clientId,
+            clientSecret: youtube.clientSecret,
+            refreshToken: storedToken.refreshToken,
+          });
+          accessToken = refreshed.access_token;
+        } catch (error) {
+          // A revoked or expired grant means re-authorizing, not failing.
+          if (/invalid_grant/.test(error.message)) {
+            fs.rmSync(youtubeTokenPath, { force: true });
+            stream.result({
+              success: true,
+              needsAuth: true,
+              authUrl: buildAuthUrl({
+                clientId: youtube.clientId,
+                redirectUri,
+              }),
+            });
+            return;
+          }
+          throw error;
+        }
+
+        const { description } = buildEpisodeYoutubeDescription({
+          repoRoot,
+          episodeDir,
+        });
+        const mainTopic = state.episode?.mainTopic || "";
+        const title = renderTitleTemplate(youtube.titleTemplate, {
+          mainTopic,
+          title: state.episode?.title || "",
+          code: `${state.episode?.seasonCode}-${state.episode?.episodeCode}`,
+        });
+
+        // Scheduled when the publish date is still ahead; an upload after release
+        // just goes straight to public.
+        const publishDate = new Date(String(discovered.dateString || ""));
+        const scheduled =
+          Number.isFinite(publishDate.getTime()) && publishDate > new Date();
+        const status = scheduled
+          ? {
+              privacyStatus: "private",
+              publishAt: publishDate.toISOString(),
+              selfDeclaredMadeForKids: false,
+            }
+          : { privacyStatus: "public", selfDeclaredMadeForKids: false };
+
+        const videoSha256 = await sha256FileHex(videoPath);
+        const sizeMb = (fs.statSync(videoPath).size / (1024 * 1024)).toFixed(1);
+        stream.progress(`Uploading ${sizeMb} MB to YouTube as "${title}"...`);
+        await episodeState.startJob(episodeDir, "youtubeUpload", {
+          percent: 0,
+        });
+        try {
+          let lastReportedPercent = 0;
+          const uploaded = await uploadVideoToYoutube({
+            filePath: videoPath,
+            accessToken,
+            snippet: {
+              title,
+              description,
+              categoryId: youtube.categoryId,
+              tags: [
+                "The Harvest Season",
+                "podcast",
+                "cottagecore",
+                "farming games",
+                ...(mainTopic ? [mainTopic] : []),
+              ],
+            },
+            status,
+            onProgress: (progress) => {
+              if (progress.percent >= lastReportedPercent + 10) {
+                lastReportedPercent = progress.percent;
+                stream.progress(`Uploading... ${progress.percent}%`);
+                episodeState
+                  .patchJob(episodeDir, "youtubeUpload", {
+                    status: "running",
+                    percent: progress.percent,
+                  })
+                  .catch(() => {});
+              }
+            },
+          });
+          await episodeState.finishJob(episodeDir, "youtubeUpload", {
+            status: "completed",
+            percent: 100,
+          });
+          await episodeState.updateState(episodeDir, (current) =>
+            current
+              ? {
+                  ...current,
+                  youtubeUpload: {
+                    videoId: uploaded.videoId,
+                    url: uploaded.url,
+                    sha256: videoSha256,
+                    title,
+                    publishAt: scheduled ? publishDate.toISOString() : null,
+                    uploadedAt: new Date().toISOString(),
+                  },
+                }
+              : null,
+          );
+          stream.result({
+            success: true,
+            url: uploaded.url,
+            title,
+            scheduled,
+            publishAt: scheduled ? publishDate.toISOString() : null,
+          });
+        } catch (error) {
+          await episodeState
+            .finishJob(episodeDir, "youtubeUpload", {
+              status: "failed",
+              error: error.message,
+            })
+            .catch(() => {});
+          throw error;
+        }
+      } catch (error) {
+        stream.error(error.message);
+      }
+      return;
+    }
+
+    // Flips the staged (private) MP3 public at release time - an ACL rewrite, no
+    // re-upload. Refused when the local file no longer matches what was uploaded, so a
+    // stale copy can never be what goes live.
+    if (req.method === "POST" && pathname === "/api/publish-mp3") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        const mp3Path = String(payload.mp3Path || "").trim();
+        if (!mp3Path || !path.isAbsolute(mp3Path) || !fs.existsSync(mp3Path)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid mp3Path",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path,
+        });
+        const state = await episodeState.readState(episodeDir);
+        if (!state?.mp3Upload?.sha256) {
+          sendJson(res, 400, {
+            success: false,
+            error: "No uploaded MP3 to publish - upload it first",
+          });
+          return;
+        }
+        if (state.mp3Upload.acl === "public-read") {
+          sendJson(res, 200, {
+            success: true,
+            alreadyPublic: true,
+            url: state.mp3Upload.url,
+          });
+          return;
+        }
+        const fileSha256 = await sha256FileHex(mp3Path);
+        if (fileSha256 !== state.mp3Upload.sha256) {
+          sendJson(res, 400, {
+            success: false,
+            error:
+              "The local MP3 has changed since it was uploaded - upload it again before making it public",
+          });
+          return;
+        }
+        const spaces = resolveSpaces(loadPostprocessConfig(repoRoot));
+        if (!spaces) {
+          sendJson(res, 400, {
+            success: false,
+            error:
+              "Spaces credentials are not configured - add spaces.accessKeyId and spaces.secretAccessKey to postprocess.config.local.json",
+          });
+          return;
+        }
+
+        await setObjectAcl({
+          key: state.episode.podcastPath,
+          ...spaces,
+          acl: "public-read",
+        });
+        await episodeState.updateState(episodeDir, (current) =>
+          current
+            ? {
+                ...current,
+                mp3Upload: {
+                  ...current.mp3Upload,
+                  acl: "public-read",
+                  publishedAt: new Date().toISOString(),
+                },
+              }
+            : null,
+        );
+        sendJson(res, 200, { success: true, url: state.mp3Upload.url });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Re-bounds one clip to cover the whole conversation it sits in: the LLM reads
+    // the transcript around the clip and returns wider quotes, located back onto cue
+    // timings. The card's trim strip handles seconds; this handles minutes.
+    if (req.method === "POST" && pathname === "/api/expand-clip") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        const clip = payload.clip || {};
+        const startSeconds = Number(clip.startSeconds);
+        const endSeconds = Number(clip.endSeconds);
+        if (
+          !Number.isFinite(startSeconds) ||
+          !Number.isFinite(endSeconds) ||
+          endSeconds <= startSeconds
+        ) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid clip time range",
+          });
+          return;
+        }
+        const llm = resolveLlm(loadPostprocessConfig(repoRoot));
+        if (!llm) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Expanding a clip needs an LLM API key",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const vttPath = path.join(episodeDir, "transcript.vtt");
+        const vttText = fs.existsSync(vttPath)
+          ? fs.readFileSync(vttPath, "utf8")
+          : discovered.transcriptVttText;
+
+        const expanded = await expandClipLlmCached({
+          cacheDir: path.join(
+            repoRoot,
+            ".cache",
+            "postprocess",
+            "clip-suggestions",
+          ),
+          transcriptVttText: vttText,
+          clip: {
+            startSeconds,
+            endSeconds,
+            title: String(clip.title || "").trim(),
+          },
+          llm,
+        });
+
+        sendJson(res, 200, { success: true, ...expanded });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
       }

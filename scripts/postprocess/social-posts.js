@@ -3,8 +3,9 @@ const path = require("node:path");
 const { completeJson } = require("./llm");
 const { fileExists, readJson, writeJson } = require("./utils");
 
-// Bump when the prompt or schema changes so cached posts are not reused.
-const SOCIAL_PROMPT_VERSION = 1;
+// Bump when the prompt, schema, or result shape changes so cached posts are not
+// reused.
+const SOCIAL_PROMPT_VERSION = 4;
 
 // Bluesky tags are discovery searches, not branding - the show name lives in the post
 // text, the tags buy reach in the cozy-games corner.
@@ -37,7 +38,7 @@ const SOCIAL_SCHEMA = {
     tumblrBody: {
       type: "string",
       description:
-        "Two short, conversational paragraphs for Tumblr announcing the episode. No hashtags, no links.",
+        "One short, matter-of-fact paragraph (2-3 sentences) announcing the episode for Tumblr. No hashtags, no links.",
     },
   },
   required: ["bluesky", "tumblrTitle", "tumblrBody"],
@@ -48,22 +49,29 @@ const SYSTEM_PROMPT = [
   "conversational podcast about farming and cottagecore games.",
   "",
   "Rules:",
-  "- Lead with what makes THIS episode fun: name two or three concrete hooks from the",
-  "  material provided, not generic enthusiasm.",
   "- Never put hashtags or links in the text; they are appended separately.",
-  `- The Bluesky text must be at most ${BLUESKY_BODY_LIMIT} characters.`,
-  "- The Tumblr body is two short, conversational paragraphs in the show's voice.",
+  "- Bluesky: energetic - name two or three concrete hooks from the material",
+  `  provided, not generic enthusiasm. At most ${BLUESKY_BODY_LIMIT} characters.`,
+  "- Tumblr: a plain, matter-of-fact announcement in one short paragraph (2-3",
+  "  sentences): say the episode is out and name the main topic and at most two other",
+  "  things covered, without elaborating on them. No chumminess, no invitations, no",
+  '  sign-offs - nothing like "grab a cup of tea and hang out with us".',
 ].join("\n");
 
 function composeBlueskyPost(body, episodeUrl) {
   return `${String(body || "").trim()}\n\n${BLUESKY_HASHTAGS.join(" ")}\n\n${episodeUrl}\n`;
 }
 
-function composeTumblrPost({ title, body, episodeUrl, mainTopic }) {
+function buildTumblrTags(mainTopic) {
   const tags = [...TUMBLR_BASE_TAGS];
   if (mainTopic && !tags.includes(mainTopic.toLowerCase())) {
     tags.push(mainTopic.toLowerCase());
   }
+  return tags;
+}
+
+function composeTumblrPost({ title, body, episodeUrl, mainTopic }) {
+  const tags = buildTumblrTags(mainTopic);
   return `${String(title || "").trim()}\n\n${String(body || "").trim()}\n\n${episodeUrl}\n\nTags: ${tags.join(", ")}\n`;
 }
 
@@ -119,6 +127,16 @@ async function generateSocialPosts({ episode, llm, complete = completeJson }) {
   return {
     bluesky,
     tumblr,
+    // The composed strings above suit files and clipboards; the compose-intent URLs
+    // that prefill bsky.app and tumblr.com want the pieces separately. The URL stays
+    // its own field: the Tumblr draft is a link post, where it becomes the link card
+    // rather than caption text.
+    tumblrParts: {
+      title: String(drafts.tumblrTitle || "").trim(),
+      body: String(drafts.tumblrBody || "").trim(),
+      url: episode.episodeUrl,
+      tags: buildTumblrTags(episode.mainTopic),
+    },
     blueskyLength: bluesky.trim().length,
     blueskyOverLimit: bluesky.trim().length > 300,
   };

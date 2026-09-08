@@ -29,16 +29,33 @@
             Clear & Restart Process
           </button>
           <button type="button" id="rerender-mp4-button">Re-render MP4</button>
-          <button type="button" id="regenerate-clips-button">
-            Re-generate Clip Suggestions
+          <button
+            type="button"
+            id="upload-mp3-button"
+            style="display: none"
+            title="Upload the embedded MP3 to DigitalOcean Spaces (private) at the feed's enclosure path"
+          >
+            Upload MP3
           </button>
-          <button type="button" id="recheck-transcript-button">
-            Re-run Transcript Check
+          <button
+            type="button"
+            id="publish-mp3-button"
+            style="display: none"
+            title="Make the uploaded MP3 public - do this just before release"
+          >
+            Make MP3 Public
           </button>
-          <button type="button" id="youtube-description-button">
-            YouTube Description
+          <button
+            type="button"
+            id="upload-youtube-button"
+            style="display: none"
+            title="Upload the chapter MP4 to YouTube with the generated description, scheduled for the episode's publish time"
+          >
+            Upload to YouTube
           </button>
-          <button type="button" id="social-posts-button">Social Posts</button>
+          <button type="button" id="social-posts-button" style="display: none">
+            Social Posts
+          </button>
           <button
             type="button"
             id="cancel-clips-button"
@@ -90,6 +107,15 @@
         </label>
 
         <label>
+          Main topic
+          <input
+            name="mainTopic"
+            placeholder="What the episode is about (guessed from the chapter before Outro)"
+            title="Drives the derived description and the YouTube title; editing it regenerates the description"
+          />
+        </label>
+
+        <label>
           Description
           <input
             name="description"
@@ -106,6 +132,13 @@
       <section id="transcript-review-section" style="display: none">
         <h2>AI Transcript Fixes</h2>
         <div id="transcript-review-list"></div>
+        <button
+          type="button"
+          id="recheck-transcript-button"
+          style="margin-top: 12px"
+        >
+          Re-run Transcript Check
+        </button>
         <button
           type="button"
           id="apply-transcript-fixes-button"
@@ -154,6 +187,14 @@
             start when it finishes.
           </div>
           <div id="clip-suggestions-list" style="margin-top: 12px"></div>
+          <button
+            type="button"
+            id="more-clip-suggestions-button"
+            style="margin-top: 16px"
+            title="Ask the AI for new moments not covered by the clips above"
+          >
+            Suggest More Clips
+          </button>
           <button
             id="generate-clip-videos-button"
             style="margin-top: 16px; padding: 10px 20px; font-size: 1em"

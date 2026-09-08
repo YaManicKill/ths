@@ -1,0 +1,68 @@
+{
+  "version": "1.2.0",
+  "chapters": [
+    {
+      "startTime": 0,
+      "title": "Theme Tune"
+    },
+    {
+      "startTime": 30,
+      "title": "Intro"
+    },
+    {
+      "startTime": 168,
+      "title": "What Have We Been Up To"
+    },
+    {
+      "startTime": 1898,
+      "title": "Game News"
+    },
+    {
+      "startTime": 1916,
+      "title": "Milki Delivery",
+      "toc": false
+    },
+    {
+      "startTime": 2129,
+      "title": "Tiny Eden",
+      "toc": false
+    },
+    {
+      "startTime": 2195,
+      "title": "Cozy Caravan",
+      "toc": false
+    },
+    {
+      "startTime": 2331,
+      "title": "Hammer And Harvest: Dwarven Roots",
+      "toc": false
+    },
+    {
+      "startTime": 2454,
+      "title": "Ova Magica",
+      "toc": false
+    },
+    {
+      "startTime": 2794,
+      "title": "New Games"
+    },
+    {
+      "startTime": 2800,
+      "title": "Mayday",
+      "toc": false
+    },
+    {
+      "startTime": 2973,
+      "title": "Cropia",
+      "toc": false
+    },
+    {
+      "startTime": 3123,
+      "title": "Pokopia: Bubbly Basin"
+    },
+    {
+      "startTime": 5883,
+      "title": "Outro"
+    }
+  ]
+}

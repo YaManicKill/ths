@@ -50,6 +50,22 @@ async function main() {
   assert.equal(result.blueskyOverLimit, false);
   assert.ok(result.blueskyLength > 0);
 
+  // The parts feed the compose-intent URLs: Tumblr's share tool builds a link post
+  // from title, caption, the URL, and tags as separate fields.
+  assert.deepEqual(result.tumblrParts, {
+    title: "Secret Lair time",
+    body: "Paragraph one.\n\nParagraph two.",
+    url: "https://harvestseason.club/episode/year3/winter/12-07-x/",
+    tags: [
+      "the harvest season",
+      "podcast",
+      "cottagecore",
+      "cozy games",
+      "farming games",
+      "game releases",
+    ],
+  });
+
   // Without an LLM the fallback drafts still produce both posts.
   const fallback = await generateSocialPosts({ episode, llm: null });
   assert.ok(fallback.bluesky.includes("THS Secret Lair"));

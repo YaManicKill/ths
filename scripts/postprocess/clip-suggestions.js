@@ -1,3 +1,4 @@
+const crypto = require("node:crypto");
 const { formatSecondsToHhmmss } = require("./parsers");
 const { parseVttCues } = require("./vtt");
 
@@ -605,6 +606,7 @@ function buildClipSuggestions(input = {}) {
       // the UI and the ffmpeg arguments.
       const round3 = (value) => Math.round(value * 1000) / 1000;
       candidates.push({
+        id: crypto.randomUUID(),
         startSeconds: round3(startSeconds),
         endSeconds: round3(endSeconds),
         durationSeconds: round3(durationSeconds),

@@ -5,9 +5,6 @@ const processActionsSection = document.getElementById(
 );
 const restartProcessButton = document.getElementById("restart-process-button");
 const rerenderMp4Button = document.getElementById("rerender-mp4-button");
-const regenerateClipsButton = document.getElementById(
-  "regenerate-clips-button",
-);
 const previewSection = document.getElementById("image-preview-section");
 const chaptersGrid = document.getElementById("chapters-grid");
 const approveButton = document.getElementById("approve-button");
@@ -43,12 +40,15 @@ const recheckTranscriptButton = document.getElementById(
   "recheck-transcript-button",
 );
 const cancelClipsButton = document.getElementById("cancel-clips-button");
-const youtubeDescriptionButton = document.getElementById(
-  "youtube-description-button",
-);
 const socialPostsButton = document.getElementById("social-posts-button");
+const uploadMp3Button = document.getElementById("upload-mp3-button");
+const publishMp3Button = document.getElementById("publish-mp3-button");
+const uploadYoutubeButton = document.getElementById("upload-youtube-button");
 const generateClipVideosButton = document.getElementById(
   "generate-clip-videos-button",
+);
+const moreClipSuggestionsButton = document.getElementById(
+  "more-clip-suggestions-button",
 );
 
 let currentDiscoveryData = null;
@@ -66,6 +66,12 @@ let isVideoRenderInProgress = false;
 // response even though the clip section stays visible.
 let isRunRequestInFlight = false;
 let isVideoRenderCompleted = false;
+// Mirrors the stored phase: true once the episode's files exist on disk. Gates the
+// publish buttons and the transcript-fixes section, which act on those files.
+let isEpisodeGenerated = false;
+// The episode state's upload record (or null): Make MP3 Public needs a staged upload
+// to act on.
+let currentMp3Upload = null;
 let chapterImageOverrides = {}; // Track uploaded replacement images by chapter index
 let currentTranscriptFindings = [];
 let shownotesLinks = [];
@@ -96,6 +102,7 @@ function setVideoRenderUiState(inProgress) {
   if (isVideoRenderInProgress) {
     isVideoRenderCompleted = false;
   }
+  setProcessActionsVisibility();
 
   if (isVideoRenderInProgress) {
     toggleOverridesButton.style.display = "none";
@@ -117,6 +124,7 @@ function setVideoRenderUiState(inProgress) {
 
 function setVideoRenderCompletedUiState(completed) {
   isVideoRenderCompleted = Boolean(completed);
+  setProcessActionsVisibility();
   if (!isVideoRenderCompleted) {
     return;
   }
@@ -130,11 +138,24 @@ function setVideoRenderCompletedUiState(completed) {
   generateClipVideosButton.style.display = "none";
   rerenderMp4Button.disabled = false;
   restartProcessButton.disabled = false;
-  regenerateClipsButton.disabled = false;
 }
 
 function setProcessActionsVisibility() {
   processActionsSection.style.display = currentDiscoveryData ? "block" : "none";
+  // YouTube description and social posts read the generated index.md; before the
+  // episode exists they can only error.
+  const publishDisplay = isEpisodeGenerated ? "inline-block" : "none";
+  uploadMp3Button.style.display = publishDisplay;
+  publishMp3Button.style.display = publishDisplay;
+  uploadYoutubeButton.style.display = publishDisplay;
+  socialPostsButton.style.display = publishDisplay;
+  // An in-flight Approve rewrites the MP3 (the chapter-image embed), so uploading
+  // mid-run would ship a half-written file; and there is nothing to make public until
+  // an upload has been recorded. YouTube needs the finished MP4.
+  uploadMp3Button.disabled = isRunRequestInFlight;
+  publishMp3Button.disabled = !currentMp3Upload;
+  uploadYoutubeButton.disabled =
+    isVideoRenderInProgress || isRunRequestInFlight || !isVideoRenderCompleted;
 }
 
 function getDiscoverySnapshot() {
@@ -802,12 +823,17 @@ function renderTranscriptReview(review) {
 function renderTranscriptFixSection() {
   transcriptReviewList.innerHTML = "";
 
+  // Once the episode is generated the section stays up even with nothing pending, so
+  // the re-check button has a home after hand edits.
+  transcriptReviewSection.style.display =
+    currentTranscriptFindings.length > 0 || isEpisodeGenerated
+      ? "block"
+      : "none";
+  applyTranscriptFixesButton.style.display =
+    currentTranscriptFindings.length > 0 ? "inline-block" : "none";
   if (currentTranscriptFindings.length === 0) {
-    transcriptReviewSection.style.display = "none";
     return;
   }
-
-  transcriptReviewSection.style.display = "block";
 
   currentTranscriptFindings.forEach((finding) => {
     const row = document.createElement("div");
@@ -1128,6 +1154,8 @@ let clipPreviewSrcPath = null;
 let clipPreviewStopAt = Infinity;
 let clipPreviewButton = null;
 let clipPreviewIdleLabel = "▶ Preview";
+// Which suggestion is playing, so its trim strip (and only its) draws the playhead.
+let clipPreviewSuggestion = null;
 
 function stopClipPreview() {
   if (clipPreviewAudio) {
@@ -1137,6 +1165,7 @@ function stopClipPreview() {
     clipPreviewButton.textContent = clipPreviewIdleLabel;
     clipPreviewButton = null;
   }
+  clipPreviewSuggestion = null;
 }
 
 // lastSeconds plays just the tail of the clip - the quickest way to hear how a trim
@@ -1194,6 +1223,7 @@ function playClipPreview(suggestion, button, { lastSeconds } = {}) {
   clipPreviewIdleLabel = button.textContent;
   button.textContent = "■ Stop";
   clipPreviewButton = button;
+  clipPreviewSuggestion = suggestion;
 }
 
 function formatCueTime(seconds) {
@@ -1350,7 +1380,40 @@ function renderClipTrimStrip(
     for (const x of [startX, endX]) {
       ctx.fillRect(x - 1.5, 0, 3, canvas.height);
     }
+
+    // The playhead, while this clip's preview is playing: seeing where the audio is
+    // against the handles is most of what trimming needs.
+    if (
+      clipPreviewSuggestion === suggestion &&
+      clipPreviewAudio &&
+      !clipPreviewAudio.paused
+    ) {
+      const t = clipPreviewAudio.currentTime;
+      if (t >= windowStart && t <= windowEnd) {
+        ctx.fillStyle = "#4ade80";
+        ctx.fillRect(xFor(t) - 1, 0, 2, canvas.height);
+      }
+    }
   }
+
+  // Redraw while a preview plays so the playhead moves - plus one frame after it
+  // stops, to clear the line. The loop dies with the canvas (a card rebuild or an
+  // Expand replaces the strip).
+  let playheadWasVisible = false;
+  (function animatePlayhead() {
+    if (!canvas.isConnected) {
+      return;
+    }
+    const playing =
+      clipPreviewSuggestion === suggestion &&
+      clipPreviewAudio &&
+      !clipPreviewAudio.paused;
+    if (playing || playheadWasVisible) {
+      draw();
+    }
+    playheadWasVisible = playing;
+    requestAnimationFrame(animatePlayhead);
+  })();
 
   function setRange(start, end) {
     const round3 = (value) => Math.round(value * 1000) / 1000;
@@ -1360,7 +1423,7 @@ function renderClipTrimStrip(
     suggestion.timestampLabel = `${formatHms(start)}-${formatHms(end)}`;
     rangeLabel.textContent = `${formatHms(start)} – ${formatHms(end)} (${Math.round(
       suggestion.durationSeconds,
-    )}s) — drag the orange handles; sentence boundaries are magnetic`;
+    )}s) — drag the orange handles; sentence boundaries are magnetic, hold Shift to drag freely`;
     draw();
     refreshMeta();
     scheduleClipCurationSave();
@@ -1394,13 +1457,16 @@ function renderClipTrimStrip(
 
   function onDrag(event) {
     const t = timeAt(event);
+    // Shift suspends the magnetism for the times a sentence edge sits exactly where
+    // the trim should NOT land; 0.05s steps are finer than the strip's own pixels.
+    const free = event.shiftKey;
     if (dragging === "start") {
-      const snapped = snap(cueStarts, t);
+      const snapped = free ? Math.round(t * 20) / 20 : snap(cueStarts, t);
       if (snapped < suggestion.endSeconds - 2) {
         setRange(snapped, suggestion.endSeconds);
       }
     } else {
-      const snapped = snap(cueEnds, t);
+      const snapped = free ? Math.round(t * 20) / 20 : snap(cueEnds, t);
       if (snapped > suggestion.startSeconds + 2) {
         setRange(suggestion.startSeconds, snapped);
       }
@@ -1483,16 +1549,21 @@ function renderClipCueEditor(container, suggestion, { cues, editable }) {
   const originals = cues.map((cue) => cue.speech);
   const inputs = [];
   // Excluded rows are skipped: they are clip-local cuts, not transcript edits.
-  clipEditorDirtyChecks.add(
-    () =>
-      inputs.filter(
-        (input, index) =>
-          !input.disabled &&
-          !isExcluded(cues[index]) &&
-          input.value.trim() !== "" &&
-          input.value.trim() !== originals[index].trim(),
-      ).length,
-  );
+  const dirtyCheck = () =>
+    inputs.filter(
+      (input, index) =>
+        !input.disabled &&
+        !isExcluded(cues[index]) &&
+        input.value.trim() !== "" &&
+        input.value.trim() !== originals[index].trim(),
+    ).length;
+  clipEditorDirtyChecks.add(dirtyCheck);
+  // The card's Approve button and the Expand replacement need handles on the editor:
+  // container is the details' body div, so the details element hosts them.
+  const detailsHost = container.parentElement;
+  if (detailsHost) {
+    detailsHost.clipEditorDirtyCheck = dirtyCheck;
+  }
 
   cues.forEach((cue) => {
     const row = document.createElement("div");
@@ -1558,7 +1629,9 @@ function renderClipCueEditor(container, suggestion, { cues, editable }) {
   saveButton.type = "button";
   saveButton.textContent = "Save Transcript Edits";
   saveButton.style.marginTop = "6px";
-  saveButton.addEventListener("click", async () => {
+  // Also invoked (quietly) by the card's Approve button, so approving a clip never
+  // leaves edits unsaved.
+  const saveEdits = async ({ quiet = false } = {}) => {
     const fixes = [];
     let emptiedRows = 0;
     inputs.forEach((input, index) => {
@@ -1583,7 +1656,7 @@ function renderClipCueEditor(container, suggestion, { cues, editable }) {
       );
     }
     if (!fixes.length) {
-      if (!emptiedRows) {
+      if (!emptiedRows && !quiet) {
         addStatus("No transcript edits to save.");
       }
       return;
@@ -1625,7 +1698,11 @@ function renderClipCueEditor(container, suggestion, { cues, editable }) {
     } finally {
       saveButton.disabled = false;
     }
-  });
+  };
+  saveButton.addEventListener("click", () => saveEdits());
+  if (detailsHost) {
+    detailsHost.clipEditorSaveEdits = saveEdits;
+  }
   container.appendChild(saveButton);
 }
 
@@ -1725,16 +1802,20 @@ function renderClipSuggestions(suggestions) {
       card.appendChild(why);
     }
 
+    let trimEditor = null;
+    let transcriptEditor = null;
     if (
       typeof suggestion.startSeconds === "number" &&
       typeof suggestion.endSeconds === "number"
     ) {
-      card.appendChild(buildClipTrimEditor(suggestion, updateMeta));
-      card.appendChild(buildClipTranscriptEditor(suggestion));
+      trimEditor = buildClipTrimEditor(suggestion, updateMeta);
+      transcriptEditor = buildClipTranscriptEditor(suggestion);
+      card.appendChild(trimEditor);
+      card.appendChild(transcriptEditor);
     }
 
     const controls = document.createElement("div");
-    controls.style.cssText = "display:flex; gap:8px;";
+    controls.style.cssText = "display:flex; gap:8px; flex-wrap:wrap;";
 
     const previewButton = document.createElement("button");
     previewButton.type = "button";
@@ -1760,6 +1841,75 @@ function renderClipSuggestions(suggestions) {
       playClipPreview(suggestion, endingButton, { lastSeconds: 5 });
     });
     controls.appendChild(endingButton);
+
+    // The trim strip covers seconds; this covers minutes - the AI re-bounds the clip
+    // to the whole conversation it sits in, then both editors reload for the new
+    // window (their old cues and waveform belong to the old bounds).
+    if (trimEditor) {
+      const expandButton = document.createElement("button");
+      expandButton.type = "button";
+      expandButton.textContent = "⤢ Expand";
+      expandButton.title =
+        "Ask the AI to widen this clip to cover the whole conversation";
+      expandButton.style.cssText = previewButton.style.cssText;
+      expandButton.addEventListener("click", async () => {
+        expandButton.disabled = true;
+        expandButton.textContent = "Expanding...";
+        try {
+          const response = await fetch("/api/expand-clip", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              mp3Path: buildDiscoverPayload().mp3Path,
+              discoveryData: currentDiscoveryData?.discoveryData,
+              clip: {
+                startSeconds: suggestion.startSeconds,
+                endSeconds: suggestion.endSeconds,
+                title: suggestion.title || suggestion.summary || "",
+              },
+            }),
+          });
+          const body = await response.json();
+          if (!response.ok || !body.success) {
+            throw new Error(body.error || "Expand request failed");
+          }
+          if (body.durationSeconds === suggestion.durationSeconds) {
+            addStatus(
+              "ℹ The AI thinks this clip already covers the whole conversation.",
+            );
+            return;
+          }
+
+          suggestion.startSeconds = body.startSeconds;
+          suggestion.endSeconds = body.endSeconds;
+          suggestion.durationSeconds = body.durationSeconds;
+          suggestion.timestampLabel = body.timestampLabel;
+          updateMeta();
+
+          const nextTrim = buildClipTrimEditor(suggestion, updateMeta);
+          card.replaceChild(nextTrim, trimEditor);
+          trimEditor = nextTrim;
+          if (transcriptEditor) {
+            clipEditorDirtyChecks.delete(transcriptEditor.clipEditorDirtyCheck);
+            const nextTranscript = buildClipTranscriptEditor(suggestion);
+            card.replaceChild(nextTranscript, transcriptEditor);
+            transcriptEditor = nextTranscript;
+          }
+          scheduleClipCurationSave();
+          addStatus(
+            `✓ Clip expanded to ${Math.round(body.durationSeconds)}s (${body.timestampLabel})`,
+          );
+        } catch (error) {
+          addStatus(`❌ Expand failed: ${error.message}`);
+        } finally {
+          expandButton.disabled = false;
+          expandButton.textContent = "⤢ Expand";
+        }
+      });
+      controls.appendChild(expandButton);
+    }
 
     const approveButton = document.createElement("button");
     approveButton.type = "button";
@@ -1791,18 +1941,26 @@ function renderClipSuggestions(suggestions) {
     };
     refreshDecision();
 
-    approveButton.addEventListener("click", () => {
-      clipApprovalState[index] = true;
+    // Deciding a clip either way means "done reviewing it": unsaved transcript edits
+    // are saved (they land in the episode transcripts, which matter even for a denied
+    // clip), and the open trim/transcript panels fold away.
+    const settleCard = async (decision) => {
+      if (transcriptEditor?.clipEditorSaveEdits) {
+        await transcriptEditor.clipEditorSaveEdits({ quiet: true });
+      }
+      if (trimEditor) {
+        trimEditor.open = false;
+      }
+      if (transcriptEditor) {
+        transcriptEditor.open = false;
+      }
+      clipApprovalState[index] = decision;
       refreshDecision();
       updateClipSuggestionsSummary();
       scheduleClipCurationSave();
-    });
-    denyButton.addEventListener("click", () => {
-      clipApprovalState[index] = false;
-      refreshDecision();
-      updateClipSuggestionsSummary();
-      scheduleClipCurationSave();
-    });
+    };
+    approveButton.addEventListener("click", () => settleCard(true));
+    denyButton.addEventListener("click", () => settleCard(false));
 
     controls.appendChild(approveButton);
     controls.appendChild(denyButton);
@@ -1895,6 +2053,7 @@ function buildDiscoverPayload() {
     mp3Path: String(formData.get("mp3Path") || "").trim(),
     transcriptMdPath: String(formData.get("transcriptMdPath") || "").trim(),
     transcriptVttPath: String(formData.get("transcriptVttPath") || "").trim(),
+    mainTopic: String(formData.get("mainTopic") || "").trim() || undefined,
     episodeTitle:
       String(formData.get("episodeTitle") || "").trim() || undefined,
     description: String(formData.get("description") || "").trim() || undefined,
@@ -2003,6 +2162,7 @@ async function runDiscovery() {
     setInputValue("description", result.discovered.description || "");
     setInputValue("publishDate", result.discovered.dateString || "");
     setInputValue("episodeTitle", result.discovered.episodeTitle || "");
+    setInputValue("mainTopic", result.discovered.mainTopic || "");
 
     renderProfanityStatus(
       result.discovered?.transcriptChecks,
@@ -2016,7 +2176,10 @@ async function runDiscovery() {
     currentDiscoveryData = {
       discoveryData: result.discoveryData,
     };
+    isEpisodeGenerated = result.discovered?.phase === "generated";
+    currentMp3Upload = result.discovered?.mp3Upload || null;
     setProcessActionsVisibility();
+    renderTranscriptFixSection();
     currentRunResult = null;
 
     const mp4RenderStatus = String(
@@ -2086,6 +2249,23 @@ async function runDiscovery() {
     } else {
       addStatus("✓ Chapter images ready for review");
     }
+    if (result.discovered?.mp3Upload?.uploadedAt) {
+      const isPublic = result.discovered.mp3Upload.acl === "public-read";
+      addStatus(
+        `✓ MP3 uploaded to Spaces (${isPublic ? "public" : "private"}) ${new Date(
+          result.discovered.mp3Upload.uploadedAt,
+        ).toLocaleString()}`,
+      );
+    }
+    if (result.discovered?.youtubeUpload?.url) {
+      addStatus(
+        `✓ Episode on YouTube: ${result.discovered.youtubeUpload.url}${
+          result.discovered.youtubeUpload.publishAt
+            ? ` (goes public ${new Date(result.discovered.youtubeUpload.publishAt).toLocaleString()})`
+            : ""
+        }`,
+      );
+    }
 
     if (!hasActiveVideoRun && !hasCompletedVideoRun) {
       toggleOverridesButton.style.display = "inline-block";
@@ -2131,6 +2311,17 @@ form.addEventListener("submit", async (event) => {
     }
   },
 );
+
+// Editing the main topic regenerates the derived description ("A and B talk about
+// X."): clearing the description field stops it being sent back as an explicit
+// override, so re-discovery derives it fresh from the new topic.
+const mainTopicInput = form.elements.namedItem("mainTopic");
+if (mainTopicInput) {
+  mainTopicInput.addEventListener("input", () => {
+    setInputValue("description", "");
+    scheduleDiscovery();
+  });
+}
 
 async function pollVideoStatus(episodeDir) {
   function formatEta(etaSeconds) {
@@ -2615,6 +2806,9 @@ restartProcessButton.addEventListener("click", async () => {
   currentTranscriptFindings = [];
   mediumFixAccepted = {};
   shownotesLinks = [];
+  isEpisodeGenerated = false;
+  currentMp3Upload = null;
+  setProcessActionsVisibility();
   renderTranscriptFixSection();
   persistActiveVideoEpisodeDir("");
   persistActiveClipEpisodeDir("");
@@ -2668,14 +2862,25 @@ rerenderMp4Button.addEventListener("click", async () => {
   }
 });
 
-regenerateClipsButton.addEventListener("click", async () => {
+moreClipSuggestionsButton.addEventListener("click", async () => {
   if (!currentDiscoveryData?.discoveryData) {
     addStatus("Run discovery first.");
     return;
   }
+  // Appending re-renders every card, which would destroy open editors' unsaved edits.
+  const unsavedEdits = [...clipEditorDirtyChecks].reduce(
+    (sum, check) => sum + check(),
+    0,
+  );
+  if (unsavedEdits > 0) {
+    addStatus(
+      `⚠ ${unsavedEdits} unsaved transcript edit(s) - press "Save Transcript Edits" on the open card(s) first.`,
+    );
+    return;
+  }
 
-  regenerateClipsButton.disabled = true;
-  const stopSpinner = startStatusSpinner("Regenerating clip suggestions...");
+  moreClipSuggestionsButton.disabled = true;
+  const stopSpinner = startStatusSpinner("Asking the AI for more clips...");
   try {
     const response = await fetch("/api/clip-suggestions", {
       method: "POST",
@@ -2685,33 +2890,27 @@ regenerateClipsButton.addEventListener("click", async () => {
       body: JSON.stringify({
         mp3Path: buildDiscoverPayload().mp3Path,
         discoveryData: currentDiscoveryData.discoveryData,
+        existingClipSuggestions: currentClipSuggestions,
       }),
     });
     const result = await response.json();
     if (!response.ok || !result.success) {
-      throw new Error(result.error || "Failed to regenerate clip suggestions");
+      throw new Error(result.error || "Failed to get more clip suggestions");
     }
 
-    stopSpinner("✓ Clip suggestions regenerated");
-    if (result.warning) {
-      addStatus(
-        `⚠ AI clip selection unavailable (${result.warning}) — showing heuristic suggestions`,
-      );
+    if (!result.added) {
+      stopSpinner("ℹ No new distinct moments found beyond the existing clips");
+      return;
     }
-    // Fresh suggestions get fresh approvals; carrying old ones over by index would
-    // approve different clips than the ones the user looked at.
-    clipApprovalState = [];
-    renderClipSuggestions(result.clipSuggestions || []);
-    addStatus(
-      result.source === "llm"
-        ? "✓ AI clip suggestions ready for review."
-        : "✓ Heuristic clip suggestions ready for review.",
-    );
+    stopSpinner(`✓ ${result.added} new clip suggestion(s) added`);
+    // Existing approvals keep their positions; the new clips arrive undecided.
+    renderClipSuggestions(result.clipSuggestions || currentClipSuggestions);
+    scheduleClipCurationSave();
   } catch (error) {
     stopSpinner();
-    addStatus(`❌ Failed to regenerate clip suggestions: ${error.message}`);
+    addStatus(`❌ More suggestions failed: ${error.message}`);
   } finally {
-    regenerateClipsButton.disabled = false;
+    moreClipSuggestionsButton.disabled = false;
   }
 });
 
@@ -2833,46 +3032,6 @@ async function postTranscriptReview({ recheck }) {
   }
 }
 
-youtubeDescriptionButton.addEventListener("click", async () => {
-  if (!currentDiscoveryData?.discoveryData) {
-    addStatus("Run discovery first.");
-    return;
-  }
-
-  youtubeDescriptionButton.disabled = true;
-  try {
-    const response = await fetch("/api/youtube-description", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        mp3Path: buildDiscoverPayload().mp3Path,
-        discoveryData: currentDiscoveryData.discoveryData,
-      }),
-    });
-    const body = await response.json();
-    if (!response.ok || !body.success) {
-      throw new Error(body.error || "YouTube description request failed");
-    }
-
-    let copied = false;
-    try {
-      await navigator.clipboard.writeText(body.description);
-      copied = true;
-    } catch {
-      // Clipboard access can be denied; the file still exists.
-    }
-    addStatus(
-      `✓ YouTube description ${copied ? "copied to clipboard and " : ""}written to ${body.outputPath}`,
-    );
-  } catch (error) {
-    addStatus(`❌ YouTube description failed: ${error.message}`);
-  } finally {
-    youtubeDescriptionButton.disabled = false;
-  }
-});
-
 socialPostsButton.addEventListener("click", async () => {
   if (!currentDiscoveryData?.discoveryData) {
     addStatus("Run discovery first.");
@@ -2880,6 +3039,19 @@ socialPostsButton.addEventListener("click", async () => {
   }
 
   socialPostsButton.disabled = true;
+  // In the desktop app window.open routes straight to the system browser (no popup
+  // blocking, and no way to retarget a placeholder). In a plain browser the blank
+  // windows must open synchronously inside the click, before any await, or popup
+  // blocking eats them; they get their real compose URLs once the drafts arrive.
+  const opensInSystemBrowser = navigator.userAgent.includes("Electron");
+  const blueskyWindow = opensInSystemBrowser
+    ? null
+    : window.open("about:blank");
+  const tumblrWindow = opensInSystemBrowser ? null : window.open("about:blank");
+  const closePlaceholders = () => {
+    blueskyWindow?.close();
+    tumblrWindow?.close();
+  };
   try {
     const response = await fetch("/api/social-posts", {
       method: "POST",
@@ -2896,25 +3068,196 @@ socialPostsButton.addEventListener("click", async () => {
       throw new Error(body.error || "Social posts request failed");
     }
 
+    const blueskyIntent = `https://bsky.app/intent/compose?text=${encodeURIComponent(body.bluesky.trim())}`;
+    // A link post: the episode URL becomes the link card, the paragraphs its caption.
+    // (The text posttype's content parameter is ignored by the share tool.)
+    const tumblrIntent = body.tumblrParts
+      ? `https://www.tumblr.com/widgets/share/tool?${new URLSearchParams({
+          posttype: "link",
+          canonicalUrl: body.tumblrParts.url,
+          content: body.tumblrParts.url,
+          title: body.tumblrParts.title,
+          caption: body.tumblrParts.body,
+          tags: (body.tumblrParts.tags || []).join(","),
+        }).toString()}`
+      : null;
+
+    if (opensInSystemBrowser) {
+      window.open(blueskyIntent);
+      if (tumblrIntent) {
+        window.open(tumblrIntent);
+      }
+    } else {
+      if (blueskyWindow) {
+        blueskyWindow.location = blueskyIntent;
+      }
+      if (tumblrWindow && tumblrIntent) {
+        tumblrWindow.location = tumblrIntent;
+      } else {
+        tumblrWindow?.close();
+      }
+    }
+
     let copied = false;
     try {
       await navigator.clipboard.writeText(body.bluesky.trim());
       copied = true;
     } catch {
-      // Clipboard access can be denied; the files still exist.
+      // Clipboard access can be denied; the compose windows carry the text anyway.
     }
     addStatus(
-      `✓ Social posts written: ${body.blueskyPath} (${body.blueskyLength}/300 chars) and ${body.tumblrPath}${copied ? " - Bluesky post copied to clipboard" : ""}`,
+      `✓ Social drafts opened in Bluesky and Tumblr compose tabs (${body.blueskyLength}/300 chars)${copied ? " - Bluesky text also on the clipboard" : ""}`,
     );
+    if (!opensInSystemBrowser && (!blueskyWindow || !tumblrWindow)) {
+      addStatus(
+        "⚠ A popup was blocked - allow popups for this app to get both compose tabs.",
+      );
+    }
     if (body.blueskyOverLimit) {
       addStatus(
         "⚠ The Bluesky post is over the 300-character limit - trim it before posting.",
       );
     }
   } catch (error) {
+    closePlaceholders();
     addStatus(`❌ Social posts failed: ${error.message}`);
   } finally {
     socialPostsButton.disabled = false;
+  }
+});
+
+uploadMp3Button.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+
+  uploadMp3Button.disabled = true;
+  const stopSpinner = startStatusSpinner(
+    "Uploading MP3 to DigitalOcean Spaces...",
+  );
+  try {
+    const body = await postWithProgress(
+      "/api/upload-mp3",
+      {
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+      },
+      (message) => addStatus(`• ${message}`),
+    );
+    if (body.type === "error" || !body.success) {
+      throw new Error(body.error || "Upload failed");
+    }
+
+    const sizeMb = body.size
+      ? ` (${(body.size / (1024 * 1024)).toFixed(1)} MB)`
+      : "";
+    const aclNote = body.acl === "public-read" ? "public" : "private";
+    currentMp3Upload = { acl: body.acl || "private" };
+    if (body.alreadyUploaded) {
+      stopSpinner("ℹ MP3 unchanged since its last upload - nothing to do");
+      addStatus(`ℹ Staged (${aclNote}) at ${body.url}${sizeMb}`);
+      return;
+    }
+    stopSpinner("✓ MP3 uploaded (private)");
+    addStatus(
+      `✓ Staged at ${body.url}${sizeMb} - use "Make MP3 Public" at release time`,
+    );
+  } catch (error) {
+    stopSpinner();
+    addStatus(`❌ MP3 upload failed: ${error.message}`);
+  } finally {
+    setProcessActionsVisibility();
+  }
+});
+
+publishMp3Button.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+
+  publishMp3Button.disabled = true;
+  const stopSpinner = startStatusSpinner("Making the MP3 public...");
+  try {
+    const response = await fetch("/api/publish-mp3", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+      }),
+    });
+    const body = await response.json();
+    if (!response.ok || !body.success) {
+      throw new Error(body.error || "Publish request failed");
+    }
+
+    currentMp3Upload = { ...(currentMp3Upload || {}), acl: "public-read" };
+    if (body.alreadyPublic) {
+      stopSpinner("ℹ MP3 is already public");
+      return;
+    }
+    stopSpinner("✓ MP3 is now public");
+    addStatus(`✓ Live at ${body.url}`);
+  } catch (error) {
+    stopSpinner();
+    addStatus(`❌ Making the MP3 public failed: ${error.message}`);
+  } finally {
+    setProcessActionsVisibility();
+  }
+});
+
+uploadYoutubeButton.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+
+  uploadYoutubeButton.disabled = true;
+  const stopSpinner = startStatusSpinner("Uploading MP4 to YouTube...");
+  try {
+    const body = await postWithProgress(
+      "/api/upload-youtube",
+      {
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+      },
+      (message) => addStatus(`• ${message}`),
+    );
+    if (body.type === "error" || !body.success) {
+      throw new Error(body.error || "Upload failed");
+    }
+
+    if (body.needsAuth) {
+      stopSpinner("🔑 YouTube needs a one-time authorization");
+      addStatus(
+        "🔑 A Google sign-in tab is opening - authorize, then press Upload to YouTube again.",
+      );
+      window.open(body.authUrl, "_blank");
+      return;
+    }
+    if (body.alreadyUploaded) {
+      stopSpinner("ℹ Episode already uploaded to YouTube");
+      addStatus(`ℹ ${body.url}`);
+      if (body.warning) {
+        addStatus(`⚠ ${body.warning}`);
+      }
+      return;
+    }
+    stopSpinner(`✓ Uploaded to YouTube as "${body.title}"`);
+    addStatus(
+      body.scheduled
+        ? `✓ ${body.url} - scheduled to go public ${new Date(body.publishAt).toLocaleString()}`
+        : `✓ ${body.url} - public now (the publish date has passed)`,
+    );
+  } catch (error) {
+    stopSpinner();
+    addStatus(`❌ YouTube upload failed: ${error.message}`);
+  } finally {
+    setProcessActionsVisibility();
   }
 });
 
@@ -2963,6 +3306,7 @@ approveButton.addEventListener("click", async () => {
   approveButton.disabled = true;
   toggleOverridesButton.style.display = "none";
   isRunRequestInFlight = true;
+  setProcessActionsVisibility();
   setVideoRenderUiState(true);
   resetStatus();
   const runFormData = new FormData(form);
@@ -2976,6 +3320,7 @@ approveButton.addEventListener("click", async () => {
       String(runFormData.get("episodeTitle") || "").trim() || undefined,
     description:
       String(runFormData.get("description") || "").trim() || undefined,
+    mainTopic: String(runFormData.get("mainTopic") || "").trim() || undefined,
     publishDate:
       String(runFormData.get("publishDate") || "").trim() || undefined,
     skipVideo: Boolean(skipVideoCheckbox && skipVideoCheckbox.checked),
@@ -3003,6 +3348,7 @@ approveButton.addEventListener("click", async () => {
         transcriptVttPath: runPayload.transcriptVttPath,
         episodeTitle: runPayload.episodeTitle,
         description: runPayload.description,
+        mainTopic: runPayload.mainTopic,
         publishDate: runPayload.publishDate,
       },
       (msg) => addStatus(`• ${msg}`),
@@ -3041,6 +3387,9 @@ approveButton.addEventListener("click", async () => {
       }
       if (runPayload.description) {
         parsed.description = runPayload.description;
+      }
+      if (runPayload.mainTopic) {
+        parsed.mainTopic = runPayload.mainTopic;
       }
       if (runPayload.publishDate) {
         parsed.dateString = runPayload.publishDate;
@@ -3094,6 +3443,9 @@ approveButton.addEventListener("click", async () => {
         addStatus(`✓ ${verb} branch: ${result.gitBranch.name}`);
       }
       addStatus("✓ Episode files written");
+      isEpisodeGenerated = true;
+      setProcessActionsVisibility();
+      renderTranscriptFixSection();
       if (result.mp3ChapterImages && result.mp3ChapterImages.completed) {
         addStatus(
           `✓ MP3 chapter images embedded (${result.mp3ChapterImages.chaptersEmbedded} chapters)`,
@@ -3125,6 +3477,7 @@ approveButton.addEventListener("click", async () => {
     addStatus(`❌ Request failed: ${error.message}`);
   } finally {
     isRunRequestInFlight = false;
+    setProcessActionsVisibility();
     renderClipSuggestions(currentClipSuggestions);
     if (!isVideoRenderInProgress) {
       approveButton.disabled = false;

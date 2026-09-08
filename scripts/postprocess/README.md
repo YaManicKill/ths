@@ -24,8 +24,9 @@ is touched until you press **Approve**.
 | `--new-season`                 | Force the next season, episode 01, instead of incrementing the episode number.                                                                                |
 | `--episode-number <EE\|SS-EE>` | Target a specific episode and infer its publish date from that position in the sequence. `5` keeps the inferred season; `12-05` sets both season and episode. |
 
-Pressing Approve creates the `ep-SS-EE` branch, generates `index.md` and the transcripts
-(with AI fixes applied — see below), embeds chapter images into the MP3 (keeping a
+Pressing Approve creates the `ep-SS-EE` branch, generates `index.md`, the transcripts
+(with AI fixes applied — see below) and a podcast-namespace `chapters.json` (advertised
+from the feed as `<podcast:chapters>`), embeds chapter images into the MP3 (keeping a
 `.bak`), and renders the full-episode MP4. Clip videos are generated separately from the
 suggestion cards; they use the show logo rather than chapter images, and carry the
 episode title, burned-in subtitles and a progress bar.
@@ -39,23 +40,35 @@ episode title, burned-in subtitles and a progress bar.
   **Re-run Transcript Check** re-reviews the written transcripts after hand edits.
 - **AI clip suggestions**: up to 10 moments picked from the whole transcript, each with
   a hook title, reason, and a paste-ready caption (the show hashtags are always
-  included). Heuristic suggestions are the fallback without a key. Rendering clips also
-  writes a `captions.txt` next to them.
+  included). Heuristic suggestions are the fallback without a key; **Suggest More
+  Clips** adds new moments the existing picks don't cover. Rendering is incremental:
+  clips whose content hasn't changed since their last render are reused, changed ones
+  replace their old file, and `captions.txt` is merged to match.
 - **Clip cards** have audio preview, approve/deny, a waveform trim for the clip's
-  start/end, and an inline transcript editor whose edits land in both episode
-  transcripts. Generation queues behind an active MP4 render and can be cancelled.
+  start/end, an AI **Expand** that re-bounds the clip to its whole conversation, and an
+  inline transcript editor whose edits land in both episode transcripts (deciding a
+  clip either way saves them and folds the panels). Generation queues behind an active
+  MP4 render and can be cancelled.
 - **Shownotes links**: editable, reorderable rows that become index.md's `## Links`
   section — seeded from the auto-resolved Steam links plus the chapter before Outro
   (the main topic; delete the row when it isn't a game). Pasting a URL fetches the
   page title as an editable default.
 - **Audio QC**: warning-only loudness / true peak / long-silence check on the MP3
   during discovery, cached until the file changes.
-- **YouTube Description** converts the episode's current index.md (chapters in
-  YouTube's timestamp format, links included) into `youtube-description.txt` next to
-  the MP4, and copies it to the clipboard. Run it after any final shownotes edits.
+- **Upload MP3** stages the finished MP3 (chapter images embedded) privately on
+  DigitalOcean Spaces at the feed's enclosure path, with a checksum guard so an
+  unchanged file is never re-uploaded; **Make MP3 Public** flips it live at release
+  time, refusing if the local file changed since the upload. Needs the Spaces
+  credentials in the local config.
+- **Upload to YouTube** sends the chapter MP4 with a description generated from the
+  episode's current index.md (chapters in YouTube's timestamp format, links included —
+  so run it after any final shownotes edits), titled from `youtube.titleTemplate` and
+  the editable **Main topic** field (which also drives the derived podcast
+  description), and scheduled to go public at the episode's publish time. First use
+  opens a one-time Google authorization; see YouTube Setup below.
 - **Social Posts** drafts Bluesky and Tumblr announcements from the episode
-  description and clip hooks into `bluesky-post.txt` / `tumblr-post.txt` next to the
-  MP4, copying the Bluesky one to the clipboard.
+  description and clip hooks, then opens both platforms' compose pages prefilled -
+  posting stays a manual click there. The Bluesky text also lands on the clipboard.
 - Suggestions, links, unapplied fixes and run/job status all live in the episode's
   `postprocess-state.json` and are restored after a refresh or restart; **Clear &
   Restart Process** wipes that state for a fresh start.
@@ -80,18 +93,20 @@ on the site:
 Main config is `postprocess.config.json` at the repo root; every key is optional, with
 defaults in `config.js`.
 
-| Key                | Default                       | What it does                                                                                                     |
-| ------------------ | ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `episodesRoot`     | `~/Google Drive/.../Episodes` | Where source assets are searched for (MP3, transcripts). `~` is expanded. Searched up to 4 directories deep.     |
-| `outputRoot`       | `content/episode`             | Where generated episode folders are written, relative to the repo root. Also where episode inference reads from. |
-| `defaultAuthor`    | `Al McKinlay`                 | The `author` field in generated `index.md` frontmatter.                                                          |
-| `releaseTimeLocal` | `19:00:00`                    | Local time of day used for inferred publish dates.                                                               |
-| `timezone`         | `Europe/London`               | IANA zone the release time is interpreted in. The UTC offset is computed per date, so DST is handled.            |
-| `profanityWords`   | built-in list                 | Word list for the warning-only transcript check; setting it replaces the defaults. Wildcards like `shit*` work.  |
-| `hostNames`        | the five regulars             | Correct spellings of the recurring hosts. The AI transcript check flags any other spelling of them as a mistake. |
-| `llm.provider`     | `gemini`                      | Which LLM backs the AI features. Only `gemini` is implemented so far.                                            |
-| `llm.model`        | `gemini-3.6-flash`            | The model used for the AI features.                                                                              |
-| `llm.apiKey`       | unset                         | API key for the LLM provider. **Never put this in the main config** — see below.                                 |
+| Key                  | Default                       | What it does                                                                                                     |
+| -------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `episodesRoot`       | `~/Google Drive/.../Episodes` | Where source assets are searched for (MP3, transcripts). `~` is expanded. Searched up to 4 directories deep.     |
+| `outputRoot`         | `content/episode`             | Where generated episode folders are written, relative to the repo root. Also where episode inference reads from. |
+| `defaultAuthor`      | `Al McKinlay`                 | The `author` field in generated `index.md` frontmatter.                                                          |
+| `releaseTimeLocal`   | `19:00:00`                    | Local time of day used for inferred publish dates.                                                               |
+| `timezone`           | `Europe/London`               | IANA zone the release time is interpreted in. The UTC offset is computed per date, so DST is handled.            |
+| `profanityWords`     | built-in list                 | Word list for the warning-only transcript check; setting it replaces the defaults. Wildcards like `shit*` work.  |
+| `hostNames`          | the five regulars             | Correct spellings of the recurring hosts. The AI transcript check flags any other spelling of them as a mistake. |
+| `llm.provider`       | `gemini`                      | Which LLM backs the AI features. Only `gemini` is implemented so far.                                            |
+| `llm.model`          | `gemini-3.6-flash`            | The model used for the AI features.                                                                              |
+| `llm.apiKey`         | unset                         | API key for the LLM provider. **Never put this in the main config** — see below.                                 |
+| `spaces.bucket`      | `ymk`                         | DigitalOcean Space the MP3 uploads to; `spaces.region` (default `nyc3`) picks the endpoint.                      |
+| `spaces.accessKeyId` | unset                         | Spaces credentials, with `spaces.secretAccessKey`. **Local config only** — see below.                            |
 
 Secrets go in `postprocess.config.local.json` (gitignored — the main config is committed
 to a public repo). It is deep-merged over the main config:
@@ -102,6 +117,24 @@ to a public repo). It is deep-merged over the main config:
 
 `GEMINI_API_KEY` in the environment works as a fallback; with no key set, the AI
 features simply don't run. Verify a fresh key with `node scripts/postprocess/llm.js`.
+
+### YouTube Setup
+
+One-time, in [Google Cloud Console](https://console.cloud.google.com/): create a
+project, enable the **YouTube Data API v3**, configure the OAuth consent screen
+(publish it to "In production", else Google expires the grant weekly), and create an
+OAuth client of type **Desktop app**. Put both halves in the local config:
+
+```json
+{
+  "youtube": { "clientId": "….apps.googleusercontent.com", "clientSecret": "…" }
+}
+```
+
+The first **Upload to YouTube** click opens a Google sign-in; after authorizing, the
+refresh token lands in `data/youtube-oauth.json` (gitignored) and later uploads are one
+click. `youtube.titleTemplate` (default `{mainTopic} Review`) also understands `{title}`
+and `{code}`.
 
 Persistent per-chapter image overrides live in `data/chapter-image-overrides.json`, with
 the images in `.cache/postprocess/manual-images/`. Everything else under
