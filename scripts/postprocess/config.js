@@ -23,6 +23,15 @@ const DEFAULT_CONFIG = {
     accessKeyId: null,
     secretAccessKey: null,
   },
+  // YouTube uploads need an OAuth client (Desktop type) from Google Cloud Console
+  // with the YouTube Data API enabled; both halves belong in the local config. The
+  // video title is templated from {mainTopic}, {title} and {code}.
+  youtube: {
+    clientId: null,
+    clientSecret: null,
+    titleTemplate: "{mainTopic} Review",
+    categoryId: "20",
+  },
   // Correct spellings of the recurring hosts. The AI transcript check treats any other
   // spelling of these names as a mistranscription.
   hostNames: ["Al", "Codey", "Jonnie", "Kevin", "Chelsea"],
@@ -123,6 +132,11 @@ function loadPostprocessConfig(repoRoot, configPath) {
       ...DEFAULT_CONFIG.spaces,
       ...(fileConfig.spaces || {}),
       ...(localConfig.spaces || {}),
+    },
+    youtube: {
+      ...DEFAULT_CONFIG.youtube,
+      ...(fileConfig.youtube || {}),
+      ...(localConfig.youtube || {}),
     },
     profanityWords: [...new Set(configuredProfanityWords)],
   };

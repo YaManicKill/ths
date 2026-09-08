@@ -29,6 +29,14 @@ const {
   sha256FileHex,
   uploadFileToSpaces,
 } = require("../spaces");
+const {
+  buildAuthUrl,
+  exchangeCodeForToken,
+  refreshAccessToken,
+  renderTitleTemplate,
+  resolveYoutube,
+  uploadVideoToYoutube,
+} = require("../youtube");
 const { parseVttCues } = require("../vtt");
 const { generateClipVideos, generateVideoFromChapters } = require("../video");
 const { loadPostprocessConfig } = require("../config");
@@ -483,6 +491,29 @@ function pipeFileToResponse(filePath, res, options) {
   fileStream.pipe(res);
 }
 
+// The YouTube description text is needed both by its copy-paste endpoint and by the
+// upload itself; everything comes from the episode's current index.md and the site's
+// own config.toml.
+function buildEpisodeYoutubeDescription({ repoRoot, episodeDir }) {
+  const showLinks = readShowLinksFromConfig(
+    fs.readFileSync(path.join(repoRoot, "config.toml"), "utf8"),
+  );
+  const baseUrl = (showLinks.baseUrl || "https://harvestseason.club/").replace(
+    /\/+$/,
+    "",
+  );
+  const episodeUrl = `${baseUrl}/${path
+    .relative(path.join(repoRoot, "content"), episodeDir)
+    .split(path.sep)
+    .join("/")}/`;
+  const description = buildYoutubeDescription({
+    indexMdText: fs.readFileSync(path.join(episodeDir, "index.md"), "utf8"),
+    episodeUrl,
+    showLinks,
+  });
+  return { description, episodeUrl };
+}
+
 function deriveEpisodeOutputPaths({ repoRoot, discovered, mp3Path }) {
   const outputRoot = loadPostprocessConfig(repoRoot).outputRoot;
 
@@ -552,6 +583,9 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
     "manual-images",
   );
   const chapterOverridesPath = chapterImageOverridesPath(repoRoot);
+  // Gitignored but persistent (unlike the prunable cache): the YouTube refresh token
+  // from the one-time browser authorization.
+  const youtubeTokenPath = path.join(repoRoot, "data", "youtube-oauth.json");
 
   const serverLockPath =
     lockPath || path.join(repoRoot, ".cache", "postprocess", "server.lock");
@@ -906,6 +940,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           transcriptVttPath: payload.transcriptVttPath,
           episodeTitle: payload.episodeTitle,
           description: payload.description,
+          mainTopic: payload.mainTopic,
           publishDate: payload.publishDate,
           onProgress: stream.progress,
         });
@@ -943,6 +978,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
             episodeMeta: discovered.episodeMeta,
             seasonInfo: discovered.seasonInfo,
             description: discovered.description,
+            mainTopic: discovered.mainTopic,
             dateString: discovered.dateString,
             clipSuggestions: discovered.clipSuggestions,
             chapters: discovered.chapters.map((ch) => ({
@@ -966,6 +1002,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
             phase: state?.phase || null,
             jobs: state?.jobs || {},
             mp3Upload: state?.mp3Upload || null,
+            youtubeUpload: state?.youtubeUpload || null,
             existingClipSuggestions: Array.isArray(state?.clipSuggestions)
               ? state.clipSuggestions
               : [],
@@ -1225,80 +1262,6 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           }));
 
         sendJson(res, 200, { success: true, editable, cues });
-      } catch (error) {
-        sendJson(res, 400, { success: false, error: error.message });
-      }
-      return;
-    }
-
-    // Builds the YouTube description from the episode's index.md AS IT IS NOW - after
-    // the run baked in the shownotes links, and after any later hand edits - writing
-    // it next to the MP4 and returning the text for the clipboard.
-    if (req.method === "POST" && pathname === "/api/youtube-description") {
-      try {
-        const body = await readRequestBody(req);
-        const payload = JSON.parse(body || "{}");
-
-        const discovered = payload.discoveryData
-          ? JSON.parse(payload.discoveryData)
-          : null;
-        if (!discovered || !discovered.episodeMeta) {
-          sendJson(res, 400, {
-            success: false,
-            error: "Missing or invalid discoveryData",
-          });
-          return;
-        }
-        const mp3Path = String(payload.mp3Path || "").trim();
-        if (!mp3Path || !path.isAbsolute(mp3Path)) {
-          sendJson(res, 400, {
-            success: false,
-            error: "Missing or invalid mp3Path",
-          });
-          return;
-        }
-
-        const { episodeDir } = deriveEpisodeOutputPaths({
-          repoRoot,
-          discovered,
-          mp3Path,
-        });
-        const indexPath = path.join(episodeDir, "index.md");
-        if (!fs.existsSync(indexPath)) {
-          sendJson(res, 400, {
-            success: false,
-            error:
-              "index.md not found - approve and generate the episode first",
-          });
-          return;
-        }
-
-        // Platform links, Patreon and the site URL all come from the site's own
-        // config.toml; Hugo maps content/<...> straight to the site path, so the
-        // episode's URL falls out of its content directory.
-        const showLinks = readShowLinksFromConfig(
-          fs.readFileSync(path.join(repoRoot, "config.toml"), "utf8"),
-        );
-        const baseUrl = (
-          showLinks.baseUrl || "https://harvestseason.club/"
-        ).replace(/\/+$/, "");
-        const episodeUrl = `${baseUrl}/${path
-          .relative(path.join(repoRoot, "content"), episodeDir)
-          .split(path.sep)
-          .join("/")}/`;
-
-        const description = buildYoutubeDescription({
-          indexMdText: fs.readFileSync(indexPath, "utf8"),
-          episodeUrl,
-          showLinks,
-        });
-        const outputPath = path.join(
-          path.dirname(mp3Path),
-          "youtube-description.txt",
-        );
-        fs.writeFileSync(outputPath, description, "utf8");
-
-        sendJson(res, 200, { success: true, outputPath, description });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
       }
@@ -1820,6 +1783,256 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
         } catch (error) {
           await episodeState
             .finishJob(episodeDir, "mp3Upload", {
+              status: "failed",
+              error: error.message,
+            })
+            .catch(() => {});
+          throw error;
+        }
+      } catch (error) {
+        stream.error(error.message);
+      }
+      return;
+    }
+
+    // Lands here from Google after the one-time browser authorization: the code in
+    // the query becomes a refresh token, stored in the gitignored data/ directory
+    // (persistent, unlike the prunable cache).
+    if (req.method === "GET" && pathname === "/api/youtube-oauth-callback") {
+      try {
+        const code = parsedUrl.searchParams.get("code");
+        if (!code) {
+          throw new Error(
+            parsedUrl.searchParams.get("error") || "No authorization code",
+          );
+        }
+        const youtube = resolveYoutube(loadPostprocessConfig(repoRoot));
+        if (!youtube) {
+          throw new Error("YouTube OAuth client is not configured");
+        }
+        const token = await exchangeCodeForToken({
+          clientId: youtube.clientId,
+          clientSecret: youtube.clientSecret,
+          code,
+          redirectUri: `http://127.0.0.1:${port}/api/youtube-oauth-callback`,
+        });
+        if (!token.refresh_token) {
+          throw new Error("Google returned no refresh token - try again");
+        }
+        writeJson(youtubeTokenPath, {
+          refreshToken: token.refresh_token,
+          obtainedAt: new Date().toISOString(),
+        });
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.end(
+          "<h2>YouTube authorized ✓</h2><p>You can close this tab and press <strong>Upload to YouTube</strong> again.</p>",
+        );
+      } catch (error) {
+        res.statusCode = 400;
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.end(`<h2>YouTube authorization failed</h2><p>${error.message}</p>`);
+      }
+      return;
+    }
+
+    // Uploads the chapter MP4 as one click: description from the same generator as
+    // the copy-paste button, scheduled for the episode's publish time (private until
+    // then). YouTube cannot replace a video's file, so a recorded upload is final for
+    // the episode unless its state is cleared.
+    if (req.method === "POST" && pathname === "/api/upload-youtube") {
+      const body = await readRequestBody(req);
+      const stream = startNdjsonStream(res);
+      try {
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          stream.error("Missing or invalid discoveryData");
+          return;
+        }
+        const mp3Path = String(payload.mp3Path || "").trim();
+        if (!mp3Path || !path.isAbsolute(mp3Path)) {
+          stream.error("Missing or invalid mp3Path");
+          return;
+        }
+
+        const { episodeDir, videoPath } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path,
+        });
+        const state = await episodeState.readState(episodeDir);
+        if (state?.phase !== "generated") {
+          stream.error("Approve and generate the episode first");
+          return;
+        }
+        if (episodeState.isJobActive(episodeDir, "mp4Render")) {
+          stream.error("An MP4 render is in progress - wait for it to finish");
+          return;
+        }
+        if (!fs.existsSync(videoPath)) {
+          stream.error(`No MP4 found at ${videoPath} - render it first`);
+          return;
+        }
+
+        if (state.youtubeUpload?.videoId) {
+          const currentSha = await sha256FileHex(videoPath);
+          stream.result({
+            success: true,
+            alreadyUploaded: true,
+            url: state.youtubeUpload.url,
+            ...(currentSha !== state.youtubeUpload.sha256
+              ? {
+                  warning:
+                    "The local MP4 differs from the uploaded video. YouTube cannot replace a video's file - delete it on YouTube and Clear & Restart to upload again.",
+                }
+              : {}),
+          });
+          return;
+        }
+
+        const youtube = resolveYoutube(loadPostprocessConfig(repoRoot));
+        if (!youtube) {
+          stream.error(
+            "YouTube is not configured - add youtube.clientId and youtube.clientSecret to postprocess.config.local.json (see the README)",
+          );
+          return;
+        }
+
+        // readJson treats a null fallback as "throw"; no token yet is the normal
+        // first-run case here, not an error.
+        const storedToken = fs.existsSync(youtubeTokenPath)
+          ? readJson(youtubeTokenPath, {})
+          : null;
+        const redirectUri = `http://127.0.0.1:${port}/api/youtube-oauth-callback`;
+        if (!storedToken?.refreshToken) {
+          stream.result({
+            success: true,
+            needsAuth: true,
+            authUrl: buildAuthUrl({ clientId: youtube.clientId, redirectUri }),
+          });
+          return;
+        }
+
+        stream.progress("Refreshing YouTube access token...");
+        let accessToken;
+        try {
+          const refreshed = await refreshAccessToken({
+            clientId: youtube.clientId,
+            clientSecret: youtube.clientSecret,
+            refreshToken: storedToken.refreshToken,
+          });
+          accessToken = refreshed.access_token;
+        } catch (error) {
+          // A revoked or expired grant means re-authorizing, not failing.
+          if (/invalid_grant/.test(error.message)) {
+            fs.rmSync(youtubeTokenPath, { force: true });
+            stream.result({
+              success: true,
+              needsAuth: true,
+              authUrl: buildAuthUrl({
+                clientId: youtube.clientId,
+                redirectUri,
+              }),
+            });
+            return;
+          }
+          throw error;
+        }
+
+        const { description } = buildEpisodeYoutubeDescription({
+          repoRoot,
+          episodeDir,
+        });
+        const mainTopic = state.episode?.mainTopic || "";
+        const title = renderTitleTemplate(youtube.titleTemplate, {
+          mainTopic,
+          title: state.episode?.title || "",
+          code: `${state.episode?.seasonCode}-${state.episode?.episodeCode}`,
+        });
+
+        // Scheduled when the publish date is still ahead; an upload after release
+        // just goes straight to public.
+        const publishDate = new Date(String(discovered.dateString || ""));
+        const scheduled =
+          Number.isFinite(publishDate.getTime()) && publishDate > new Date();
+        const status = scheduled
+          ? {
+              privacyStatus: "private",
+              publishAt: publishDate.toISOString(),
+              selfDeclaredMadeForKids: false,
+            }
+          : { privacyStatus: "public", selfDeclaredMadeForKids: false };
+
+        const videoSha256 = await sha256FileHex(videoPath);
+        const sizeMb = (fs.statSync(videoPath).size / (1024 * 1024)).toFixed(1);
+        stream.progress(`Uploading ${sizeMb} MB to YouTube as "${title}"...`);
+        await episodeState.startJob(episodeDir, "youtubeUpload", {
+          percent: 0,
+        });
+        try {
+          let lastReportedPercent = 0;
+          const uploaded = await uploadVideoToYoutube({
+            filePath: videoPath,
+            accessToken,
+            snippet: {
+              title,
+              description,
+              categoryId: youtube.categoryId,
+              tags: [
+                "The Harvest Season",
+                "podcast",
+                "cottagecore",
+                "farming games",
+                ...(mainTopic ? [mainTopic] : []),
+              ],
+            },
+            status,
+            onProgress: (progress) => {
+              if (progress.percent >= lastReportedPercent + 10) {
+                lastReportedPercent = progress.percent;
+                stream.progress(`Uploading... ${progress.percent}%`);
+                episodeState
+                  .patchJob(episodeDir, "youtubeUpload", {
+                    status: "running",
+                    percent: progress.percent,
+                  })
+                  .catch(() => {});
+              }
+            },
+          });
+          await episodeState.finishJob(episodeDir, "youtubeUpload", {
+            status: "completed",
+            percent: 100,
+          });
+          await episodeState.updateState(episodeDir, (current) =>
+            current
+              ? {
+                  ...current,
+                  youtubeUpload: {
+                    videoId: uploaded.videoId,
+                    url: uploaded.url,
+                    sha256: videoSha256,
+                    title,
+                    publishAt: scheduled ? publishDate.toISOString() : null,
+                    uploadedAt: new Date().toISOString(),
+                  },
+                }
+              : null,
+          );
+          stream.result({
+            success: true,
+            url: uploaded.url,
+            title,
+            scheduled,
+            publishAt: scheduled ? publishDate.toISOString() : null,
+          });
+        } catch (error) {
+          await episodeState
+            .finishJob(episodeDir, "youtubeUpload", {
               status: "failed",
               error: error.message,
             })

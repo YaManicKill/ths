@@ -40,12 +40,10 @@ const recheckTranscriptButton = document.getElementById(
   "recheck-transcript-button",
 );
 const cancelClipsButton = document.getElementById("cancel-clips-button");
-const youtubeDescriptionButton = document.getElementById(
-  "youtube-description-button",
-);
 const socialPostsButton = document.getElementById("social-posts-button");
 const uploadMp3Button = document.getElementById("upload-mp3-button");
 const publishMp3Button = document.getElementById("publish-mp3-button");
+const uploadYoutubeButton = document.getElementById("upload-youtube-button");
 const generateClipVideosButton = document.getElementById(
   "generate-clip-videos-button",
 );
@@ -104,6 +102,7 @@ function setVideoRenderUiState(inProgress) {
   if (isVideoRenderInProgress) {
     isVideoRenderCompleted = false;
   }
+  setProcessActionsVisibility();
 
   if (isVideoRenderInProgress) {
     toggleOverridesButton.style.display = "none";
@@ -125,6 +124,7 @@ function setVideoRenderUiState(inProgress) {
 
 function setVideoRenderCompletedUiState(completed) {
   isVideoRenderCompleted = Boolean(completed);
+  setProcessActionsVisibility();
   if (!isVideoRenderCompleted) {
     return;
   }
@@ -147,13 +147,15 @@ function setProcessActionsVisibility() {
   const publishDisplay = isEpisodeGenerated ? "inline-block" : "none";
   uploadMp3Button.style.display = publishDisplay;
   publishMp3Button.style.display = publishDisplay;
-  youtubeDescriptionButton.style.display = publishDisplay;
+  uploadYoutubeButton.style.display = publishDisplay;
   socialPostsButton.style.display = publishDisplay;
   // An in-flight Approve rewrites the MP3 (the chapter-image embed), so uploading
   // mid-run would ship a half-written file; and there is nothing to make public until
-  // an upload has been recorded.
+  // an upload has been recorded. YouTube needs the finished MP4.
   uploadMp3Button.disabled = isRunRequestInFlight;
   publishMp3Button.disabled = !currentMp3Upload;
+  uploadYoutubeButton.disabled =
+    isVideoRenderInProgress || isRunRequestInFlight || !isVideoRenderCompleted;
 }
 
 function getDiscoverySnapshot() {
@@ -2051,6 +2053,7 @@ function buildDiscoverPayload() {
     mp3Path: String(formData.get("mp3Path") || "").trim(),
     transcriptMdPath: String(formData.get("transcriptMdPath") || "").trim(),
     transcriptVttPath: String(formData.get("transcriptVttPath") || "").trim(),
+    mainTopic: String(formData.get("mainTopic") || "").trim() || undefined,
     episodeTitle:
       String(formData.get("episodeTitle") || "").trim() || undefined,
     description: String(formData.get("description") || "").trim() || undefined,
@@ -2159,6 +2162,7 @@ async function runDiscovery() {
     setInputValue("description", result.discovered.description || "");
     setInputValue("publishDate", result.discovered.dateString || "");
     setInputValue("episodeTitle", result.discovered.episodeTitle || "");
+    setInputValue("mainTopic", result.discovered.mainTopic || "");
 
     renderProfanityStatus(
       result.discovered?.transcriptChecks,
@@ -2253,6 +2257,15 @@ async function runDiscovery() {
         ).toLocaleString()}`,
       );
     }
+    if (result.discovered?.youtubeUpload?.url) {
+      addStatus(
+        `✓ Episode on YouTube: ${result.discovered.youtubeUpload.url}${
+          result.discovered.youtubeUpload.publishAt
+            ? ` (goes public ${new Date(result.discovered.youtubeUpload.publishAt).toLocaleString()})`
+            : ""
+        }`,
+      );
+    }
 
     if (!hasActiveVideoRun && !hasCompletedVideoRun) {
       toggleOverridesButton.style.display = "inline-block";
@@ -2298,6 +2311,17 @@ form.addEventListener("submit", async (event) => {
     }
   },
 );
+
+// Editing the main topic regenerates the derived description ("A and B talk about
+// X."): clearing the description field stops it being sent back as an explicit
+// override, so re-discovery derives it fresh from the new topic.
+const mainTopicInput = form.elements.namedItem("mainTopic");
+if (mainTopicInput) {
+  mainTopicInput.addEventListener("input", () => {
+    setInputValue("description", "");
+    scheduleDiscovery();
+  });
+}
 
 async function pollVideoStatus(episodeDir) {
   function formatEta(etaSeconds) {
@@ -3008,46 +3032,6 @@ async function postTranscriptReview({ recheck }) {
   }
 }
 
-youtubeDescriptionButton.addEventListener("click", async () => {
-  if (!currentDiscoveryData?.discoveryData) {
-    addStatus("Run discovery first.");
-    return;
-  }
-
-  youtubeDescriptionButton.disabled = true;
-  try {
-    const response = await fetch("/api/youtube-description", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        mp3Path: buildDiscoverPayload().mp3Path,
-        discoveryData: currentDiscoveryData.discoveryData,
-      }),
-    });
-    const body = await response.json();
-    if (!response.ok || !body.success) {
-      throw new Error(body.error || "YouTube description request failed");
-    }
-
-    let copied = false;
-    try {
-      await navigator.clipboard.writeText(body.description);
-      copied = true;
-    } catch {
-      // Clipboard access can be denied; the file still exists.
-    }
-    addStatus(
-      `✓ YouTube description ${copied ? "copied to clipboard and " : ""}written to ${body.outputPath}`,
-    );
-  } catch (error) {
-    addStatus(`❌ YouTube description failed: ${error.message}`);
-  } finally {
-    youtubeDescriptionButton.disabled = false;
-  }
-});
-
 socialPostsButton.addEventListener("click", async () => {
   if (!currentDiscoveryData?.discoveryData) {
     addStatus("Run discovery first.");
@@ -3177,6 +3161,57 @@ publishMp3Button.addEventListener("click", async () => {
   }
 });
 
+uploadYoutubeButton.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+
+  uploadYoutubeButton.disabled = true;
+  const stopSpinner = startStatusSpinner("Uploading MP4 to YouTube...");
+  try {
+    const body = await postWithProgress(
+      "/api/upload-youtube",
+      {
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+      },
+      (message) => addStatus(`• ${message}`),
+    );
+    if (body.type === "error" || !body.success) {
+      throw new Error(body.error || "Upload failed");
+    }
+
+    if (body.needsAuth) {
+      stopSpinner("🔑 YouTube needs a one-time authorization");
+      addStatus(
+        "🔑 A Google sign-in tab is opening - authorize, then press Upload to YouTube again.",
+      );
+      window.open(body.authUrl, "_blank");
+      return;
+    }
+    if (body.alreadyUploaded) {
+      stopSpinner("ℹ Episode already uploaded to YouTube");
+      addStatus(`ℹ ${body.url}`);
+      if (body.warning) {
+        addStatus(`⚠ ${body.warning}`);
+      }
+      return;
+    }
+    stopSpinner(`✓ Uploaded to YouTube as "${body.title}"`);
+    addStatus(
+      body.scheduled
+        ? `✓ ${body.url} - scheduled to go public ${new Date(body.publishAt).toLocaleString()}`
+        : `✓ ${body.url} - public now (the publish date has passed)`,
+    );
+  } catch (error) {
+    stopSpinner();
+    addStatus(`❌ YouTube upload failed: ${error.message}`);
+  } finally {
+    setProcessActionsVisibility();
+  }
+});
+
 cancelClipsButton.addEventListener("click", async () => {
   if (!activeClipEpisodeDir) {
     addStatus("No clip generation in progress.");
@@ -3236,6 +3271,7 @@ approveButton.addEventListener("click", async () => {
       String(runFormData.get("episodeTitle") || "").trim() || undefined,
     description:
       String(runFormData.get("description") || "").trim() || undefined,
+    mainTopic: String(runFormData.get("mainTopic") || "").trim() || undefined,
     publishDate:
       String(runFormData.get("publishDate") || "").trim() || undefined,
     skipVideo: Boolean(skipVideoCheckbox && skipVideoCheckbox.checked),
@@ -3263,6 +3299,7 @@ approveButton.addEventListener("click", async () => {
         transcriptVttPath: runPayload.transcriptVttPath,
         episodeTitle: runPayload.episodeTitle,
         description: runPayload.description,
+        mainTopic: runPayload.mainTopic,
         publishDate: runPayload.publishDate,
       },
       (msg) => addStatus(`• ${msg}`),
@@ -3301,6 +3338,9 @@ approveButton.addEventListener("click", async () => {
       }
       if (runPayload.description) {
         parsed.description = runPayload.description;
+      }
+      if (runPayload.mainTopic) {
+        parsed.mainTopic = runPayload.mainTopic;
       }
       if (runPayload.publishDate) {
         parsed.dateString = runPayload.publishDate;

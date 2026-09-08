@@ -494,7 +494,11 @@ async function discoverEpisodeData(inputOptions = {}) {
     transcriptMdPath: inputOptions.transcriptMdPath,
     mp3Path: inputOptions.mp3Path,
   });
-  const mainTopic = pickMainTopic(chapters);
+  // The main topic drives the derived description, the tumblr tags and the YouTube
+  // title, and the guess (the chapter before Outro) is editable in the UI - the
+  // override arrives here on re-discovery.
+  const mainTopic =
+    String(inputOptions.mainTopic || "").trim() || pickMainTopic(chapters);
   const chapterTitles = new Set(chapters.map((c) => normalizeTitle(c.title)));
   const speakers = extractSpeakerNames(transcriptMdText, 2, chapterTitles);
   const description = buildDescription({

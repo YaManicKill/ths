@@ -59,9 +59,12 @@ episode title, burned-in subtitles and a progress bar.
   unchanged file is never re-uploaded; **Make MP3 Public** flips it live at release
   time, refusing if the local file changed since the upload. Needs the Spaces
   credentials in the local config.
-- **YouTube Description** converts the episode's current index.md (chapters in
-  YouTube's timestamp format, links included) into `youtube-description.txt` next to
-  the MP4, and copies it to the clipboard. Run it after any final shownotes edits.
+- **Upload to YouTube** sends the chapter MP4 with a description generated from the
+  episode's current index.md (chapters in YouTube's timestamp format, links included —
+  so run it after any final shownotes edits), titled from `youtube.titleTemplate` and
+  the editable **Main topic** field (which also drives the derived podcast
+  description), and scheduled to go public at the episode's publish time. First use
+  opens a one-time Google authorization; see YouTube Setup below.
 - **Social Posts** drafts Bluesky and Tumblr announcements from the episode
   description and clip hooks into `bluesky-post.txt` / `tumblr-post.txt` next to the
   MP4, copying the Bluesky one to the clipboard.
@@ -113,6 +116,24 @@ to a public repo). It is deep-merged over the main config:
 
 `GEMINI_API_KEY` in the environment works as a fallback; with no key set, the AI
 features simply don't run. Verify a fresh key with `node scripts/postprocess/llm.js`.
+
+### YouTube Setup
+
+One-time, in [Google Cloud Console](https://console.cloud.google.com/): create a
+project, enable the **YouTube Data API v3**, configure the OAuth consent screen
+(publish it to "In production", else Google expires the grant weekly), and create an
+OAuth client of type **Desktop app**. Put both halves in the local config:
+
+```json
+{
+  "youtube": { "clientId": "….apps.googleusercontent.com", "clientSecret": "…" }
+}
+```
+
+The first **Upload to YouTube** click opens a Google sign-in; after authorizing, the
+refresh token lands in `data/youtube-oauth.json` (gitignored) and later uploads are one
+click. `youtube.titleTemplate` (default `{mainTopic} Review`) also understands `{title}`
+and `{code}`.
 
 Persistent per-chapter image overrides live in `data/chapter-image-overrides.json`, with
 the images in `.cache/postprocess/manual-images/`. Everything else under

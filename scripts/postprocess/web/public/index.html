@@ -47,10 +47,11 @@
           </button>
           <button
             type="button"
-            id="youtube-description-button"
+            id="upload-youtube-button"
             style="display: none"
+            title="Upload the chapter MP4 to YouTube with the generated description, scheduled for the episode's publish time"
           >
-            YouTube Description
+            Upload to YouTube
           </button>
           <button type="button" id="social-posts-button" style="display: none">
             Social Posts
@@ -103,6 +104,15 @@
         <label>
           Episode title
           <input name="episodeTitle" placeholder="Custom episode title" />
+        </label>
+
+        <label>
+          Main topic
+          <input
+            name="mainTopic"
+            placeholder="What the episode is about (guessed from the chapter before Outro)"
+            title="Drives the derived description and the YouTube title; editing it regenerates the description"
+          />
         </label>
 
         <label>

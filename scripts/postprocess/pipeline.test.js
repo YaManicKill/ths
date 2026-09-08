@@ -333,8 +333,16 @@ async function main() {
     mp3Path: runMp3,
     transcriptMdPath: fixture.transcriptMdPath,
     transcriptVttPath: fixture.transcriptVttPath,
+    // The UI's editable main-topic box arrives as an override and drives the
+    // derived description.
+    mainTopic: "Custom Topic",
     onProgress: (message) => reopenProgress.push(message),
   });
+  assert.equal(reopened.mainTopic, "Custom Topic");
+  assert.ok(
+    reopened.description.includes("Custom Topic"),
+    "the derived description must follow the main-topic override",
+  );
   assert.ok(
     reopenProgress.some((message) => /already generated/.test(message)),
     "reopen must announce the skipped lookups",
