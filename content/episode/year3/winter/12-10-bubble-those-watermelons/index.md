@@ -11,6 +11,7 @@ podcast_bytes: "153196078"
 podcast_duration: "01:41:15"
 date: 2026-09-09T19:00:00+01:00
 author: "Al McKinlay"
+tags: ["pokopia"]
 ---
 
 ## Timings

@@ -12,6 +12,7 @@ podcast_duration: "01:03:21"
 date: 2019-06-26T20:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["story of seasons"]
 ---
 
 ## Timings

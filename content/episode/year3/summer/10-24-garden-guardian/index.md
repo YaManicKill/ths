@@ -12,6 +12,7 @@ podcast_duration: "02:25:20"
 date: 2025-12-24T19:00:00+00:00
 author: "Al McKinlay"
 transcript_files: true
+tags: ["interview"]
 ---
 
 ## Timings
