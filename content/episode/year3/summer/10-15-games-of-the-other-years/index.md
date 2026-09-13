@@ -12,6 +12,7 @@ podcast_duration: "02:00:03"
 date: 2025-10-22T19:00:00+01:00
 author: "Al McKinlay"
 transcript_files: true
+tags: ["game of the year"]
 ---
 
 ## Timings

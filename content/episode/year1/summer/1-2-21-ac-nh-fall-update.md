@@ -12,6 +12,7 @@ podcast_duration: "00:58:58"
 date: 2020-10-14T18:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["animal crossing new horizons"]
 ---
 
 ## Timings

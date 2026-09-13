@@ -12,6 +12,7 @@ podcast_duration: "01:37:23"
 date: 2026-03-10T19:00:00+00:00
 author: "Al McKinlay"
 transcript_files: true
+tags: ["pokopia"]
 ---
 
 ## Timings

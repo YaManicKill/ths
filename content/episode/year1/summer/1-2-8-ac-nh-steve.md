@@ -12,6 +12,7 @@ podcast_duration: "00:42:48"
 date: 2020-04-15T18:00:00+00:00
 
 author: "Al McKinlay and Raschelle Dellaney"
+tags: ["animal crossing new horizons"]
 ---
 
 Also, some news about Summer in Mara, Autonauts, and Village Monsters.
