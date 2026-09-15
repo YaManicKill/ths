@@ -1,0 +1,63 @@
+{
+  "version": "1.2.0",
+  "chapters": [
+    {
+      "startTime": 0,
+      "title": "Theme Tune"
+    },
+    {
+      "startTime": 30.224,
+      "title": "Intro"
+    },
+    {
+      "startTime": 101.365,
+      "title": "What Have We Been Up To"
+    },
+    {
+      "startTime": 666.557,
+      "title": "Game News"
+    },
+    {
+      "startTime": 670.182,
+      "title": "Little Witch In The Woods",
+      "toc": false
+    },
+    {
+      "startTime": 762.68,
+      "title": "Pokopia",
+      "toc": false
+    },
+    {
+      "startTime": 995.203,
+      "title": "Disney Dreamlight Valley",
+      "toc": false
+    },
+    {
+      "startTime": 1152.05,
+      "title": "Outbound",
+      "toc": false
+    },
+    {
+      "startTime": 1386.553,
+      "title": "Lou's Lagoon",
+      "toc": false
+    },
+    {
+      "startTime": 1555.016,
+      "title": "Palia",
+      "toc": false
+    },
+    {
+      "startTime": 1632.422,
+      "title": "Oops Surprise!"
+    },
+    {
+      "startTime": 1728.188,
+      "title": "Discounty"
+    },
+    {
+      "startTime": 3817.165,
+      "title": "Outro"
+    }
+  ]
+}
