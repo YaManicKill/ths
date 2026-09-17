@@ -37,7 +37,7 @@ Also, there are a few new trailers, an exciting Humble Bundle, some game updates
 [Flotsam Early Access](https://twitter.com/_PajamaLlama/status/1158725314022969344)
 [Flotsam on Steam](https://t.co/c93d4xuej2?amp=1)
 
-[Future Games 1 Episode](https://harvestseason.club/episode/1-1-12-future-games/)
+[Future Games 1 Episode](https://harvestseason.club/episode/year1/spring/1-1-12-future-games/)
 
 [Kynseed](https://store.steampowered.com/app/758870/Kynseed/)
 [Winkeltje: The Little Shop](https://store.steampowered.com/app/949290/Winkeltje_The_Little_Shop/)

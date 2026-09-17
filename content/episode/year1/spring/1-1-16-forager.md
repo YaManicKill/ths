@@ -7,6 +7,7 @@ year: "1"
 Description: "We talk about Forager, and how it might have been designed with Al in mind."
 guid: "ths-1-1-16"
 podcast: "ths/year1/spring/ths-1-1-16.mp3"
+aliases: ["/episode/1-1-16-forager/"]
 podcast_bytes: "62238430"
 podcast_duration: "00:59:15"
 date: 2019-08-07T20:00:00+00:00
