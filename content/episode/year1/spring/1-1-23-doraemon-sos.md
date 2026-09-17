@@ -33,7 +33,7 @@ Also, some newly announced physical releases, some updates to games, and some sa
 
 [Stranded Sails Physical Release](https://signatureeditiongames.com/products/stranded-sails-explorers-of-the-cursed-islands-standard-edition-switch?variant=15416677007395)
 [Forager physical release](https://twitter.com/_HopFrog/status/1189315717948157953)
-[Forager Episode](https://harvestseason.club/episode/1-1-16-forager/)
+[Forager Episode](https://harvestseason.club/episode/year1/spring/1-1-16-forager/)
 [Farming simulator 19 Platinum](https://twitter.com/farmingsim/status/1186673568039362562)
 [Littlewood Exotic Pets](https://twitter.com/SeanYoungSG/status/1190655440021020673)
 [Harvest Moon Mad Dash](https://www.nintendo.co.uk/Games/Nintendo-Switch/Harvest-Moon-Mad-Dash-1660566.html)
