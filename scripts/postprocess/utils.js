@@ -306,6 +306,22 @@ function createOrCheckoutEpisodeBranch(repoRoot, seasonCode, episodeCode) {
 
     return { created: true, branchName };
   } else {
+    // An existing episode branch whose tip is an ancestor of HEAD carries no episode
+    // work of its own (typically created by an earlier run from an older master).
+    // Checking out that old tip would silently revert the whole working tree - the
+    // running tool included - so the branch moves up to HEAD instead. A branch with
+    // its own commits is genuinely resumed as-is.
+    const isAncestor = runCommand(
+      "git",
+      ["merge-base", "--is-ancestor", branchName, "HEAD"],
+      { cwd: repoRoot },
+    );
+    if (isAncestor.status === 0) {
+      runCommand("git", ["branch", "-f", branchName, "HEAD"], {
+        cwd: repoRoot,
+      });
+    }
+
     const checkoutResult = runCommand("git", ["checkout", branchName], {
       cwd: repoRoot,
     });

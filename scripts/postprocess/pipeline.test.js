@@ -368,6 +368,19 @@ async function main() {
   });
   await waitForAiAnalysis(episodeDir);
 
+  // Nothing the embed writes changed between the runs, so the MP3's bytes must be
+  // left alone - re-approving must not invalidate upload checksums or the render.
+  assert.equal(
+    rerunReport.mp3ChapterImages.unchanged,
+    true,
+    "an unchanged re-run must skip the MP3 embed",
+  );
+  assert.equal(
+    rerunReport.mp3Embed.mp3Sha256,
+    report.mp3Embed.mp3Sha256,
+    "the MP3 checksum must be stable across unchanged re-runs",
+  );
+
   const rerunMd = fs.readFileSync(
     path.join(episodeDir, "transcript.md"),
     "utf8",
@@ -433,6 +446,11 @@ async function main() {
   });
   const renamedDir = retitledReport.episode.outputDirectory;
   assert.notEqual(renamedDir, episodeDir);
+  assert.notEqual(
+    retitledReport.mp3ChapterImages.unchanged,
+    true,
+    "a new title must re-embed (the ID3 title changed)",
+  );
   await waitForAiAnalysis(renamedDir);
   assert.ok(
     !fs.existsSync(path.join(episodeDir, "postprocess-state.json")),

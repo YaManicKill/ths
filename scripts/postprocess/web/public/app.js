@@ -3724,7 +3724,9 @@ approveButton.addEventListener("click", async () => {
       renderTranscriptFixSection();
       if (result.mp3ChapterImages && result.mp3ChapterImages.completed) {
         addStatus(
-          `✓ MP3 chapter images embedded (${result.mp3ChapterImages.chaptersEmbedded} chapters)`,
+          result.mp3ChapterImages.unchanged
+            ? "✓ MP3 chapter images unchanged - embed skipped"
+            : `✓ MP3 chapter images embedded (${result.mp3ChapterImages.chaptersEmbedded} chapters)`,
         );
       }
       const runEpisodeDir = result.episode?.outputDirectory;
@@ -3734,10 +3736,17 @@ approveButton.addEventListener("click", async () => {
       if (result.videoStatus && result.videoStatus.skipped) {
         persistActiveVideoEpisodeDir("");
         setVideoRenderUiState(false);
+        if (result.videoStatus.unchanged) {
+          // The existing MP4 still matches its inputs: this is a finished render,
+          // not a missing one.
+          setVideoRenderCompletedUiState(true);
+          addStatus("✓ MP4 unchanged - existing render kept");
+        } else {
+          addStatus("✓ MP4 generation skipped");
+        }
         // The earlier render happened while the video-in-progress state still hid the
         // section; with no render coming, show the cards now.
         renderClipSuggestions(currentClipSuggestions);
-        addStatus("✓ MP4 generation skipped");
       } else if (result.videoStatus?.started && runEpisodeDir) {
         activeVideoEpisodeDir = runEpisodeDir;
         setVideoRenderUiState(true);

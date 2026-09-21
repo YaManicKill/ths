@@ -29,7 +29,10 @@ and a podcast-namespace `chapters.json` (advertised from the feed as
 `<podcast:chapters>`), embeds chapter images into the MP3 (keeping a `.bak`, and
 syncing its ID3 title to the chosen episode title), and renders the full-episode MP4.
 The AI transcript check and clip selection continue as a background job alongside the
-render; their results appear when ready. Clip videos are generated separately from the
+render; their results appear when ready. Re-approves are incremental: the MP3 embed
+and the MP4 render are skipped when their inputs (title, chapters, images, audio)
+haven't changed, so fixing a transcript never re-renders the video or invalidates a
+staged upload. Clip videos are generated separately from the
 suggestion cards; they use the show logo rather than chapter images, and carry the
 episode title, burned-in subtitles and a progress bar.
 

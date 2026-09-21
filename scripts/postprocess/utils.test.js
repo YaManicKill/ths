@@ -1,9 +1,14 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
 const {
   chapterImageOverridesPath,
+  createOrCheckoutEpisodeBranch,
   formatZonedTimestamp,
   getUpcomingWednesdayDateString,
   parseByteRange,
+  runCommand,
   runCommandStream,
 } = require("./utils");
 
@@ -178,3 +183,50 @@ console.log("utils test passed", {
   console.error("runCommandStream abort test failed:", error.message);
   process.exit(1);
 });
+
+// An episode branch left behind by an earlier run (created from an older master, no
+// commits of its own) must move up to HEAD when reused - checking out its old tip
+// would silently revert the whole working tree, the running tool included.
+(() => {
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), "ths-branch-"));
+  const git = (...args) => {
+    const result = runCommand("git", args, { cwd: repo });
+    assert.equal(result.status, 0, `git ${args[0]} failed: ${result.stderr}`);
+    return result;
+  };
+  git("init", "-q", "-b", "master");
+  git("config", "user.email", "t@example.com");
+  git("config", "user.name", "T");
+  fs.writeFileSync(path.join(repo, "tool.txt"), "old tool");
+  git("add", "-A");
+  git("commit", "-qm", "old master");
+
+  // The stale episode branch, then newer work on a feature branch.
+  createOrCheckoutEpisodeBranch(repo, "99", "07");
+  git("checkout", "-q", "master");
+  git("checkout", "-q", "-b", "feature");
+  fs.writeFileSync(path.join(repo, "tool.txt"), "new tool");
+  git("commit", "-aqm", "new tool");
+
+  const reused = createOrCheckoutEpisodeBranch(repo, "99", "07");
+  assert.equal(reused.created, false);
+  assert.equal(
+    fs.readFileSync(path.join(repo, "tool.txt"), "utf8"),
+    "new tool",
+    "reusing a stale episode branch must not revert the working tree",
+  );
+
+  // A branch with its own commits is resumed as-is, never force-moved.
+  fs.writeFileSync(path.join(repo, "episode.txt"), "episode work");
+  git("add", "-A");
+  git("commit", "-qm", "episode work");
+  git("checkout", "-q", "feature");
+  createOrCheckoutEpisodeBranch(repo, "99", "07");
+  assert.ok(
+    fs.existsSync(path.join(repo, "episode.txt")),
+    "episode commits must survive a re-checkout",
+  );
+
+  fs.rmSync(repo, { recursive: true, force: true });
+  console.log("episode branch test passed");
+})();

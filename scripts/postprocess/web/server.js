@@ -8,6 +8,7 @@ const {
   runPipeline,
   discoverEpisodeData,
   resolveSeasonInfo,
+  computeMp4RenderInputsHash,
 } = require("../pipeline");
 const { parseEpisodeFromMp3Path } = require("../parsers");
 const {
@@ -2596,10 +2597,16 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
               },
             });
 
+            // Recorded so a later Approve with unchanged inputs keeps this render.
+            const inputsHash = computeMp4RenderInputsHash({
+              mp3Sha256: await sha256FileHex(mp3Path),
+              chapters: discovered.chapters,
+            });
             await episodeState.finishJob(episodeDir, "mp4Render", {
               status: "completed",
               videoPath,
               percent: 100,
+              inputsHash,
             });
           } catch (error) {
             await episodeState
