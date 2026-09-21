@@ -4,7 +4,12 @@ const path = require("node:path");
 const http = require("node:http");
 const crypto = require("node:crypto");
 const { spawnSync } = require("node:child_process");
-const { runPipeline, discoverEpisodeData } = require("../pipeline");
+const {
+  runPipeline,
+  discoverEpisodeData,
+  resolveSeasonInfo,
+} = require("../pipeline");
+const { parseEpisodeFromMp3Path } = require("../parsers");
 const {
   applyTranscriptFixes,
   quoteOccursIn,
@@ -518,14 +523,24 @@ function buildEpisodeYoutubeDescription({ repoRoot, episodeDir }) {
 function deriveEpisodeOutputPaths({ repoRoot, discovered, mp3Path }) {
   const outputRoot = loadPostprocessConfig(repoRoot).outputRoot;
 
-  const episodeFolderName = `${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}-${slugify(discovered.episodeTitle)}`;
-  const episodeDir = path.join(
+  const codePrefix = `${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}-`;
+  const episodeFolderName = `${codePrefix}${slugify(discovered.episodeTitle)}`;
+  let episodeDir = path.join(
     repoRoot,
     outputRoot,
     `year${String(discovered.seasonInfo.year)}`,
     String(discovered.seasonInfo.folder || ""),
     episodeFolderName,
   );
+  // The slug follows the editable title; the code is the episode's identity. When
+  // this title's directory holds no state but a sibling with the same code does, the
+  // sibling is the episode - state, transcripts and all - until an Approve under the
+  // new title migrates it.
+  if (!fs.existsSync(path.join(episodeDir, episodeState.STATE_FILE_NAME))) {
+    episodeDir =
+      episodeState.findStateDirByCode(path.dirname(episodeDir), codePrefix) ||
+      episodeDir;
+  }
   const videoPath = path.join(
     path.dirname(mp3Path),
     `ths-${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}.mp4`,
@@ -935,14 +950,42 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
       try {
         const payload = JSON.parse(body || "{}");
 
+        // Review-phase edits saved before any generation (title, topic, description,
+        // links) come back into the derived values, so a restart or crash never
+        // loses them. The empty form fields on a fresh page defer to the overrides;
+        // typed values win. Found via the episode code, which needs no discovery.
+        let reviewOverrides = null;
+        try {
+          const meta = parseEpisodeFromMp3Path(payload.mp3Path);
+          const season = resolveSeasonInfo(meta);
+          const stateDir = episodeState.findStateDirByCode(
+            path.join(
+              repoRoot,
+              loadPostprocessConfig(repoRoot).outputRoot,
+              `year${season.year}`,
+              season.folder,
+            ),
+            `${meta.seasonCode}-${meta.episodeCode}-`,
+          );
+          reviewOverrides = stateDir
+            ? (await episodeState.readState(stateDir))?.reviewOverrides || null
+            : null;
+        } catch {
+          // No parseable episode code yet; discovery derives everything itself.
+        }
+
         const discovered = await discoverEpisodeData({
           mp3Path: payload.mp3Path,
           transcriptMdPath: payload.transcriptMdPath,
           transcriptVttPath: payload.transcriptVttPath,
-          episodeTitle: payload.episodeTitle,
-          description: payload.description,
-          mainTopic: payload.mainTopic,
-          publishDate: payload.publishDate,
+          episodeTitle:
+            payload.episodeTitle || reviewOverrides?.episodeTitle || undefined,
+          description:
+            payload.description || reviewOverrides?.description || undefined,
+          mainTopic:
+            payload.mainTopic || reviewOverrides?.mainTopic || undefined,
+          publishDate:
+            payload.publishDate || reviewOverrides?.publishDate || undefined,
           onProgress: stream.progress,
         });
 
@@ -1015,7 +1058,9 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
               discovered.shownotesLinkSeeds || discovered.hiddenLinks,
             existingShownotesLinks: Array.isArray(state?.shownotesLinks)
               ? state.shownotesLinks
-              : null,
+              : Array.isArray(state?.reviewOverrides?.shownotesLinks)
+                ? state.reviewOverrides.shownotesLinks
+                : null,
           },
           discoveryData: JSON.stringify(discovered),
         });
@@ -1359,6 +1404,58 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           blueskyLength: result.blueskyLength,
           blueskyOverLimit: result.blueskyOverLimit,
         });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Review-phase edits (title, topic, description, publish date, links) saved as
+    // they change, debounced by the client - so closing the app or a crash before
+    // Approve never loses them. Creates the state file when it is the first thing to
+    // persist; discovery reads the overrides back.
+    if (req.method === "POST" && pathname === "/api/save-review-overrides") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const raw = payload.overrides || {};
+        const reviewOverrides = {
+          episodeTitle: String(raw.episodeTitle || "").trim() || null,
+          description: String(raw.description || "").trim() || null,
+          mainTopic: String(raw.mainTopic || "").trim() || null,
+          publishDate: String(raw.publishDate || "").trim() || null,
+          shownotesLinks: Array.isArray(raw.shownotesLinks)
+            ? raw.shownotesLinks
+                .map((link) => ({
+                  title: String(link?.title || "").trim(),
+                  url: String(link?.url || "").trim() || null,
+                }))
+                .filter((link) => link.title || link.url)
+            : null,
+        };
+
+        await episodeState.updateState(episodeDir, (state) => ({
+          ...(state || { phase: "discovered", jobs: {} }),
+          reviewOverrides,
+        }));
+        sendJson(res, 200, { success: true });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
       }
@@ -2291,6 +2388,16 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           });
           return;
         }
+        // The background analysis is rewriting these same files; two writers would
+        // race over the transcripts.
+        if (episodeState.isJobActive(episodeDir, "aiAnalysis")) {
+          sendJson(res, 400, {
+            success: false,
+            error:
+              "The run's AI analysis is still working on the transcripts - wait for it to finish",
+          });
+          return;
+        }
 
         const mdText = fs.readFileSync(mdPath, "utf8");
         const vttText = fs.readFileSync(vttPath, "utf8");
@@ -2391,6 +2498,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           transcriptVttPath: payload.transcriptVttPath,
           episodeTitle: payload.episodeTitle,
           description: payload.description,
+          mainTopic: payload.mainTopic,
           publishDate: payload.publishDate,
           skipVideo: Boolean(payload.skipVideo),
           episodeFolderPath: payload.episodeFolderPath,
@@ -2405,6 +2513,22 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
             runOptions.discoveredData = JSON.parse(payload.discoveryData);
           } catch (e) {
             console.error("Failed to parse discoveryData:", e);
+          }
+        }
+
+        // A re-approve while the last run's analysis is still rewriting the
+        // transcripts would race it over the same files.
+        if (runOptions.discoveredData) {
+          const { episodeDir } = deriveEpisodeOutputPaths({
+            repoRoot,
+            discovered: runOptions.discoveredData,
+            mp3Path: payload.mp3Path,
+          });
+          if (episodeState.isJobActive(episodeDir, "aiAnalysis")) {
+            stream.error(
+              "The previous run's AI analysis is still working - wait for it to finish",
+            );
+            return;
           }
         }
 

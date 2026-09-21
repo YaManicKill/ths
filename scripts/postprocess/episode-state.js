@@ -224,6 +224,28 @@ function hasActiveJobsFor(episodeDir) {
   return [...activeJobs.keys()].some((key) => key.startsWith(prefix));
 }
 
+// The state file lives in a slug-named directory, but the slug follows the editable
+// episode title; the episode code is the stable identity. When the title-derived
+// directory has no state, a sibling carrying the same code prefix is the episode.
+function findStateDirByCode(seasonDir, codePrefix) {
+  let entries;
+  try {
+    entries = fs.readdirSync(seasonDir, { withFileTypes: true });
+  } catch {
+    return null;
+  }
+  for (const entry of entries) {
+    if (
+      entry.isDirectory() &&
+      entry.name.startsWith(codePrefix) &&
+      fs.existsSync(path.join(seasonDir, entry.name, STATE_FILE_NAME))
+    ) {
+      return path.join(seasonDir, entry.name);
+    }
+  }
+  return null;
+}
+
 // Clear & Restart: with the file gone, the episode reads as fresh and nothing can
 // resurrect the old state (job stragglers no-op via the runId check). The legacy
 // two-file layout is swept too, so old episodes clean themselves up when reset.
@@ -244,6 +266,7 @@ function resetEpisodeState(episodeDir) {
 
 module.exports = {
   STATE_FILE_NAME,
+  findStateDirByCode,
   statePath,
   readState,
   updateState,

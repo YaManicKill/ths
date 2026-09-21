@@ -986,6 +986,7 @@ function renderShownotesLinks() {
       }
       const [moved] = shownotesLinks.splice(draggedLinkIndex, 1);
       shownotesLinks.splice(target, 0, moved);
+      scheduleReviewOverridesSave();
       draggedLinkIndex = null;
       renderShownotesLinks();
     });
@@ -997,6 +998,7 @@ function renderShownotesLinks() {
     titleInput.style.flex = "1";
     titleInput.addEventListener("input", () => {
       link.title = titleInput.value;
+      scheduleReviewOverridesSave();
     });
 
     const urlInput = document.createElement("input");
@@ -1006,6 +1008,7 @@ function renderShownotesLinks() {
     urlInput.style.flex = "2";
     urlInput.addEventListener("input", () => {
       link.url = urlInput.value;
+      scheduleReviewOverridesSave();
     });
     // A pasted URL gets its page title fetched as an editable default, but never
     // overwrites a title the user has typed in the meantime.
@@ -1032,6 +1035,7 @@ function renderShownotesLinks() {
         ) {
           titleInput.value = body.title;
           link.title = body.title;
+          scheduleReviewOverridesSave();
         }
       } catch {
         // No title is fine; the user types one.
@@ -1046,6 +1050,7 @@ function renderShownotesLinks() {
     removeButton.addEventListener("click", () => {
       shownotesLinks.splice(index, 1);
       renderShownotesLinks();
+      scheduleReviewOverridesSave();
     });
 
     row.appendChild(handle);
@@ -1059,6 +1064,7 @@ function renderShownotesLinks() {
 addShownotesLinkButton.addEventListener("click", () => {
   shownotesLinks.push({ title: "", url: "" });
   renderShownotesLinks();
+  scheduleReviewOverridesSave();
   shownotesLinksList.lastElementChild?.querySelector("input")?.focus();
 });
 
@@ -2054,6 +2060,42 @@ function updateClipSuggestionsSummary() {
   })`;
 }
 
+// Review-phase edits - title, topic, description, publish date, links - used to live
+// only in the form until Approve; a close or crash lost them. Debounced into the
+// episode state, where discovery restores them. Fire-and-forget: a failed save is
+// retried by whatever edit comes next.
+let reviewOverridesSaveTimer = null;
+function scheduleReviewOverridesSave() {
+  if (!currentDiscoveryData?.discoveryData) {
+    return;
+  }
+  clearTimeout(reviewOverridesSaveTimer);
+  reviewOverridesSaveTimer = setTimeout(async () => {
+    try {
+      const payload = buildDiscoverPayload();
+      await fetch("/api/save-review-overrides", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          mp3Path: payload.mp3Path,
+          discoveryData: currentDiscoveryData.discoveryData,
+          overrides: {
+            episodeTitle: payload.episodeTitle,
+            description: payload.description,
+            mainTopic: payload.mainTopic,
+            publishDate: payload.publishDate,
+            shownotesLinks,
+          },
+        }),
+      });
+    } catch {
+      // Retried by the next edit.
+    }
+  }, 1500);
+}
+
 // The recording tool names sessions "THS XX-YY"; that surviving as the episode title
 // means nobody picked a real one yet.
 function isPlaceholderEpisodeTitle(title) {
@@ -2137,6 +2179,7 @@ function renderTitleSuggestions(titles) {
     pick.addEventListener("click", () => {
       setInputValue("episodeTitle", candidate.title);
       addStatus(`✓ Episode title set to "${candidate.title}"`);
+      scheduleReviewOverridesSave();
       scheduleDiscovery();
     });
     row.appendChild(pick);
@@ -2277,6 +2320,12 @@ async function runDiscovery() {
     renderAudioQc(result.discovered?.audioQc);
     resumeVideoStatusPollingFromDiscover(result.discovered);
     resumeClipStatusPollingFromDiscover(result.discovered);
+    resumeAiAnalysisPollingFromDiscover(result.discovered);
+    if (result.discovered?.jobs?.aiAnalysis?.status === "interrupted") {
+      addStatus(
+        "ℹ The last run's AI analysis was interrupted - Re-run Transcript Check and Suggest More Clips cover the same ground.",
+      );
+    }
 
     currentDiscoveryData = {
       discoveryData: result.discoveryData,
@@ -2418,6 +2467,13 @@ form.addEventListener("submit", async (event) => {
     }
   },
 );
+
+["episodeTitle", "description", "mainTopic", "publishDate"].forEach((name) => {
+  const input = form.elements.namedItem(name);
+  if (input) {
+    input.addEventListener("input", scheduleReviewOverridesSave);
+  }
+});
 
 // Editing the main topic regenerates the derived description ("A and B talk about
 // X."): clearing the description field stops it being sent back as an explicit
@@ -2806,6 +2862,113 @@ function resumeClipStatusPollingFromDiscover(discovered) {
     startMessage:
       "⏳ Reconnected to queued/in-progress clip generation from server status",
   });
+}
+
+// The run's AI analysis (transcript check + clip picks) finishes in the background;
+// this poller watches the job and puts its results on screen when they land.
+let activeAiAnalysisPoll = null;
+
+async function pollAiAnalysis(episodeDir) {
+  let lineId = findStatusLineId("AI analysis");
+  if (lineId === null) {
+    lineId = addStatus("🧠 AI analysis running in the background...");
+  }
+
+  let missingPolls = 0;
+  for (;;) {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    try {
+      const data = await fetchEpisodeState(episodeDir);
+      const job = data.exists ? data.jobs?.aiAnalysis : null;
+      if (!job || !job.status) {
+        missingPolls += 1;
+        if (missingPolls >= 3) {
+          setStatusLine(
+            lineId,
+            "ℹ The tracked AI analysis is no longer available; cleared stale tracking.",
+          );
+          return;
+        }
+        continue;
+      }
+      missingPolls = 0;
+
+      if (job.status === "running" || job.status === "waiting") {
+        setStatusLine(
+          lineId,
+          `🧠 AI analysis running in the background... (${
+            job.stage === "clip-selection"
+              ? "picking clips"
+              : "checking the transcript"
+          })`,
+        );
+        continue;
+      }
+
+      if (job.status === "completed") {
+        // The full state rides in the same response: findings and suggestions go
+        // straight on screen, exactly as a discovery restore would place them.
+        currentTranscriptFindings = (
+          data.transcriptReview?.findings || []
+        ).filter((finding) => finding.confidence !== "high");
+        renderTranscriptFixSection();
+        clipApprovalState = [];
+        renderClipSuggestions(data.clipSuggestions || []);
+        setStatusLine(
+          lineId,
+          `✓ AI analysis complete - ${job.findings ?? 0} transcript finding(s), ${job.fixesApplied ?? 0} fix(es) applied, ${job.clipCount ?? 0} clip suggestion(s) (${job.clipSource || "heuristic"})`,
+        );
+        if (job.reviewError) {
+          addStatus(`⚠ Transcript check failed: ${job.reviewError}`);
+        }
+        if (job.clipWarning) {
+          addStatus(`⚠ AI clip selection: ${job.clipWarning}`);
+        }
+        if (currentTranscriptFindings.length > 0) {
+          addStatus(
+            `⚠ ${currentTranscriptFindings.length} medium-confidence transcript suggestion(s) - review below`,
+          );
+        }
+        return;
+      }
+
+      setStatusLine(
+        lineId,
+        `❌ AI analysis ${job.status}: ${job.error || "unknown error"} - Re-run Transcript Check and Suggest More Clips cover the same ground`,
+      );
+      return;
+    } catch {
+      // keep polling
+    }
+  }
+}
+
+function startAiAnalysisPolling(episodeDir) {
+  const normalizedEpisodeDir = String(episodeDir || "").trim();
+  if (!normalizedEpisodeDir) {
+    return;
+  }
+  if (activeAiAnalysisPoll?.episodeDir === normalizedEpisodeDir) {
+    return;
+  }
+  const promise = pollAiAnalysis(normalizedEpisodeDir).finally(() => {
+    if (activeAiAnalysisPoll?.episodeDir === normalizedEpisodeDir) {
+      activeAiAnalysisPoll = null;
+    }
+  });
+  activeAiAnalysisPoll = { episodeDir: normalizedEpisodeDir, promise };
+}
+
+function resumeAiAnalysisPollingFromDiscover(discovered) {
+  const job = discovered?.jobs?.aiAnalysis;
+  if (!job || !["waiting", "running"].includes(job.status)) {
+    return;
+  }
+  const episodeDir = String(discovered.episodeDir || "").trim();
+  if (episodeDir) {
+    startAiAnalysisPolling(episodeDir);
+  }
 }
 
 function startVideoStatusPolling(
@@ -3521,15 +3684,17 @@ approveButton.addEventListener("click", async () => {
       runFailed ? "❌ Generation failed" : "✓ Generation completed",
     );
     currentRunResult = result;
-    if (result.clipSource === "llm") {
-      addStatus(
-        `✓ Clip suggestions picked by AI (${(result.clipSuggestions || []).length})`,
-      );
-    }
+    // With the AI analysis running in the background, the run's own suggestions are
+    // only heuristics; the analysis poller renders the real cards when they arrive.
+    const aiAnalysisStarted = Boolean(result.aiAnalysis?.started);
     // The run's suggestions replace whatever set was on screen before, so approvals
     // must not carry over by index onto different clips.
     clipApprovalState = [];
-    renderClipSuggestions(result.clipSuggestions || []);
+    if (!aiAnalysisStarted) {
+      renderClipSuggestions(result.clipSuggestions || []);
+    } else {
+      clearClipSuggestionReviewPanel();
+    }
     activeVideoEpisodeDir = null;
 
     if (runFailed) {
@@ -3546,7 +3711,9 @@ approveButton.addEventListener("click", async () => {
         runPayload.transcriptMdPath,
       );
       renderTranscriptFixResult(result.transcriptFixes);
-      renderTranscriptReview(result.transcriptReview);
+      if (!aiAnalysisStarted) {
+        renderTranscriptReview(result.transcriptReview);
+      }
       if (result.gitBranch) {
         const verb = result.gitBranch.created ? "Created" : "Checked out";
         addStatus(`✓ ${verb} branch: ${result.gitBranch.name}`);
@@ -3561,6 +3728,9 @@ approveButton.addEventListener("click", async () => {
         );
       }
       const runEpisodeDir = result.episode?.outputDirectory;
+      if (aiAnalysisStarted && runEpisodeDir) {
+        startAiAnalysisPolling(runEpisodeDir);
+      }
       if (result.videoStatus && result.videoStatus.skipped) {
         persistActiveVideoEpisodeDir("");
         setVideoRenderUiState(false);

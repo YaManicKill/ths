@@ -124,6 +124,22 @@ function initGitRepo(root) {
   assert.equal(committed.status, 0, `git commit failed: ${committed.stderr}`);
 }
 
+// The run returns before its LLM work: tests wait for the background job to settle
+// before asserting on its output (and before cleaning up under its feet).
+async function waitForAiAnalysis(episodeDir) {
+  for (let i = 0; i < 400; i += 1) {
+    const state = JSON.parse(
+      fs.readFileSync(path.join(episodeDir, "postprocess-state.json"), "utf8"),
+    );
+    const status = state.jobs?.aiAnalysis?.status;
+    if (status === "completed" || status === "failed") {
+      return state;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  throw new Error("AI analysis did not finish in time");
+}
+
 async function main() {
   const discovered = await discoverEpisodeData({
     repoRoot,
@@ -240,8 +256,14 @@ async function main() {
     path.join(report.episode.outputDirectory, "index.md"),
   );
 
+  // The LLM work happens after the run returns: the response only marks it pending,
+  // and the job in the state file is what settles.
   assert.equal(report.transcriptReview.enabled, true);
-  assert.equal(report.transcriptReview.findings.length, 3);
+  assert.equal(report.transcriptReview.pending, true);
+  assert.equal(report.aiAnalysis.started, true);
+  const analyzedState = await waitForAiAnalysis(episodeDir);
+  assert.equal(analyzedState.jobs.aiAnalysis.status, "completed");
+  assert.equal(analyzedState.transcriptReview.findings.length, 3);
 
   // High-confidence review findings are applied to the written transcripts; medium
   // ones are not (they need an explicit transcriptFixes list from the UI).
@@ -256,6 +278,11 @@ async function main() {
   assert.ok(writtenMd.includes("Why would somebody genuinely do that"));
   assert.ok(writtenMd.includes("honestly"), "medium fix must not auto-apply");
   assert.ok(writtenVtt.includes("Why would somebody do that?"));
+  assert.deepEqual(
+    analyzedState.appliedTranscriptFixes.map((fix) => fix.correction),
+    ["Why would somebody", "genuinely do that"],
+    "background-applied fixes must be remembered for re-runs",
+  );
 
   // The raw transcript is staged before fixes land, so `git diff` shows exactly what
   // the AI changed against the pristine version.
@@ -272,13 +299,9 @@ async function main() {
     stagedMd.stdout.includes("Why would anyone actually do that"),
     "the staged copy must be the unfixed transcript",
   );
-  assert.deepEqual(report.transcriptFixes, {
-    attempted: 2,
-    mdApplied: 2,
-    vttApplied: 1,
-    mdMissed: [],
-    vttMissed: ["actually do that"],
-  });
+  // No ticked or remembered fixes existed at write time; the AI's own fixes landed
+  // from the background job above.
+  assert.equal(report.transcriptFixes.attempted, 0);
 
   // Shownotes links from the UI land in the Links section: URL rows as markdown
   // links, title-only rows as bare text.
@@ -304,22 +327,24 @@ async function main() {
     { startTime: 45, title: "Secret Game", toc: false },
   ]);
 
-  // The AI clip picks replace the heuristic suggestions, grounded in the VTT timings.
-  assert.equal(report.clipSource, "llm");
-  assert.equal(report.clipSuggestions.length, 1);
-  assert.equal(report.clipSuggestions[0].startSeconds, 45);
-  assert.equal(report.clipSuggestions[0].endSeconds, 72);
-  assert.equal(report.clipSuggestions[0].summary, "A good idea at the time");
-  assert.equal(report.clipSuggestions[0].speaker, "Al");
-  const savedState = JSON.parse(
-    fs.readFileSync(path.join(episodeDir, "postprocess-state.json"), "utf8"),
+  // The AI clip picks land in the state from the background job, grounded in the
+  // VTT timings; the run's own response only carried heuristics.
+  assert.equal(report.clipSource, "heuristic");
+  const savedState = analyzedState;
+  assert.equal(savedState.clipSource, "llm");
+  assert.equal(savedState.clipSuggestions.length, 1);
+  assert.equal(savedState.clipSuggestions[0].startSeconds, 45);
+  assert.equal(savedState.clipSuggestions[0].endSeconds, 72);
+  assert.equal(
+    savedState.clipSuggestions[0].summary,
+    "A good idea at the time",
   );
+  assert.equal(savedState.clipSuggestions[0].speaker, "Al");
 
   // Content is on disk, so the state machine must have landed in "generated"; a
   // skipped video leaves no mp4Render job behind.
   assert.equal(savedState.phase, "generated");
   assert.equal(savedState.jobs.mp4Render, undefined);
-  assert.equal(savedState.clipSource, "llm");
 
   // Medium fixes applied after a run (recorded in the state by the review endpoint)
   // must survive a re-run, which regenerates the transcripts from source.
@@ -341,6 +366,7 @@ async function main() {
     llmComplete: async ({ schema }) =>
       schema?.properties?.clips ? fakeClips : { findings: [] },
   });
+  await waitForAiAnalysis(episodeDir);
 
   const rerunMd = fs.readFileSync(
     path.join(episodeDir, "transcript.md"),
@@ -390,6 +416,33 @@ async function main() {
   assert.ok(
     !reopenProgress.some((message) => /Steam links|audio levels/.test(message)),
     "review-phase lookups must not run on a generated episode",
+  );
+
+  // A retitle changes the directory slug: the run must find the old slug's state by
+  // episode code, carry its memory, and re-home it beside the new files.
+  const { report: retitledReport } = await runPipeline({
+    repoRoot: runRoot,
+    mp3Path: runMp3,
+    transcriptMdPath: fixture.transcriptMdPath,
+    transcriptVttPath: fixture.transcriptVttPath,
+    episodeTitle: "Renamed Episode",
+    skipVideo: true,
+    onProgress: () => {},
+    llmComplete: async ({ schema }) =>
+      schema?.properties?.clips ? fakeClips : { findings: [] },
+  });
+  const renamedDir = retitledReport.episode.outputDirectory;
+  assert.notEqual(renamedDir, episodeDir);
+  await waitForAiAnalysis(renamedDir);
+  assert.ok(
+    !fs.existsSync(path.join(episodeDir, "postprocess-state.json")),
+    "the old slug's state file must migrate away",
+  );
+  assert.ok(
+    fs
+      .readFileSync(path.join(renamedDir, "transcript.md"), "utf8")
+      .includes("frankly"),
+    "fix memory must survive the retitle",
   );
 
   fs.rmSync(repoRoot, { recursive: true, force: true });

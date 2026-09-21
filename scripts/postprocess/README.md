@@ -25,10 +25,11 @@ is touched until you press **Approve**.
 | `--episode-number <EE\|SS-EE>` | Target a specific episode and infer its publish date from that position in the sequence. `5` keeps the inferred season; `12-05` sets both season and episode. |
 
 Pressing Approve creates the `ep-SS-EE` branch, generates `index.md`, the transcripts
-(with AI fixes applied — see below) and a podcast-namespace `chapters.json` (advertised
-from the feed as `<podcast:chapters>`), embeds chapter images into the MP3 (keeping a
-`.bak`, and syncing its ID3 title to the chosen episode title), and renders the
-full-episode MP4. Clip videos are generated separately from the
+and a podcast-namespace `chapters.json` (advertised from the feed as
+`<podcast:chapters>`), embeds chapter images into the MP3 (keeping a `.bak`, and
+syncing its ID3 title to the chosen episode title), and renders the full-episode MP4.
+The AI transcript check and clip selection continue as a background job alongside the
+render; their results appear when ready. Clip videos are generated separately from the
 suggestion cards; they use the show logo rather than chapter images, and carry the
 episode title, burned-in subtitles and a progress bar.
 
@@ -74,8 +75,10 @@ episode title, burned-in subtitles and a progress bar.
   description and clip hooks, then opens both platforms' compose pages prefilled -
   posting stays a manual click there. The Bluesky text also lands on the clipboard.
 - Suggestions, links, unapplied fixes and run/job status all live in the episode's
-  `postprocess-state.json` and are restored after a refresh or restart; **Clear &
-  Restart Process** wipes that state for a fresh start.
+  `postprocess-state.json` and are restored after a refresh or restart — including
+  review-phase edits (title, topic, description, links), which save as you type, so
+  closing before Approve loses nothing. **Clear & Restart Process** wipes that state
+  for a fresh start.
 - LLM results are cached by content and all AI checks are warning-only — failures never
   block a run. A full episode costs ~4 requests; free-tier quotas are per model, so a
   rate-limited request automatically retries on `llm.fallbackModel`.

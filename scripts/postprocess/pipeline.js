@@ -518,8 +518,14 @@ async function discoverEpisodeData(inputOptions = {}) {
     seasonInfo.folder,
     `${episodeMeta.seasonCode}-${episodeMeta.episodeCode}-${slugify(episodeTitle)}`,
   );
+  const stateDir = fs.existsSync(episodeState.statePath(episodeDir))
+    ? episodeDir
+    : episodeState.findStateDirByCode(
+        path.dirname(episodeDir),
+        `${episodeMeta.seasonCode}-${episodeMeta.episodeCode}-`,
+      ) || episodeDir;
   const alreadyGenerated =
-    (await episodeState.readState(episodeDir))?.phase === "generated";
+    (await episodeState.readState(stateDir))?.phase === "generated";
   if (alreadyGenerated) {
     onProgress(
       "Episode already generated - skipping Steam link lookups and audio QC",
@@ -669,6 +675,149 @@ async function discoverEpisodeData(inputOptions = {}) {
   };
 }
 
+// The run's LLM work, detached from the response: the transcript check applies its
+// high-confidence fixes to the written transcripts (exactly as the synchronous run
+// used to), then the clip picker reads the fixed text. Results land in the state
+// file, where the UI's poller and every later restore find them. Warning-only
+// throughout: LLM failures leave heuristics and a note, never a broken episode.
+function startBackgroundAiAnalysis({
+  repoRoot,
+  episodeDir,
+  llm,
+  chapters,
+  hostNames,
+  heuristicClipSuggestions,
+  llmComplete,
+}) {
+  setImmediate(async () => {
+    try {
+      const mdPath = path.join(episodeDir, "transcript.md");
+      const vttPath = path.join(episodeDir, "transcript.vtt");
+
+      let review;
+      try {
+        review = await reviewTranscriptCached({
+          cacheDir: path.join(
+            repoRoot,
+            ".cache",
+            "postprocess",
+            "transcript-review",
+          ),
+          transcriptMdText: fs.readFileSync(mdPath, "utf8"),
+          transcriptVttText: fs.readFileSync(vttPath, "utf8"),
+          chapters,
+          llm,
+          hostNames,
+          complete: llmComplete,
+        });
+      } catch (error) {
+        review = { findings: [], error: error.message };
+      }
+
+      const highFixes = selectTranscriptFixes(review, undefined);
+      let appliedFixes = [];
+      if (highFixes.length > 0) {
+        const mdResult = applyTranscriptFixes(
+          fs.readFileSync(mdPath, "utf8"),
+          highFixes,
+        );
+        const vttResult = applyTranscriptFixes(
+          fs.readFileSync(vttPath, "utf8"),
+          highFixes,
+        );
+        if (mdResult.applied.length > 0) {
+          fs.writeFileSync(mdPath, mdResult.text, "utf8");
+        }
+        if (vttResult.applied.length > 0) {
+          fs.writeFileSync(vttPath, vttResult.text, "utf8");
+        }
+        appliedFixes = mdResult.applied;
+      }
+      await episodeState.updateState(episodeDir, (state) => {
+        if (!state) {
+          return null;
+        }
+        state.transcriptReview = { enabled: true, ...review };
+        const remembered = Array.isArray(state.appliedTranscriptFixes)
+          ? state.appliedTranscriptFixes
+          : [];
+        const seen = new Set(remembered.map((fix) => fix.quote));
+        for (const fix of appliedFixes) {
+          if (!seen.has(fix.quote)) {
+            remembered.push({ quote: fix.quote, correction: fix.correction });
+            seen.add(fix.quote);
+          }
+        }
+        state.appliedTranscriptFixes = remembered;
+        return state;
+      });
+
+      await episodeState.patchJob(episodeDir, "aiAnalysis", {
+        stage: "clip-selection",
+      });
+      let clipSuggestions = heuristicClipSuggestions;
+      let clipSource = "heuristic";
+      let clipWarning = null;
+      // A 429 that survived the model failover means quota is gone everywhere;
+      // asking again for clips would just re-walk the retry waits.
+      if (/\(429\)/.test(review.error || "")) {
+        clipWarning =
+          "skipped: the transcript check already exhausted the API quota";
+      } else {
+        try {
+          const llmClips = await suggestClipsLlmCached({
+            cacheDir: path.join(
+              repoRoot,
+              ".cache",
+              "postprocess",
+              "clip-suggestions",
+            ),
+            transcriptMdText: fs.readFileSync(mdPath, "utf8"),
+            transcriptVttText: fs.readFileSync(vttPath, "utf8"),
+            llm,
+            complete: llmComplete,
+          });
+          if (llmClips.suggestions.length > 0) {
+            clipSuggestions = llmClips.suggestions;
+            clipSource = "llm";
+          } else {
+            clipWarning = "the AI returned nothing usable";
+          }
+        } catch (error) {
+          clipWarning = error.message;
+        }
+      }
+      await episodeState.updateState(episodeDir, (state) => {
+        if (!state) {
+          return null;
+        }
+        state.clipSuggestions = clipSuggestions;
+        state.clipSource = clipSource;
+        state.clipApprovals = null;
+        return state;
+      });
+
+      await episodeState.finishJob(episodeDir, "aiAnalysis", {
+        status: "completed",
+        findings: review.findings.length,
+        fixesApplied: appliedFixes.length,
+        clipCount: clipSuggestions.length,
+        clipSource,
+        ...(review.error ? { reviewError: review.error } : {}),
+        ...(clipWarning ? { clipWarning } : {}),
+      });
+    } catch (error) {
+      console.error("AI analysis error:", error.message);
+      await episodeState
+        .finishJob(episodeDir, "aiAnalysis", {
+          status: "failed",
+          error: error.message,
+        })
+        .catch(() => {});
+    }
+  });
+}
+
 async function runPipeline(inputOptions = {}) {
   const repoRoot = inputOptions.repoRoot || path.resolve(__dirname, "..", "..");
   const config = loadPostprocessConfig(repoRoot, inputOptions.configPath);
@@ -722,7 +871,15 @@ async function runPipeline(inputOptions = {}) {
   // Medium-confidence fixes the user applied after an earlier run exist only in the
   // episode's previous state; a re-run regenerates the transcripts from source, so
   // without carrying them forward those approved corrections would silently vanish.
-  const previousState = await episodeState.readState(episodeDir);
+  // The state may sit under an old title's slug (the code is the stable identity);
+  // this run adopts it and re-homes it beside the newly generated files.
+  const previousStateDir = fs.existsSync(episodeState.statePath(episodeDir))
+    ? episodeDir
+    : episodeState.findStateDirByCode(
+        path.dirname(episodeDir),
+        `${episodeMeta.seasonCode}-${episodeMeta.episodeCode}-`,
+      ) || episodeDir;
+  const previousState = await episodeState.readState(previousStateDir);
   const carriedTranscriptFixes = Array.isArray(
     previousState?.appliedTranscriptFixes,
   )
@@ -730,10 +887,12 @@ async function runPipeline(inputOptions = {}) {
     : [];
 
   // Shownotes links: the UI's edited list wins; a re-run without one keeps the last
-  // run's links rather than resetting to the auto-resolved Steam set.
+  // run's links (or the pre-run review edits) rather than resetting to the
+  // auto-resolved Steam set.
   const shownotesLinks =
     sanitizeShownotesLinks(inputOptions.shownotesLinks) ??
     sanitizeShownotesLinks(previousState?.shownotesLinks) ??
+    sanitizeShownotesLinks(previousState?.reviewOverrides?.shownotesLinks) ??
     discovered.shownotesLinkSeeds ??
     discovered.hiddenLinks;
 
@@ -791,42 +950,15 @@ async function runPipeline(inputOptions = {}) {
     "utf8",
   );
 
-  // The AI check runs at generation rather than discovery, so the LLM is consulted once
-  // per approved run instead of on every input tweak. Warning-only: a missing key, a
-  // network failure, or a provider outage must never block the run.
-  let transcriptReview = { enabled: false, findings: [] };
+  // The AI transcript check and clip selection run as a background job after this
+  // response returns: they are the slowest part of a run (minutes when rate limited)
+  // and nothing else in the run depends on them.
   const llm = resolveLlm(config);
-  if (llm) {
-    onProgress(
-      `Checking transcript for likely mistranscriptions (${llm.model})...`,
-    );
-    try {
-      const review = await reviewTranscriptCached({
-        cacheDir: path.join(
-          repoRoot,
-          ".cache",
-          "postprocess",
-          "transcript-review",
-        ),
-        transcriptMdText: sourceTranscriptMdText,
-        transcriptVttText: sourceTranscriptVttText,
-        chapters: chaptersWithImages,
-        llm,
-        hostNames: config.hostNames,
-        complete: inputOptions.llmComplete,
-      });
-      transcriptReview = { enabled: true, ...review };
-      onProgress(
-        review.fromCache
-          ? "Transcript check: using cached result for this transcript"
-          : `Transcript check: ${review.findings.length} potential issue(s) found`,
-      );
-    } catch (error) {
-      transcriptReview = { enabled: true, findings: [], error: error.message };
-      onProgress(`Warning: transcript check failed: ${error.message}`);
-    }
-  }
-  report.transcriptReview = transcriptReview;
+  report.transcriptReview = {
+    enabled: Boolean(llm),
+    findings: [],
+    ...(llm ? { pending: true } : {}),
+  };
 
   onProgress("Creating git branch...");
 
@@ -847,12 +979,20 @@ async function runPipeline(inputOptions = {}) {
 
   // The phase flips to "generating" before the first episode file is written, so a
   // crash mid-run is distinguishable from a finished one. Prior run data rides along
-  // untouched until the completed run replaces it.
+  // untouched until the completed run replaces it - seeded from the previous state's
+  // directory, which differs from this one when the title changed.
   await episodeState.updateState(episodeDir, (state) => ({
+    ...(previousState || {}),
     ...(state || {}),
     phase: "generating",
-    jobs: state?.jobs || {},
+    jobs: state?.jobs || previousState?.jobs || {},
   }));
+  if (previousState && previousStateDir !== episodeDir) {
+    fs.rmSync(episodeState.statePath(previousStateDir), { force: true });
+    onProgress(
+      `Episode retitled: carried state over from ${path.basename(previousStateDir)} (its old generated files remain there)`,
+    );
+  }
 
   onProgress("Writing transcripts...");
 
@@ -886,15 +1026,17 @@ async function runPipeline(inputOptions = {}) {
   }
 
   // Fixes rewrite only the copies written into the episode folder; the source
-  // transcripts are never touched.
-  const selectedFixes = selectTranscriptFixes(
-    transcriptReview,
-    inputOptions.transcriptFixes,
-  );
-  const selectedQuotes = new Set(selectedFixes.map((fix) => fix.quote));
+  // transcripts are never touched. Only ticked and remembered fixes exist at this
+  // point - the AI check's own fixes land later, from the background job.
+  const tickedFixes = (
+    Array.isArray(inputOptions.transcriptFixes)
+      ? inputOptions.transcriptFixes
+      : []
+  ).filter((fix) => fix?.quote && fix?.correction);
+  const tickedQuotes = new Set(tickedFixes.map((fix) => fix.quote));
   const transcriptFixes = [
-    ...selectedFixes,
-    ...carriedTranscriptFixes.filter((fix) => !selectedQuotes.has(fix.quote)),
+    ...tickedFixes,
+    ...carriedTranscriptFixes.filter((fix) => !tickedQuotes.has(fix.quote)),
   ];
   const mdFixResult = applyTranscriptFixes(
     sourceTranscriptMdText,
@@ -940,52 +1082,10 @@ async function runPipeline(inputOptions = {}) {
     );
   }
 
-  // AI clip picks replace the heuristic suggestions when available, using the fixed
-  // transcripts so quotes match the burned-in subtitles. Warning-only, like the check:
-  // any failure falls back to the heuristics from discovery.
-  let clipSuggestions = discovered.clipSuggestions;
-  let clipSource = "heuristic";
-  // A 429 from the check means the quota is gone for every request in this run;
-  // asking again for clips would just re-walk the retry waits before failing too.
-  const quotaExhausted = /\(429\)/.test(transcriptReview.error || "");
-  if (llm && quotaExhausted) {
-    onProgress(
-      "Skipping AI clip selection: the transcript check already hit the API quota limit; keeping heuristic suggestions",
-    );
-  } else if (llm) {
-    onProgress(`Selecting clip suggestions (${llm.model})...`);
-    try {
-      const llmClips = await suggestClipsLlmCached({
-        cacheDir: path.join(
-          repoRoot,
-          ".cache",
-          "postprocess",
-          "clip-suggestions",
-        ),
-        transcriptMdText: mdFixResult.text,
-        transcriptVttText: vttFixResult.text,
-        llm,
-        complete: inputOptions.llmComplete,
-      });
-      if (llmClips.suggestions.length > 0) {
-        clipSuggestions = llmClips.suggestions;
-        clipSource = "llm";
-        onProgress(
-          llmClips.fromCache
-            ? "Clip suggestions: using cached AI picks for this transcript"
-            : `Clip suggestions: ${llmClips.suggestions.length} picked by AI`,
-        );
-      } else {
-        onProgress(
-          "Warning: AI clip selection returned nothing usable; keeping heuristic suggestions",
-        );
-      }
-    } catch (error) {
-      onProgress(`Warning: AI clip selection failed: ${error.message}`);
-    }
-  }
-  report.clipSuggestions = clipSuggestions;
-  report.clipSource = clipSource;
+  // The heuristics are the placeholder until the background AI analysis replaces
+  // them in the state file.
+  report.clipSuggestions = discovered.clipSuggestions;
+  report.clipSource = "heuristic";
 
   onProgress("Updating MP3 chapter images...");
 
@@ -1039,6 +1139,25 @@ async function runPipeline(inputOptions = {}) {
     phase: "generated",
     jobs: state?.jobs || {},
   }));
+
+  if (llm) {
+    onProgress(
+      "AI transcript check and clip selection queued in the background...",
+    );
+    await episodeState.startJob(episodeDir, "aiAnalysis", {
+      stage: "transcript-check",
+    });
+    startBackgroundAiAnalysis({
+      repoRoot,
+      episodeDir,
+      llm,
+      chapters: chaptersWithImages,
+      hostNames: config.hostNames,
+      heuristicClipSuggestions: discovered.clipSuggestions,
+      llmComplete: inputOptions.llmComplete,
+    });
+    report.aiAnalysis = { started: true };
+  }
 
   if (inputOptions.skipVideo) {
     onProgress("Skipping MP4 generation (requested)");
@@ -1105,4 +1224,5 @@ async function runPipeline(inputOptions = {}) {
 module.exports = {
   runPipeline,
   discoverEpisodeData,
+  resolveSeasonInfo,
 };
