@@ -340,23 +340,31 @@ async function findExactSteamStoreUrl(title) {
 // The TTL exists because an unreleased game's null can become a real page later.
 const STEAM_LINK_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-async function findExactSteamStoreUrlCached(title, cachePath) {
+async function findExactSteamStoreUrlCached(title, cachePath, stats) {
   const key = normalizeTitle(title);
   if (!key) {
     return null;
   }
-  const cache = readJson(cachePath, {});
+  const cache = fileExists(cachePath) ? readJson(cachePath, {}) : {};
   const hit = cache[key];
   if (hit && Date.now() - hit.at < STEAM_LINK_CACHE_TTL_MS) {
+    if (stats) {
+      stats.cached += 1;
+    }
     return hit.url;
   }
+  // Announced lazily, so a fully-cached pass never claims to be looking anything up.
+  stats?.onLookup?.();
   const url = await findExactSteamStoreUrl(title);
+  if (stats) {
+    stats.lookedUp += 1;
+  }
   cache[key] = { url, at: Date.now() };
   writeJson(cachePath, cache);
   return url;
 }
 
-async function resolveHiddenChapterLinks(chapters, cachePath) {
+async function resolveHiddenChapterLinks(chapters, cachePath, stats) {
   const hiddenTitles = chapters
     .filter((chapter) => chapter.toc === false)
     .map((chapter) => chapter.title);
@@ -370,7 +378,7 @@ async function resolveHiddenChapterLinks(chapters, cachePath) {
 
   for (const title of uniqueTitles) {
     try {
-      const url = await findExactSteamStoreUrlCached(title, cachePath);
+      const url = await findExactSteamStoreUrlCached(title, cachePath, stats);
       resolvedLinks.set(title, url);
     } catch {
       resolvedLinks.set(title, null);
@@ -605,14 +613,28 @@ async function discoverEpisodeData(inputOptions = {}) {
       .map((chapter) => ({ title: chapter.title, url: null }));
     shownotesLinkSeeds = [...hiddenLinks];
   } else {
-    onProgress("Looking up exact Steam links...");
     const steamCachePath = path.join(
       repoRoot,
       ".cache",
       "postprocess",
       "steam-links.json",
     );
-    hiddenLinks = await resolveHiddenChapterLinks(chapters, steamCachePath);
+    let announcedSteamLookup = false;
+    const steamStats = {
+      cached: 0,
+      lookedUp: 0,
+      onLookup: () => {
+        if (!announcedSteamLookup) {
+          announcedSteamLookup = true;
+          onProgress("Looking up Steam links...");
+        }
+      },
+    };
+    hiddenLinks = await resolveHiddenChapterLinks(
+      chapters,
+      steamCachePath,
+      steamStats,
+    );
 
     // The chapter before Outro is almost always the main topic, and the main topic is
     // almost always a game - so it gets a prefilled shownotes row too, deleted in the
@@ -634,6 +656,7 @@ async function discoverEpisodeData(inputOptions = {}) {
         mainTopicUrl = await findExactSteamStoreUrlCached(
           mainTopicChapter.title,
           steamCachePath,
+          steamStats,
         );
       } catch {
         // No Steam page is fine; the row still seeds with just the title.
@@ -643,6 +666,9 @@ async function discoverEpisodeData(inputOptions = {}) {
         url: mainTopicUrl,
       });
     }
+    onProgress(
+      `Steam links: ${steamStats.cached} from cache, ${steamStats.lookedUp} looked up`,
+    );
   }
   const hiddenLinkTitles = hiddenLinks.map((link) => link.title);
 
@@ -698,10 +724,11 @@ async function discoverEpisodeData(inputOptions = {}) {
   let audioQc = { enabled: false, warnings: [] };
   if (!alreadyGenerated) {
     try {
-      onProgress("Analyzing audio levels (first pass takes about a minute)...");
       const analysis = await analyzeAudioCached({
         cacheDir: path.join(workRoot, "audio-qc"),
         mp3Path: inputOptions.mp3Path,
+        onFreshAnalysis: () =>
+          onProgress("Analyzing audio levels (takes about a minute)..."),
       });
       audioQc = {
         enabled: true,
@@ -1047,7 +1074,7 @@ async function runPipeline(inputOptions = {}) {
     created: branchResult.created,
   };
 
-  onProgress("Creating episode directory...");
+  onProgress("Preparing episode directory...");
 
   ensureDir(episodeDir);
 
@@ -1161,8 +1188,6 @@ async function runPipeline(inputOptions = {}) {
   report.clipSuggestions = discovered.clipSuggestions;
   report.clipSource = "heuristic";
 
-  onProgress("Updating MP3 chapter images...");
-
   // The embed rewrites the MP3's bytes, which would needlessly invalidate the Spaces
   // upload checksum and the MP4 render on every re-approve - so it only runs when
   // what it would write (title, chapter timings, image content) actually changed and
@@ -1182,6 +1207,7 @@ async function runPipeline(inputOptions = {}) {
     }
   }
   if (!embedUnchanged) {
+    onProgress("Updating MP3 chapter images...");
     const { backupPath } = embedChapterImagesIntoMp3({
       mp3Path: inputOptions.mp3Path,
       chapters: chaptersWithImages,

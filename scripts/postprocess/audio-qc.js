@@ -121,6 +121,9 @@ async function analyzeAudioCached({
   cacheDir,
   mp3Path,
   analyze = analyzeAudio,
+  // Called only when a real decode is about to start, so progress lines can announce
+  // the slow path without lying on cache hits.
+  onFreshAnalysis = () => {},
 }) {
   const stat = fs.statSync(mp3Path);
   const cacheKey = crypto
@@ -136,6 +139,7 @@ async function analyzeAudioCached({
     }
   }
 
+  onFreshAnalysis();
   const result = await analyze({ mp3Path });
   if (cachePath) {
     writeJson(cachePath, result);
