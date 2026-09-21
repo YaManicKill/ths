@@ -13,6 +13,9 @@ const DEFAULT_CONFIG = {
   llm: {
     provider: "gemini",
     model: "gemini-3.6-flash",
+    // Free-tier quotas are per model; a rate-limited request retries here instead of
+    // failing. null disables the failover.
+    fallbackModel: "gemini-3.5-flash",
     apiKey: null,
   },
   // Where the finished MP3 uploads to. Bucket and region are public knowledge (they
@@ -89,6 +92,11 @@ function assertValidLlm(llm) {
     );
   }
   assertNonEmptyString("llm.model", llm.model);
+  if (llm.fallbackModel !== null && typeof llm.fallbackModel !== "string") {
+    throw new Error(
+      `Invalid "llm.fallbackModel" in ${CONFIG_FILE_NAME}: expected a string or null.`,
+    );
+  }
   if (llm.apiKey !== null && typeof llm.apiKey !== "string") {
     throw new Error(
       `Invalid "llm.apiKey" in ${CONFIG_FILE_NAME}: expected a string or null.`,

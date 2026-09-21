@@ -27,12 +27,16 @@ is touched until you press **Approve**.
 Pressing Approve creates the `ep-SS-EE` branch, generates `index.md`, the transcripts
 (with AI fixes applied — see below) and a podcast-namespace `chapters.json` (advertised
 from the feed as `<podcast:chapters>`), embeds chapter images into the MP3 (keeping a
-`.bak`), and renders the full-episode MP4. Clip videos are generated separately from the
+`.bak`, and syncing its ID3 title to the chosen episode title), and renders the
+full-episode MP4. Clip videos are generated separately from the
 suggestion cards; they use the show logo rather than chapter images, and carry the
 episode title, burned-in subtitles and a progress bar.
 
 ## The UI
 
+- **Title Suggestions**: when the episode title is still a "THS XX-YY" placeholder,
+  the AI mines the transcript for candidates in the show's style; clicking one sets
+  the title.
 - **AI transcript check** (needs an LLM key): flags likely mistranscriptions, including
   wrong spellings of the configured `hostNames`. High-confidence fixes are applied to
   the generated transcripts automatically — the source transcripts are never modified —
@@ -73,8 +77,8 @@ episode title, burned-in subtitles and a progress bar.
   `postprocess-state.json` and are restored after a refresh or restart; **Clear &
   Restart Process** wipes that state for a fresh start.
 - LLM results are cached by content and all AI checks are warning-only — failures never
-  block a run. A full episode costs ~4 requests; free-tier quotas are per model, so
-  switching `llm.model` gets a fresh daily bucket.
+  block a run. A full episode costs ~4 requests; free-tier quotas are per model, so a
+  rate-limited request automatically retries on `llm.fallbackModel`.
 
 ## Episode Number Inference
 
@@ -104,6 +108,7 @@ defaults in `config.js`.
 | `hostNames`          | the five regulars             | Correct spellings of the recurring hosts. The AI transcript check flags any other spelling of them as a mistake. |
 | `llm.provider`       | `gemini`                      | Which LLM backs the AI features. Only `gemini` is implemented so far.                                            |
 | `llm.model`          | `gemini-3.6-flash`            | The model used for the AI features.                                                                              |
+| `llm.fallbackModel`  | `gemini-3.5-flash`            | Retried when the main model is rate limited (quotas are per model); `null` disables the failover.                |
 | `llm.apiKey`         | unset                         | API key for the LLM provider. **Never put this in the main config** — see below.                                 |
 | `spaces.bucket`      | `ymk`                         | DigitalOcean Space the MP3 uploads to; `spaces.region` (default `nyc3`) picks the endpoint.                      |
 | `spaces.accessKeyId` | unset                         | Spaces credentials, with `spaces.secretAccessKey`. **Local config only** — see below.                            |

@@ -13,7 +13,9 @@ function makeEpisodeFixture() {
     metadataPath,
     [
       ";FFMETADATA1",
-      "title=Test Episode",
+      // The recording tool's placeholder: the run must replace it with the real
+      // episode title when it embeds the chapter images.
+      "title=THS 99-01",
       "[CHAPTER]",
       "TIMEBASE=1/1000",
       "START=0",
@@ -215,6 +217,23 @@ async function main() {
   assert.ok(
     report.mp3ChapterImages.completed,
     "chapter images were not embedded",
+  );
+
+  // The embed step also syncs the ID3 title: the fixture MP3 carried the recording
+  // tool's "THS 99-01" placeholder, the episode is titled from the transcript file.
+  const taggedTitle = runCommand("ffprobe", [
+    "-v",
+    "error",
+    "-show_entries",
+    "format_tags=title",
+    "-of",
+    "default=noprint_wrappers=1:nokey=1",
+    runMp3,
+  ]);
+  assert.equal(
+    taggedTitle.stdout.trim(),
+    "Test Episode",
+    "the MP3 title tag must follow the chosen episode title",
   );
 
   const episodeDir = path.dirname(

@@ -61,13 +61,18 @@ def read_chapters(chapters_json_path: str):
     return chapters
 
 
-def embed(mp3_path: str, chapters):
+def embed(mp3_path: str, chapters, title=None):
     ID3, ID3NoHeaderError, APIC, CHAP, CTOC, TIT2 = load_mutagen()
 
     try:
         tags = ID3(mp3_path)
     except ID3NoHeaderError:
         tags = ID3()
+
+    # The episode title is chosen (or AI-suggested) in the UI, while the recording
+    # tool wrote its own placeholder into the file - the tag follows the final title.
+    if title:
+        tags.setall("TIT2", [TIT2(encoding=3, text=title)])
 
     # Remove existing chapter structures so we replace deterministically.
     for key in list(tags.keys()):
@@ -125,6 +130,7 @@ def main():
     parser = argparse.ArgumentParser(description="Embed chapter images into MP3 ID3 CHAP frames")
     parser.add_argument("--mp3", required=True)
     parser.add_argument("--chapters-json", required=True)
+    parser.add_argument("--title", default=None)
     args = parser.parse_args()
 
     if not os.path.isfile(args.mp3):
@@ -134,7 +140,7 @@ def main():
     if len(chapters) == 0:
         fail("No chapters provided")
 
-    embed(args.mp3, chapters)
+    embed(args.mp3, chapters, title=args.title)
     print(f"Embedded chapter images for {len(chapters)} chapters into {args.mp3}")
 
 

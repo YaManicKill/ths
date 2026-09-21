@@ -158,7 +158,7 @@ function ensureMp3Backup(mp3Path) {
   return backupPath;
 }
 
-function embedChapterImagesIntoMp3({ mp3Path, chapters, workDir }) {
+function embedChapterImagesIntoMp3({ mp3Path, chapters, workDir, title }) {
   const scriptPath = path.join(__dirname, "embed_chapter_images.py");
   if (!fileExists(scriptPath)) {
     throw new Error(`Missing embed script: ${scriptPath}`);
@@ -184,6 +184,7 @@ function embedChapterImagesIntoMp3({ mp3Path, chapters, workDir }) {
     mp3Path,
     "--chapters-json",
     payloadPath,
+    ...(title ? ["--title", title] : []),
   ]);
 
   if (result.status !== 0) {
@@ -992,6 +993,7 @@ async function runPipeline(inputOptions = {}) {
     mp3Path: inputOptions.mp3Path,
     chapters: chaptersWithImages,
     workDir,
+    title: episodeTitle,
   });
 
   report.mp3ChapterImages.completed = true;

@@ -16,6 +16,7 @@ const {
   expandClipLlmCached,
   suggestClipsLlmCached,
 } = require("../clip-suggestions-llm");
+const { suggestTitlesLlmCached } = require("../title-suggestions-llm");
 const { stripSpeakerPrefix } = require("../clip-subtitles");
 const {
   buildYoutubeDescription,
@@ -2121,6 +2122,60 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
             : null,
         );
         sendJson(res, 200, { success: true, url: state.mp3Upload.url });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Title candidates for the weeks the recording tool left a "THS XX-YY"
+    // placeholder: the model mines the transcript for the show's kind of title (an
+    // in-joke or odd quote), and the user picks in the UI - nothing is applied here.
+    if (req.method === "POST" && pathname === "/api/title-suggestions") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        const llm = resolveLlm(loadPostprocessConfig(repoRoot));
+        if (!llm) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Title suggestions need an LLM API key",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const mdPath = path.join(episodeDir, "transcript.md");
+        const mdText = fs.existsSync(mdPath)
+          ? fs.readFileSync(mdPath, "utf8")
+          : discovered.transcriptMdText;
+
+        const result = await suggestTitlesLlmCached({
+          cacheDir: path.join(
+            repoRoot,
+            ".cache",
+            "postprocess",
+            "title-suggestions",
+          ),
+          transcriptMdText: mdText,
+          llm,
+        });
+        sendJson(res, 200, { success: true, titles: result.titles });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
       }

@@ -175,6 +175,108 @@ async function main() {
   );
   assert.equal(dailyQuotaAttempts, 1, "huge retry hints must fail fast");
 
+  // Quotas are per model: a rate-limited primary hands the request to the fallback
+  // model's fresh bucket instead of failing.
+  const failoverModels = [];
+  const failedOver = await completeJson({
+    llm: {
+      ...LLM,
+      model: "gemini-3.6-flash",
+      fallbackModel: "gemini-3.5-flash",
+    },
+    system: "s",
+    prompt: "p",
+    schema: SCHEMA,
+    retryDelayMs: 1,
+    fetchImpl: async (url, options) => {
+      const model = JSON.parse(options.body).model;
+      failoverModels.push(model);
+      return model === "gemini-3.6-flash"
+        ? fakeResponse(429, {
+            error: { message: "Quota exceeded. Please retry in 57600s." },
+          })
+        : fakeResponse(200, { output_text: '{"ok": true}' });
+    },
+  });
+  assert.deepEqual(failedOver, { ok: true });
+  assert.deepEqual(failoverModels, ["gemini-3.6-flash", "gemini-3.5-flash"]);
+
+  // A per-minute 429 (small hint) gets one retry on the primary, then switches
+  // rather than sitting out the full retry ladder on a rate-limited model.
+  const eagerModels = [];
+  const eager = await completeJson({
+    llm: {
+      ...LLM,
+      model: "gemini-3.6-flash",
+      fallbackModel: "gemini-3.5-flash",
+    },
+    system: "s",
+    prompt: "p",
+    schema: SCHEMA,
+    retryDelayMs: 1,
+    fetchImpl: async (url, options) => {
+      const model = JSON.parse(options.body).model;
+      eagerModels.push(model);
+      return model === "gemini-3.6-flash"
+        ? fakeResponse(429, {
+            error: { message: "Quota exceeded. Please retry in 0.001s." },
+          })
+        : fakeResponse(200, { output_text: '{"ok": true}' });
+    },
+  });
+  assert.deepEqual(eager, { ok: true });
+  assert.deepEqual(eagerModels, [
+    "gemini-3.6-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+  ]);
+
+  // A rate-limited fallback is the end of the line - no ping-ponging.
+  let bothLimitedAttempts = 0;
+  await assert.rejects(
+    completeJson({
+      llm: {
+        ...LLM,
+        model: "gemini-3.6-flash",
+        fallbackModel: "gemini-3.5-flash",
+      },
+      system: "s",
+      prompt: "p",
+      schema: SCHEMA,
+      retryDelayMs: 1,
+      fetchImpl: async () => {
+        bothLimitedAttempts += 1;
+        return fakeResponse(429, {
+          error: { message: "Quota exceeded. Please retry in 57600s." },
+        });
+      },
+    }),
+    /429/,
+  );
+  assert.equal(
+    bothLimitedAttempts,
+    2,
+    "one fail-fast attempt per model, then give up",
+  );
+
+  // Non-quota failures (auth, bad request) never trigger the failover.
+  let authAttempts = 0;
+  await assert.rejects(
+    completeJson({
+      llm: { ...LLM, fallbackModel: "gemini-3.5-flash" },
+      system: "s",
+      prompt: "p",
+      schema: SCHEMA,
+      retryDelayMs: 1,
+      fetchImpl: async () => {
+        authAttempts += 1;
+        return fakeResponse(403, { error: { message: "bad key" } });
+      },
+    }),
+    /403/,
+  );
+  assert.equal(authAttempts, 1, "auth errors must not try the fallback model");
+
   // The cumulative wait budget stops retry sequences whose individual hints look
   // per-minute but never recover (daily quota disguised with a small hint).
   let budgetAttempts = 0;

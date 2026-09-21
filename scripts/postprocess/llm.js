@@ -18,7 +18,12 @@ function resolveLlm(config) {
     return null;
   }
 
-  return { provider: llm.provider, model: llm.model, apiKey };
+  return {
+    provider: llm.provider,
+    model: llm.model,
+    fallbackModel: llm.fallbackModel || null,
+    apiKey,
+  };
 }
 
 // The REST response carries the text in a steps[].type === "model_output" entry
@@ -160,11 +165,13 @@ async function completeJson({
     throw new Error(`Unsupported LLM provider: ${llm.provider}`);
   }
 
+  let model = llm.model;
+  let usedFallbackModel = false;
   let totalWaitedMs = 0;
   for (let attempt = 1; ; attempt += 1) {
     try {
       return await geminiCompleteJson({
-        llm,
+        llm: { ...llm, model },
         system,
         prompt,
         schema,
@@ -173,13 +180,37 @@ async function completeJson({
       });
     } catch (error) {
       const delay = retryDelayFromError(error, retryDelayMs, attempt);
+      const quotaError = /\(429\)/.test(error.message);
+      const fallbackAvailable =
+        llm.fallbackModel && llm.fallbackModel !== model && !usedFallbackModel;
       if (
         delay === null ||
         attempt >= MAX_ATTEMPTS ||
-        totalWaitedMs + delay > maxTotalRetryWaitMs
+        totalWaitedMs + delay > maxTotalRetryWaitMs ||
+        // Free-tier quotas are per model, so with a fresh bucket one switch away,
+        // sitting out the primary's full retry ladder is pure waiting: one retry
+        // covers a transient blip, then the fallback takes over.
+        (quotaError && fallbackAvailable && attempt >= 2)
       ) {
+        if (quotaError && fallbackAvailable) {
+          console.error(
+            `${model} is rate limited - falling back to ${llm.fallbackModel}`,
+          );
+          model = llm.fallbackModel;
+          usedFallbackModel = true;
+          totalWaitedMs = 0;
+          attempt = 0;
+          continue;
+        }
         throw error;
       }
+      // Silent waits read as a hang from the UI; the server terminal at least says
+      // what the request is stuck on.
+      console.error(
+        `LLM request failed (attempt ${attempt}/${MAX_ATTEMPTS}), retrying in ${Math.round(
+          delay / 1000,
+        )}s: ${String(error.message).slice(0, 160)}`,
+      );
       totalWaitedMs += delay;
       await new Promise((resolve) => setTimeout(resolve, delay));
     }

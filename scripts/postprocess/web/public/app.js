@@ -50,8 +50,15 @@ const generateClipVideosButton = document.getElementById(
 const moreClipSuggestionsButton = document.getElementById(
   "more-clip-suggestions-button",
 );
+const titleSuggestionsSection = document.getElementById(
+  "title-suggestions-section",
+);
+const titleSuggestionsList = document.getElementById("title-suggestions-list");
 
 let currentDiscoveryData = null;
+// One fetch per session: re-discoveries (every input tweak) must not re-ask the LLM,
+// and the endpoint's content cache covers restarts.
+let titleSuggestionsPromise = null;
 let currentRunResult = null;
 let currentClipSuggestions = [];
 let clipApprovalState = [];
@@ -2047,6 +2054,104 @@ function updateClipSuggestionsSummary() {
   })`;
 }
 
+// The recording tool names sessions "THS XX-YY"; that surviving as the episode title
+// means nobody picked a real one yet.
+function isPlaceholderEpisodeTitle(title) {
+  return /^ths[\s_-]*\d{1,3}\s*-\s*\d{1,3}$/i.test(String(title || "").trim());
+}
+
+// Shown only while the title is still a placeholder: the AI mines the transcript for
+// candidates and the user picks - clicking one sets the title field, and the next
+// re-discovery hides the section because the title is no longer a placeholder.
+function maybeOfferTitleSuggestions(episodeTitle) {
+  if (!isPlaceholderEpisodeTitle(episodeTitle)) {
+    titleSuggestionsSection.style.display = "none";
+    return;
+  }
+
+  titleSuggestionsSection.style.display = "block";
+  if (titleSuggestionsPromise) {
+    return;
+  }
+
+  // The request can legitimately run for minutes (full transcript, plus quota
+  // retries); a ticking clock is what separates "working" from "hung".
+  const startedAt = Date.now();
+  titleSuggestionsList.textContent = "Asking the AI for title suggestions...";
+  const ticker = setInterval(() => {
+    const elapsed = Math.round((Date.now() - startedAt) / 1000);
+    titleSuggestionsList.textContent = `Asking the AI for title suggestions... (${elapsed}s - quota retries can take a few minutes)`;
+  }, 5000);
+  titleSuggestionsPromise = (async () => {
+    try {
+      const response = await fetch("/api/title-suggestions", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          mp3Path: buildDiscoverPayload().mp3Path,
+          discoveryData: currentDiscoveryData?.discoveryData,
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok || !body.success) {
+        throw new Error(body.error || "Title suggestions request failed");
+      }
+      renderTitleSuggestions(body.titles || []);
+    } catch (error) {
+      titleSuggestionsList.textContent = `Could not fetch title suggestions: ${error.message}`;
+      // A failed fetch (quota, network) may as well be retryable on the next
+      // discovery pass.
+      titleSuggestionsPromise = null;
+    } finally {
+      clearInterval(ticker);
+    }
+  })();
+}
+
+function renderTitleSuggestions(titles) {
+  titleSuggestionsList.textContent = "";
+  if (!titles.length) {
+    titleSuggestionsList.textContent =
+      "The AI returned no usable title suggestions.";
+    return;
+  }
+
+  titles.forEach((candidate) => {
+    const row = document.createElement("div");
+    row.style.cssText =
+      "display: flex; gap: 10px; align-items: baseline; margin-bottom: 8px;";
+
+    const pick = document.createElement("button");
+    pick.type = "button";
+    pick.textContent = candidate.title;
+    pick.style.cssText = `
+      padding: 8px 12px;
+      cursor: pointer;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      white-space: nowrap;
+    `;
+    pick.addEventListener("click", () => {
+      setInputValue("episodeTitle", candidate.title);
+      addStatus(`✓ Episode title set to "${candidate.title}"`);
+      scheduleDiscovery();
+    });
+    row.appendChild(pick);
+
+    if (candidate.reason) {
+      const reason = document.createElement("span");
+      reason.textContent = candidate.reason;
+      reason.style.cssText = "font-size: 0.85em; color: var(--muted);";
+      row.appendChild(reason);
+    }
+
+    titleSuggestionsList.appendChild(row);
+  });
+}
+
 function buildDiscoverPayload() {
   const formData = new FormData(form);
   return {
@@ -2180,6 +2285,8 @@ async function runDiscovery() {
     currentMp3Upload = result.discovered?.mp3Upload || null;
     setProcessActionsVisibility();
     renderTranscriptFixSection();
+    // After currentDiscoveryData: the suggestions fetch sends it to the server.
+    maybeOfferTitleSuggestions(result.discovered.episodeTitle || "");
     currentRunResult = null;
 
     const mp4RenderStatus = String(
@@ -2808,6 +2915,8 @@ restartProcessButton.addEventListener("click", async () => {
   shownotesLinks = [];
   isEpisodeGenerated = false;
   currentMp3Upload = null;
+  titleSuggestionsPromise = null;
+  titleSuggestionsSection.style.display = "none";
   setProcessActionsVisibility();
   renderTranscriptFixSection();
   persistActiveVideoEpisodeDir("");
