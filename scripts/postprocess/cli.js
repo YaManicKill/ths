@@ -202,12 +202,17 @@ function prepareLaunch({ repoRoot, args = { _: [] } }) {
   return {
     resolved,
     discovered,
+    // Only the inputs discovery cannot derive itself are prefilled. A prefilled
+    // title or (inferred) date would read as user-typed on the first discovery and
+    // beat the saved review edits - the bug where a chosen title reverted on
+    // restart. An explicit --episode-number date is genuinely user-supplied.
     defaults: {
       mp3Path: discovered.mp3Path,
       transcriptMdPath: discovered.transcriptMdPath,
       transcriptVttPath: discovered.transcriptVttPath,
-      episodeTitle: discovered.episodeTitle,
-      publishDate: resolved.publishDate,
+      ...(args["episode-number"] !== undefined
+        ? { publishDate: resolved.publishDate }
+        : {}),
     },
   };
 }

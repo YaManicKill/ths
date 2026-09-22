@@ -272,6 +272,7 @@ async function suggestClipsLlm({
 
   // A whole episode in one request takes the model well past the default timeout.
   const result = await complete({
+    label: "Clip suggestions",
     llm,
     system: SYSTEM_PROMPT,
     prompt,
@@ -392,6 +393,174 @@ async function suggestClipsLlmCached({ cacheDir, ...options }) {
   return { ...result, fromCache: false };
 }
 
+// "Find this moment": the user describes a moment they remember and the model locates
+// it. Unlike the ranked picker this is a search, so overlap with existing clips is
+// allowed (the user may want a different cut of a moment already picked) and the length
+// ceiling is generous: a whole conversation is fine, the trim strip can tighten it.
+const FIND_PROMPT_VERSION = 1;
+const MAX_FIND_RESULTS = 3;
+const MAX_FOUND_CLIP_SECONDS = 300;
+
+const FIND_SYSTEM_PROMPT = [
+  "You locate a specific moment in a podcast transcript from a listener's description",
+  "and turn it into a short, shareable social-media clip.",
+  "",
+  "Timestamps like (23m44s) mark speaker turns; chapter headings start with ##.",
+  "",
+  "Rules:",
+  `- Return up to ${MAX_FIND_RESULTS} candidate clips that match the description, best`,
+  "  match first. Candidates may be different cuts of the same moment (a tight one and",
+  "  a fuller one) or genuinely different moments that fit the description.",
+  "- Only return moments that genuinely match; if nothing does, return an empty list.",
+  "- Each clip must make sense to someone who has not heard the episode: include the",
+  "  setup and the payoff, and do not open or end mid-thought. Prefer 25 to 90 seconds",
+  "  of speech, but cover the whole moment even if that runs to a few minutes.",
+  "- Copy openingQuote and closingQuote verbatim from the transcript, at least 8 words",
+  "  each, without speaker names or timestamps. Clips that cannot be located from their",
+  "  quotes are discarded, so verbatim accuracy matters more than anything else.",
+  "- The caption is pasted as-is when posting the clip: one or two energetic sentences",
+  "  that tease the moment without spoiling the payoff, ending with hashtags - always",
+  `  ${REQUIRED_CLIP_HASHTAGS.join(" ")}, plus one or two specific to the clip.`,
+  "- score is how well the clip matches the description AND how well it would work as",
+  "  a standalone clip.",
+].join("\n");
+
+async function findClipLlm({
+  transcriptMdText,
+  transcriptVttText,
+  description,
+  llm,
+  complete = completeJson,
+  maxResults = MAX_FIND_RESULTS,
+}) {
+  const query = String(description || "").trim();
+  if (!query) {
+    throw new Error("Describe the moment you want to find");
+  }
+  const cues = parseVttCues(transcriptVttText || "");
+  if (cues.length === 0) {
+    return { suggestions: [], candidatesReturned: 0 };
+  }
+
+  const prompt = [
+    "Podcast: The Harvest Season, a conversational podcast about farming and",
+    "life-sim video games.",
+    "",
+    "The listener is looking for this moment:",
+    "---",
+    query,
+    "---",
+    "",
+    "Full episode transcript:",
+    "---",
+    transcriptMdText,
+    "---",
+  ].join("\n");
+
+  const result = await complete({
+    label: "Find clip",
+    llm,
+    system: FIND_SYSTEM_PROMPT,
+    prompt,
+    schema: CLIP_SCHEMA,
+    timeoutMs: 300_000,
+  });
+  const rawClips = Array.isArray(result?.clips) ? result.clips : [];
+
+  const searchIndex = buildCueSearchIndex(cues);
+  const round3 = (value) => Math.round(value * 1000) / 1000;
+  const suggestions = [];
+
+  for (const raw of rawClips) {
+    const located = locateClipInCues({
+      searchIndex,
+      openingQuote: raw.openingQuote,
+      closingQuote: raw.closingQuote,
+    });
+    if (!located) {
+      continue;
+    }
+    const startSeconds = cues[located.startCue].startSeconds;
+    const endSeconds = cues[located.endCue].endSeconds;
+    const durationSeconds = endSeconds - startSeconds;
+    if (
+      durationSeconds < MIN_CLIP_SECONDS ||
+      durationSeconds > MAX_FOUND_CLIP_SECONDS
+    ) {
+      continue;
+    }
+    // Two answers with identical bounds are the same clip; overlapping ones are the
+    // alternative cuts the prompt asks for and are kept.
+    if (
+      suggestions.some(
+        (clip) =>
+          clip.startSeconds === round3(startSeconds) &&
+          clip.endSeconds === round3(endSeconds),
+      )
+    ) {
+      continue;
+    }
+
+    const title = String(raw.title || "").trim() || "Clip";
+    const speakerMatch = /^([^:\n]{1,30}):/.exec(cues[located.startCue].text);
+    suggestions.push({
+      id: crypto.randomUUID(),
+      startSeconds: round3(startSeconds),
+      endSeconds: round3(endSeconds),
+      durationSeconds: round3(durationSeconds),
+      score: Math.max(0, Math.min(100, Number(raw.score) || 0)),
+      text: cues
+        .slice(located.startCue, located.endCue + 1)
+        .map((cue) => cueSpeechText(cue.text))
+        .join(" "),
+      summary: title,
+      title,
+      speaker: speakerMatch ? speakerMatch[1].trim() : null,
+      reason: CLIP_CATEGORIES.includes(raw.category) ? raw.category : "moment",
+      llmReason: String(raw.reason || "").trim(),
+      caption: ensureRequiredHashtags(raw.caption),
+      timestampLabel: `${formatSecondsToHhmmss(startSeconds)}-${formatSecondsToHhmmss(endSeconds)}`,
+      source: "llm",
+      foundFor: query,
+    });
+  }
+
+  return {
+    suggestions: suggestions.slice(0, maxResults),
+    candidatesReturned: rawClips.length,
+  };
+}
+
+async function findClipLlmCached({ cacheDir, ...options }) {
+  const md = String(options.transcriptMdText || "");
+  const vtt = String(options.transcriptVttText || "");
+  // Case and spacing differences in the description are the same search.
+  const query = String(options.description || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+  const cacheKey = crypto
+    .createHash("sha1")
+    .update(
+      `find:${FIND_PROMPT_VERSION}:${options.llm.provider}:${options.llm.model}:${options.maxResults || MAX_FIND_RESULTS}:${query}:${md.length}:${md}:${vtt.length}:${vtt}`,
+    )
+    .digest("hex");
+  const cachePath = cacheDir ? path.join(cacheDir, `${cacheKey}.json`) : null;
+
+  if (cachePath && fileExists(cachePath)) {
+    const cached = readJson(cachePath, false);
+    if (cached) {
+      return { ...cached, fromCache: true };
+    }
+  }
+
+  const result = await findClipLlm(options);
+  if (cachePath) {
+    writeJson(cachePath, result);
+  }
+  return { ...result, fromCache: false };
+}
+
 // "Expand to the whole conversation": the trim strip covers a few seconds either side,
 // but when a pick lands mid-topic the full conversation can start minutes earlier. The
 // model re-bounds the clip against the surrounding transcript instead.
@@ -467,6 +636,7 @@ async function expandClipLlm({
   ].join("\n");
 
   const result = await complete({
+    label: "Clip expand",
     llm,
     system: EXPAND_SYSTEM_PROMPT,
     prompt,
@@ -540,6 +710,8 @@ module.exports = {
   ensureRequiredHashtags,
   expandClipLlm,
   expandClipLlmCached,
+  findClipLlm,
+  findClipLlmCached,
   formatClipCaptionBlock,
   locateClipInCues,
   suggestClipsLlm,

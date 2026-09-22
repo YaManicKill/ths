@@ -136,6 +136,25 @@ async function main() {
   assert.ok(!fs.existsSync(path.join(dir, "postprocess-report.json")));
   assert.ok(!fs.existsSync(path.join(dir, "video-status.json")));
 
+  // State lookups by episode code: the slug-named directory follows the editable
+  // title, so a sibling with the same code prefix and a state file is the episode.
+  const seasonDir = tempEpisodeDir();
+  fs.mkdirSync(path.join(seasonDir, "12-05-no-state-here"));
+  await episodeState.updateState(
+    path.join(seasonDir, "12-05-old-title"),
+    () => ({ phase: "generating", jobs: {} }),
+  );
+  assert.equal(
+    episodeState.findStateDirByCode(seasonDir, "12-05-"),
+    path.join(seasonDir, "12-05-old-title"),
+  );
+  assert.equal(episodeState.findStateDirByCode(seasonDir, "12-07-"), null);
+  assert.equal(
+    episodeState.findStateDirByCode("/nope/missing", "12-05-"),
+    null,
+  );
+  fs.rmSync(seasonDir, { recursive: true, force: true });
+
   // Concurrent read-modify-writes serialize; none of the increments may be lost.
   const counterDir = tempEpisodeDir();
   await episodeState.updateState(counterDir, () => ({

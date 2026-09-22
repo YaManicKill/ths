@@ -50,8 +50,17 @@ const generateClipVideosButton = document.getElementById(
 const moreClipSuggestionsButton = document.getElementById(
   "more-clip-suggestions-button",
 );
+const findClipInput = document.getElementById("find-clip-input");
+const findClipButton = document.getElementById("find-clip-button");
+const titleSuggestionsSection = document.getElementById(
+  "title-suggestions-section",
+);
+const titleSuggestionsList = document.getElementById("title-suggestions-list");
 
 let currentDiscoveryData = null;
+// One fetch per session: re-discoveries (every input tweak) must not re-ask the LLM,
+// and the endpoint's content cache covers restarts.
+let titleSuggestionsPromise = null;
 let currentRunResult = null;
 let currentClipSuggestions = [];
 let clipApprovalState = [];
@@ -715,6 +724,21 @@ function renderChapterPreviews(discovered) {
 
 function renderStatus() {
   resultBox.textContent = statusLines.map((line) => line.text).join("\n");
+  // Per-line elements only so secondary lines can be styled; the plain text above is
+  // what the box reads as (and what the UI tests read).
+  if (typeof resultBox.replaceChildren !== "function") {
+    return;
+  }
+  resultBox.replaceChildren(
+    ...statusLines.map((line) => {
+      const element = document.createElement("span");
+      element.textContent = `${line.text}\n`;
+      if (line.secondary) {
+        element.className = "status-secondary";
+      }
+      return element;
+    }),
+  );
 }
 
 function resetStatus() {
@@ -723,13 +747,15 @@ function resetStatus() {
   renderStatus();
 }
 
-function addStatus(text) {
+// Secondary lines are background detail (the server's own log) and render dimmer, so
+// they are not mistaken for the outcome of whatever the user just clicked.
+function addStatus(text, { secondary = false } = {}) {
   if (!text) {
     return null;
   }
   statusLineSeq += 1;
   const id = statusLineSeq;
-  statusLines.push({ id, text: String(text) });
+  statusLines.push({ id, text: String(text), secondary });
   renderStatus();
   return id;
 }
@@ -773,6 +799,13 @@ function startStatusSpinner(prefix, suffix = "") {
     clearInterval(timer);
     if (finalText) {
       setStatusLine(lineId, finalText);
+      // Server log lines and other actions land underneath while this runs, and the
+      // last line is what gets read as the result. The outcome moves to the bottom.
+      const index = statusLines.findIndex((line) => line.id === lineId);
+      if (index !== -1 && index !== statusLines.length - 1) {
+        statusLines.push(...statusLines.splice(index, 1));
+        renderStatus();
+      }
     }
     return lineId;
   };
@@ -979,6 +1012,7 @@ function renderShownotesLinks() {
       }
       const [moved] = shownotesLinks.splice(draggedLinkIndex, 1);
       shownotesLinks.splice(target, 0, moved);
+      scheduleReviewOverridesSave();
       draggedLinkIndex = null;
       renderShownotesLinks();
     });
@@ -990,6 +1024,7 @@ function renderShownotesLinks() {
     titleInput.style.flex = "1";
     titleInput.addEventListener("input", () => {
       link.title = titleInput.value;
+      scheduleReviewOverridesSave();
     });
 
     const urlInput = document.createElement("input");
@@ -999,6 +1034,7 @@ function renderShownotesLinks() {
     urlInput.style.flex = "2";
     urlInput.addEventListener("input", () => {
       link.url = urlInput.value;
+      scheduleReviewOverridesSave();
     });
     // A pasted URL gets its page title fetched as an editable default, but never
     // overwrites a title the user has typed in the meantime.
@@ -1025,6 +1061,7 @@ function renderShownotesLinks() {
         ) {
           titleInput.value = body.title;
           link.title = body.title;
+          scheduleReviewOverridesSave();
         }
       } catch {
         // No title is fine; the user types one.
@@ -1039,6 +1076,7 @@ function renderShownotesLinks() {
     removeButton.addEventListener("click", () => {
       shownotesLinks.splice(index, 1);
       renderShownotesLinks();
+      scheduleReviewOverridesSave();
     });
 
     row.appendChild(handle);
@@ -1052,6 +1090,7 @@ function renderShownotesLinks() {
 addShownotesLinkButton.addEventListener("click", () => {
   shownotesLinks.push({ title: "", url: "" });
   renderShownotesLinks();
+  scheduleReviewOverridesSave();
   shownotesLinksList.lastElementChild?.querySelector("input")?.focus();
 });
 
@@ -1855,6 +1894,13 @@ function renderClipSuggestions(suggestions) {
       expandButton.addEventListener("click", async () => {
         expandButton.disabled = true;
         expandButton.textContent = "Expanding...";
+        // A visible heartbeat: the LLM call can sit in quota retries for minutes,
+        // and a lone disabled button reads as a hang.
+        const clipName = suggestion.title || suggestion.summary || "clip";
+        const stopSpinner = startStatusSpinner(
+          `⤢ Expanding "${clipName}"`,
+          " (quota retries can take a few minutes)",
+        );
         try {
           const response = await fetch("/api/expand-clip", {
             method: "POST",
@@ -1876,7 +1922,7 @@ function renderClipSuggestions(suggestions) {
             throw new Error(body.error || "Expand request failed");
           }
           if (body.durationSeconds === suggestion.durationSeconds) {
-            addStatus(
+            stopSpinner(
               "ℹ The AI thinks this clip already covers the whole conversation.",
             );
             return;
@@ -1898,11 +1944,11 @@ function renderClipSuggestions(suggestions) {
             transcriptEditor = nextTranscript;
           }
           scheduleClipCurationSave();
-          addStatus(
+          stopSpinner(
             `✓ Clip expanded to ${Math.round(body.durationSeconds)}s (${body.timestampLabel})`,
           );
         } catch (error) {
-          addStatus(`❌ Expand failed: ${error.message}`);
+          stopSpinner(`❌ Expand failed: ${error.message}`);
         } finally {
           expandButton.disabled = false;
           expandButton.textContent = "⤢ Expand";
@@ -2047,6 +2093,141 @@ function updateClipSuggestionsSummary() {
   })`;
 }
 
+// Review-phase edits - title, topic, description, publish date, links - used to live
+// only in the form until Approve; a close or crash lost them. Debounced into the
+// episode state, where discovery restores them. Fire-and-forget: a failed save is
+// retried by whatever edit comes next.
+let reviewOverridesSaveTimer = null;
+function scheduleReviewOverridesSave() {
+  if (!currentDiscoveryData?.discoveryData) {
+    return;
+  }
+  clearTimeout(reviewOverridesSaveTimer);
+  reviewOverridesSaveTimer = setTimeout(async () => {
+    try {
+      const payload = buildDiscoverPayload();
+      await fetch("/api/save-review-overrides", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          mp3Path: payload.mp3Path,
+          discoveryData: currentDiscoveryData.discoveryData,
+          overrides: {
+            episodeTitle: payload.episodeTitle,
+            description: payload.description,
+            mainTopic: payload.mainTopic,
+            publishDate: payload.publishDate,
+            shownotesLinks,
+          },
+        }),
+      });
+    } catch {
+      // Retried by the next edit.
+    }
+  }, 1500);
+}
+
+// The recording tool names sessions "THS XX-YY"; that surviving as the episode title
+// means nobody picked a real one yet.
+function isPlaceholderEpisodeTitle(title) {
+  return /^ths[\s_-]*\d{1,3}\s*-\s*\d{1,3}$/i.test(String(title || "").trim());
+}
+
+// Shown only while the title is still a placeholder: the AI mines the transcript for
+// candidates and the user picks - clicking one sets the title field, and the next
+// re-discovery hides the section because the title is no longer a placeholder.
+function maybeOfferTitleSuggestions(episodeTitle) {
+  if (!isPlaceholderEpisodeTitle(episodeTitle)) {
+    titleSuggestionsSection.style.display = "none";
+    return;
+  }
+
+  titleSuggestionsSection.style.display = "block";
+  if (titleSuggestionsPromise) {
+    return;
+  }
+
+  // The request can legitimately run for minutes (full transcript, plus quota
+  // retries); a ticking clock is what separates "working" from "hung".
+  const startedAt = Date.now();
+  titleSuggestionsList.textContent = "Asking the AI for title suggestions...";
+  const ticker = setInterval(() => {
+    const elapsed = Math.round((Date.now() - startedAt) / 1000);
+    titleSuggestionsList.textContent = `Asking the AI for title suggestions... (${elapsed}s - quota retries can take a few minutes)`;
+  }, 5000);
+  titleSuggestionsPromise = (async () => {
+    try {
+      const response = await fetch("/api/title-suggestions", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          mp3Path: buildDiscoverPayload().mp3Path,
+          discoveryData: currentDiscoveryData?.discoveryData,
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok || !body.success) {
+        throw new Error(body.error || "Title suggestions request failed");
+      }
+      renderTitleSuggestions(body.titles || []);
+    } catch (error) {
+      titleSuggestionsList.textContent = `Could not fetch title suggestions: ${error.message}`;
+      // A failed fetch (quota, network) may as well be retryable on the next
+      // discovery pass.
+      titleSuggestionsPromise = null;
+    } finally {
+      clearInterval(ticker);
+    }
+  })();
+}
+
+function renderTitleSuggestions(titles) {
+  titleSuggestionsList.textContent = "";
+  if (!titles.length) {
+    titleSuggestionsList.textContent =
+      "The AI returned no usable title suggestions.";
+    return;
+  }
+
+  titles.forEach((candidate) => {
+    const row = document.createElement("div");
+    row.style.cssText =
+      "display: flex; gap: 10px; align-items: baseline; margin-bottom: 8px;";
+
+    const pick = document.createElement("button");
+    pick.type = "button";
+    pick.textContent = candidate.title;
+    pick.style.cssText = `
+      padding: 8px 12px;
+      cursor: pointer;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      white-space: nowrap;
+    `;
+    pick.addEventListener("click", () => {
+      setInputValue("episodeTitle", candidate.title);
+      addStatus(`✓ Episode title set to "${candidate.title}"`);
+      scheduleReviewOverridesSave();
+      scheduleDiscovery();
+    });
+    row.appendChild(pick);
+
+    if (candidate.reason) {
+      const reason = document.createElement("span");
+      reason.textContent = candidate.reason;
+      reason.style.cssText = "font-size: 0.85em; color: var(--muted);";
+      row.appendChild(reason);
+    }
+
+    titleSuggestionsList.appendChild(row);
+  });
+}
+
 function buildDiscoverPayload() {
   const formData = new FormData(form);
   return {
@@ -2172,6 +2353,12 @@ async function runDiscovery() {
     renderAudioQc(result.discovered?.audioQc);
     resumeVideoStatusPollingFromDiscover(result.discovered);
     resumeClipStatusPollingFromDiscover(result.discovered);
+    resumeAiAnalysisPollingFromDiscover(result.discovered);
+    if (result.discovered?.jobs?.aiAnalysis?.status === "interrupted") {
+      addStatus(
+        "ℹ The last run's AI analysis was interrupted - Re-run Transcript Check and Suggest More Clips cover the same ground.",
+      );
+    }
 
     currentDiscoveryData = {
       discoveryData: result.discoveryData,
@@ -2180,6 +2367,8 @@ async function runDiscovery() {
     currentMp3Upload = result.discovered?.mp3Upload || null;
     setProcessActionsVisibility();
     renderTranscriptFixSection();
+    // After currentDiscoveryData: the suggestions fetch sends it to the server.
+    maybeOfferTitleSuggestions(result.discovered.episodeTitle || "");
     currentRunResult = null;
 
     const mp4RenderStatus = String(
@@ -2311,6 +2500,13 @@ form.addEventListener("submit", async (event) => {
     }
   },
 );
+
+["episodeTitle", "description", "mainTopic", "publishDate"].forEach((name) => {
+  const input = form.elements.namedItem(name);
+  if (input) {
+    input.addEventListener("input", scheduleReviewOverridesSave);
+  }
+});
 
 // Editing the main topic regenerates the derived description ("A and B talk about
 // X."): clearing the description field stops it being sent back as an explicit
@@ -2701,6 +2897,113 @@ function resumeClipStatusPollingFromDiscover(discovered) {
   });
 }
 
+// The run's AI analysis (transcript check + clip picks) finishes in the background;
+// this poller watches the job and puts its results on screen when they land.
+let activeAiAnalysisPoll = null;
+
+async function pollAiAnalysis(episodeDir) {
+  let lineId = findStatusLineId("AI analysis");
+  if (lineId === null) {
+    lineId = addStatus("🧠 AI analysis running in the background...");
+  }
+
+  let missingPolls = 0;
+  for (;;) {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    try {
+      const data = await fetchEpisodeState(episodeDir);
+      const job = data.exists ? data.jobs?.aiAnalysis : null;
+      if (!job || !job.status) {
+        missingPolls += 1;
+        if (missingPolls >= 3) {
+          setStatusLine(
+            lineId,
+            "ℹ The tracked AI analysis is no longer available; cleared stale tracking.",
+          );
+          return;
+        }
+        continue;
+      }
+      missingPolls = 0;
+
+      if (job.status === "running" || job.status === "waiting") {
+        setStatusLine(
+          lineId,
+          `🧠 AI analysis running in the background... (${
+            job.stage === "clip-selection"
+              ? "picking clips"
+              : "checking the transcript"
+          })`,
+        );
+        continue;
+      }
+
+      if (job.status === "completed") {
+        // The full state rides in the same response: findings and suggestions go
+        // straight on screen, exactly as a discovery restore would place them.
+        currentTranscriptFindings = (
+          data.transcriptReview?.findings || []
+        ).filter((finding) => finding.confidence !== "high");
+        renderTranscriptFixSection();
+        clipApprovalState = [];
+        renderClipSuggestions(data.clipSuggestions || []);
+        setStatusLine(
+          lineId,
+          `✓ AI analysis complete - ${job.findings ?? 0} transcript finding(s), ${job.fixesApplied ?? 0} fix(es) applied, ${job.clipCount ?? 0} clip suggestion(s) (${job.clipSource || "heuristic"})`,
+        );
+        if (job.reviewError) {
+          addStatus(`⚠ Transcript check failed: ${job.reviewError}`);
+        }
+        if (job.clipWarning) {
+          addStatus(`⚠ AI clip selection: ${job.clipWarning}`);
+        }
+        if (currentTranscriptFindings.length > 0) {
+          addStatus(
+            `⚠ ${currentTranscriptFindings.length} medium-confidence transcript suggestion(s) - review below`,
+          );
+        }
+        return;
+      }
+
+      setStatusLine(
+        lineId,
+        `❌ AI analysis ${job.status}: ${job.error || "unknown error"} - Re-run Transcript Check and Suggest More Clips cover the same ground`,
+      );
+      return;
+    } catch {
+      // keep polling
+    }
+  }
+}
+
+function startAiAnalysisPolling(episodeDir) {
+  const normalizedEpisodeDir = String(episodeDir || "").trim();
+  if (!normalizedEpisodeDir) {
+    return;
+  }
+  if (activeAiAnalysisPoll?.episodeDir === normalizedEpisodeDir) {
+    return;
+  }
+  const promise = pollAiAnalysis(normalizedEpisodeDir).finally(() => {
+    if (activeAiAnalysisPoll?.episodeDir === normalizedEpisodeDir) {
+      activeAiAnalysisPoll = null;
+    }
+  });
+  activeAiAnalysisPoll = { episodeDir: normalizedEpisodeDir, promise };
+}
+
+function resumeAiAnalysisPollingFromDiscover(discovered) {
+  const job = discovered?.jobs?.aiAnalysis;
+  if (!job || !["waiting", "running"].includes(job.status)) {
+    return;
+  }
+  const episodeDir = String(discovered.episodeDir || "").trim();
+  if (episodeDir) {
+    startAiAnalysisPolling(episodeDir);
+  }
+}
+
 function startVideoStatusPolling(
   episodeDir,
   { startMessage = "", onComplete = null } = {},
@@ -2808,6 +3111,8 @@ restartProcessButton.addEventListener("click", async () => {
   shownotesLinks = [];
   isEpisodeGenerated = false;
   currentMp3Upload = null;
+  titleSuggestionsPromise = null;
+  titleSuggestionsSection.style.display = "none";
   setProcessActionsVisibility();
   renderTranscriptFixSection();
   persistActiveVideoEpisodeDir("");
@@ -2911,6 +3216,77 @@ moreClipSuggestionsButton.addEventListener("click", async () => {
     addStatus(`❌ More suggestions failed: ${error.message}`);
   } finally {
     moreClipSuggestionsButton.disabled = false;
+  }
+});
+
+// "Find this moment": the description is only a locator; title and caption come from
+// the model as for any other clip. Results join the list as undecided cards.
+async function findClipMoment() {
+  const description = findClipInput.value.trim();
+  if (!description) {
+    addStatus("Describe the moment you want to find first.");
+    findClipInput.focus();
+    return;
+  }
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+  const unsavedEdits = [...clipEditorDirtyChecks].reduce(
+    (sum, check) => sum + check(),
+    0,
+  );
+  if (unsavedEdits > 0) {
+    addStatus(
+      `⚠ ${unsavedEdits} unsaved transcript edit(s) - press "Save Transcript Edits" on the open card(s) first.`,
+    );
+    return;
+  }
+
+  findClipButton.disabled = true;
+  findClipInput.disabled = true;
+  const stopSpinner = startStatusSpinner(
+    `🔍 Finding "${description}"`,
+    " (quota retries can take a few minutes)",
+  );
+  try {
+    const response = await fetch("/api/find-clip", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+        description,
+        existingClipSuggestions: currentClipSuggestions,
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || "Find moment request failed");
+    }
+    if (!result.added) {
+      stopSpinner(`ℹ Nothing in the transcript matched "${description}"`);
+      return;
+    }
+    stopSpinner(`✓ ${result.added} clip(s) found for "${description}"`);
+    renderClipSuggestions(result.clipSuggestions || currentClipSuggestions);
+    scheduleClipCurationSave();
+    findClipInput.value = "";
+  } catch (error) {
+    stopSpinner(`❌ Find moment failed: ${error.message}`);
+  } finally {
+    findClipButton.disabled = false;
+    findClipInput.disabled = false;
+  }
+}
+
+findClipButton.addEventListener("click", findClipMoment);
+findClipInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    findClipMoment();
   }
 });
 
@@ -3412,15 +3788,17 @@ approveButton.addEventListener("click", async () => {
       runFailed ? "❌ Generation failed" : "✓ Generation completed",
     );
     currentRunResult = result;
-    if (result.clipSource === "llm") {
-      addStatus(
-        `✓ Clip suggestions picked by AI (${(result.clipSuggestions || []).length})`,
-      );
-    }
+    // With the AI analysis running in the background, the run's own suggestions are
+    // only heuristics; the analysis poller renders the real cards when they arrive.
+    const aiAnalysisStarted = Boolean(result.aiAnalysis?.started);
     // The run's suggestions replace whatever set was on screen before, so approvals
     // must not carry over by index onto different clips.
     clipApprovalState = [];
-    renderClipSuggestions(result.clipSuggestions || []);
+    if (!aiAnalysisStarted) {
+      renderClipSuggestions(result.clipSuggestions || []);
+    } else {
+      clearClipSuggestionReviewPanel();
+    }
     activeVideoEpisodeDir = null;
 
     if (runFailed) {
@@ -3437,7 +3815,9 @@ approveButton.addEventListener("click", async () => {
         runPayload.transcriptMdPath,
       );
       renderTranscriptFixResult(result.transcriptFixes);
-      renderTranscriptReview(result.transcriptReview);
+      if (!aiAnalysisStarted) {
+        renderTranscriptReview(result.transcriptReview);
+      }
       if (result.gitBranch) {
         const verb = result.gitBranch.created ? "Created" : "Checked out";
         addStatus(`✓ ${verb} branch: ${result.gitBranch.name}`);
@@ -3448,17 +3828,29 @@ approveButton.addEventListener("click", async () => {
       renderTranscriptFixSection();
       if (result.mp3ChapterImages && result.mp3ChapterImages.completed) {
         addStatus(
-          `✓ MP3 chapter images embedded (${result.mp3ChapterImages.chaptersEmbedded} chapters)`,
+          result.mp3ChapterImages.unchanged
+            ? "✓ MP3 chapter images unchanged - embed skipped"
+            : `✓ MP3 chapter images embedded (${result.mp3ChapterImages.chaptersEmbedded} chapters)`,
         );
       }
       const runEpisodeDir = result.episode?.outputDirectory;
+      if (aiAnalysisStarted && runEpisodeDir) {
+        startAiAnalysisPolling(runEpisodeDir);
+      }
       if (result.videoStatus && result.videoStatus.skipped) {
         persistActiveVideoEpisodeDir("");
         setVideoRenderUiState(false);
+        if (result.videoStatus.unchanged) {
+          // The existing MP4 still matches its inputs: this is a finished render,
+          // not a missing one.
+          setVideoRenderCompletedUiState(true);
+          addStatus("✓ MP4 unchanged - existing render kept");
+        } else {
+          addStatus("✓ MP4 generation skipped");
+        }
         // The earlier render happened while the video-in-progress state still hid the
         // section; with no render coming, show the cards now.
         renderClipSuggestions(currentClipSuggestions);
-        addStatus("✓ MP4 generation skipped");
       } else if (result.videoStatus?.started && runEpisodeDir) {
         activeVideoEpisodeDir = runEpisodeDir;
         setVideoRenderUiState(true);
@@ -3546,6 +3938,30 @@ generateClipVideosButton.addEventListener("click", async () => {
 
   executeClipGenerationRequest(requestPayload);
 });
+
+// Tail the server's own console output (LLM retry waits, failovers, background job
+// errors) into the status area - in the packaged app that output is otherwise
+// invisible. The first fetch only takes the cursor, so a reload never replays
+// history.
+let serverLogCursor = null;
+async function pollServerLog() {
+  try {
+    const response = await fetch(
+      `/api/server-log${serverLogCursor === null ? "" : `?after=${serverLogCursor}`}`,
+    );
+    const body = await response.json();
+    if (serverLogCursor !== null) {
+      for (const entry of body.entries) {
+        addStatus(`⚙ ${entry.line}`, { secondary: true });
+      }
+    }
+    serverLogCursor = body.last;
+  } catch {
+    // Server briefly unreachable; the next tick catches up.
+  }
+}
+pollServerLog();
+setInterval(pollServerLog, 4000);
 
 prefillFromQuery();
 runDiscovery().finally(() => {

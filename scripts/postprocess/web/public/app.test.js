@@ -70,8 +70,10 @@ function loadApp() {
     FileReader: class {},
     setTimeout,
     clearTimeout,
-    setInterval,
-    clearInterval,
+    // The app starts a server-log poller on load; a real interval would keep this
+    // process alive after the assertions finish.
+    setInterval: () => 0,
+    clearInterval() {},
     console,
   };
   context.globalThis = context;

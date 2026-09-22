@@ -107,6 +107,7 @@ async function generateSocialPosts({ episode, llm, complete = completeJson }) {
     ].join("\n");
 
     drafts = await complete({
+      label: "Social posts",
       llm,
       system: SYSTEM_PROMPT,
       prompt,

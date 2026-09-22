@@ -18,7 +18,34 @@ function resolveLlm(config) {
     return null;
   }
 
-  return { provider: llm.provider, model: llm.model, apiKey };
+  return {
+    provider: llm.provider,
+    model: llm.model,
+    fallbackModels: resolveFallbackModels(llm),
+    apiKey,
+  };
+}
+
+// Tried in order after the primary. A config still using the older single
+// "fallbackModel" key keeps its meaning exactly (one fallback, or null for none) and
+// takes precedence over the default list. Duplicates and the primary itself are
+// dropped so the chain never revisits a model that is already rate limited.
+function resolveFallbackModels(llm) {
+  const legacy = llm.fallbackModel !== undefined;
+  const listed = legacy
+    ? llm.fallbackModel
+      ? [llm.fallbackModel]
+      : []
+    : Array.isArray(llm.fallbackModels)
+      ? llm.fallbackModels
+      : [];
+  const chain = [];
+  for (const model of listed) {
+    if (typeof model === "string" && model && model !== llm.model && !chain.includes(model)) {
+      chain.push(model);
+    }
+  }
+  return chain;
 }
 
 // The REST response carries the text in a steps[].type === "model_output" entry
@@ -151,6 +178,9 @@ async function completeJson({
   system,
   prompt,
   schema,
+  // Names the request in retry/failover log lines, so a stuck feature is
+  // identifiable from the terminal.
+  label = "LLM",
   timeoutMs = REQUEST_TIMEOUT_MS,
   retryDelayMs = 2000,
   maxTotalRetryWaitMs = MAX_TOTAL_RETRY_WAIT_MS,
@@ -160,11 +190,16 @@ async function completeJson({
     throw new Error(`Unsupported LLM provider: ${llm.provider}`);
   }
 
+  // completeJson is also called with hand-built llm objects (tests, callers that
+  // bypass resolveLlm), so the chain is normalised here too.
+  const models = [llm.model, ...resolveFallbackModels(llm)];
+  let modelIndex = 0;
+  let model = models[0];
   let totalWaitedMs = 0;
   for (let attempt = 1; ; attempt += 1) {
     try {
       return await geminiCompleteJson({
-        llm,
+        llm: { ...llm, model },
         system,
         prompt,
         schema,
@@ -173,13 +208,38 @@ async function completeJson({
       });
     } catch (error) {
       const delay = retryDelayFromError(error, retryDelayMs, attempt);
+      const quotaError = /\(429\)/.test(error.message);
+      const fallbackAvailable = modelIndex < models.length - 1;
       if (
         delay === null ||
         attempt >= MAX_ATTEMPTS ||
-        totalWaitedMs + delay > maxTotalRetryWaitMs
+        totalWaitedMs + delay > maxTotalRetryWaitMs ||
+        // Free-tier quotas are per model, so with a fresh bucket one switch away,
+        // sitting out the primary's full retry ladder is pure waiting: one retry
+        // covers a transient blip, then the fallback takes over.
+        (quotaError && fallbackAvailable && attempt >= 2)
       ) {
+        if (quotaError && fallbackAvailable) {
+          modelIndex += 1;
+          console.error(
+            `${label}: ${model} is rate limited - falling back to ${models[modelIndex]} (${modelIndex} of ${models.length - 1})`,
+          );
+          model = models[modelIndex];
+          totalWaitedMs = 0;
+          attempt = 0;
+          continue;
+        }
         throw error;
       }
+      // Silent waits read as a hang from the UI; the server terminal at least says
+      // what the request is stuck on.
+      // Phrased as progress, not outcome: these lines are surfaced in the UI's status
+      // area, where "failed" reads as the final result of the action.
+      console.error(
+        `${label}: ${quotaError ? "rate limited" : "temporary error"}, retry ${attempt} of ${MAX_ATTEMPTS} in ${Math.round(
+          delay / 1000,
+        )}s (${String(error.message).slice(0, 160)})`,
+      );
       totalWaitedMs += delay;
       await new Promise((resolve) => setTimeout(resolve, delay));
     }

@@ -6,6 +6,8 @@ const {
   buildCueSearchIndex,
   ensureRequiredHashtags,
   expandClipLlm,
+  findClipLlm,
+  findClipLlmCached,
   formatClipCaptionBlock,
   locateClipInCues,
   suggestClipsLlm,
@@ -339,6 +341,126 @@ async function main() {
   });
   assert.equal(avoidAgain.fromCache, true);
   assert.equal(calls, 4);
+
+  // Find moment: a search, not a ranking - located answers are kept even when they
+  // overlap each other (alternative cuts), identical bounds collapse to one, and
+  // unlocatable quotes are dropped like everywhere else.
+  const foundRaw = {
+    clips: [
+      {
+        openingQuote: "the wildest thing happened when I opened the barn door",
+        closingQuote: "farming podcast sentence you have ever said honestly",
+        title: "Chicken on a cow",
+        category: "funny moment",
+        reason: "Great visual",
+        caption: "A chicken. On a cow. #funny",
+        score: 90,
+      },
+      {
+        openingQuote: "There was a chicken standing on the cow",
+        closingQuote: "and the cow did not care at all",
+        title: "The tight cut",
+        category: "funny moment",
+        reason: "Just the punchline",
+        caption: "The cow did not care.",
+        score: 70,
+      },
+      {
+        openingQuote: "the wildest thing happened when I opened the barn door",
+        closingQuote: "farming podcast sentence you have ever said honestly",
+        title: "Duplicate bounds",
+        category: "story",
+        reason: "Same clip again",
+        caption: "dupe",
+        score: 60,
+      },
+      {
+        openingQuote: "this was never said in the episode at all really",
+        closingQuote: "and neither was this closing sentence either",
+        title: "Hallucinated",
+        category: "story",
+        reason: "made up",
+        caption: "nope",
+        score: 99,
+      },
+    ],
+  };
+  let findPrompts = [];
+  const found = await findClipLlm({
+    transcriptMdText,
+    transcriptVttText,
+    description: "the chicken on the cow",
+    llm: LLM,
+    complete: async ({ prompt, system }) => {
+      findPrompts.push({ prompt, system });
+      return foundRaw;
+    },
+  });
+  assert.equal(found.candidatesReturned, 4);
+  assert.equal(found.suggestions.length, 2);
+  assert.match(findPrompts[0].prompt, /the chicken on the cow/);
+  assert.match(findPrompts[0].system, /locate a specific moment/);
+  const [wide, tight] = found.suggestions;
+  assert.equal(wide.startSeconds, 10);
+  assert.equal(wide.endSeconds, 50);
+  assert.equal(wide.title, "Chicken on a cow");
+  assert.equal(wide.foundFor, "the chicken on the cow");
+  assert.equal(wide.speaker, "Codey");
+  assert.match(wide.caption, /#theharvestseason #cottagecore #farminggames #funny$/);
+  assert.equal(tight.startSeconds, 20);
+  assert.equal(tight.endSeconds, 35);
+  assert.ok(
+    tight.startSeconds < wide.endSeconds && wide.startSeconds < tight.endSeconds,
+    "overlapping alternative cuts are both kept",
+  );
+
+  await assert.rejects(
+    findClipLlm({
+      transcriptMdText,
+      transcriptVttText,
+      description: "   ",
+      llm: LLM,
+      complete: async () => foundRaw,
+    }),
+    /Describe the moment/,
+  );
+
+  // Cached by description too, with case and spacing folded.
+  const findCacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "find-clip-cache-"));
+  let findCalls = 0;
+  const fakeFind = async () => {
+    findCalls += 1;
+    return foundRaw;
+  };
+  const findFirst = await findClipLlmCached({
+    cacheDir: findCacheDir,
+    transcriptMdText,
+    transcriptVttText,
+    description: "The chicken   on the cow",
+    llm: LLM,
+    complete: fakeFind,
+  });
+  assert.equal(findFirst.fromCache, false);
+  const findAgain = await findClipLlmCached({
+    cacheDir: findCacheDir,
+    transcriptMdText,
+    transcriptVttText,
+    description: "the chicken on the cow",
+    llm: LLM,
+    complete: fakeFind,
+  });
+  assert.equal(findAgain.fromCache, true);
+  assert.equal(findCalls, 1, "same description must not re-ask");
+  await findClipLlmCached({
+    cacheDir: findCacheDir,
+    transcriptMdText,
+    transcriptVttText,
+    description: "the bit about the news",
+    llm: LLM,
+    complete: fakeFind,
+  });
+  assert.equal(findCalls, 2, "a different description is a new search");
+  fs.rmSync(findCacheDir, { recursive: true, force: true });
 
   fs.rmSync(cacheDir, { recursive: true, force: true });
   console.log("clip-suggestions-llm test passed");

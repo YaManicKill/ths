@@ -3,8 +3,37 @@ const os = require("node:os");
 const path = require("node:path");
 const http = require("node:http");
 const crypto = require("node:crypto");
+const util = require("node:util");
 const { spawnSync } = require("node:child_process");
-const { runPipeline, discoverEpisodeData } = require("../pipeline");
+
+// Everything the process prints (LLM retry waits, model failovers, background job
+// errors) is kept in a ring buffer the UI tails - in the packaged app the real
+// stdout goes to a log file nobody watches.
+const SERVER_LOG_LIMIT = 300;
+const serverLog = [];
+let serverLogSeq = 0;
+for (const level of ["log", "warn", "error"]) {
+  const original = console[level].bind(console);
+  console[level] = (...parts) => {
+    serverLogSeq += 1;
+    serverLog.push({
+      seq: serverLogSeq,
+      level,
+      line: util.format(...parts),
+    });
+    if (serverLog.length > SERVER_LOG_LIMIT) {
+      serverLog.shift();
+    }
+    original(...parts);
+  };
+}
+const {
+  runPipeline,
+  discoverEpisodeData,
+  resolveSeasonInfo,
+  computeMp4RenderInputsHash,
+} = require("../pipeline");
+const { parseEpisodeFromMp3Path } = require("../parsers");
 const {
   applyTranscriptFixes,
   quoteOccursIn,
@@ -14,8 +43,10 @@ const {
 const { resolveLlm } = require("../llm");
 const {
   expandClipLlmCached,
+  findClipLlmCached,
   suggestClipsLlmCached,
 } = require("../clip-suggestions-llm");
+const { suggestTitlesLlmCached } = require("../title-suggestions-llm");
 const { stripSpeakerPrefix } = require("../clip-subtitles");
 const {
   buildYoutubeDescription,
@@ -517,14 +548,24 @@ function buildEpisodeYoutubeDescription({ repoRoot, episodeDir }) {
 function deriveEpisodeOutputPaths({ repoRoot, discovered, mp3Path }) {
   const outputRoot = loadPostprocessConfig(repoRoot).outputRoot;
 
-  const episodeFolderName = `${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}-${slugify(discovered.episodeTitle)}`;
-  const episodeDir = path.join(
+  const codePrefix = `${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}-`;
+  const episodeFolderName = `${codePrefix}${slugify(discovered.episodeTitle)}`;
+  let episodeDir = path.join(
     repoRoot,
     outputRoot,
     `year${String(discovered.seasonInfo.year)}`,
     String(discovered.seasonInfo.folder || ""),
     episodeFolderName,
   );
+  // The slug follows the editable title; the code is the episode's identity. When
+  // this title's directory holds no state but a sibling with the same code does, the
+  // sibling is the episode - state, transcripts and all - until an Approve under the
+  // new title migrates it.
+  if (!fs.existsSync(path.join(episodeDir, episodeState.STATE_FILE_NAME))) {
+    episodeDir =
+      episodeState.findStateDirByCode(path.dirname(episodeDir), codePrefix) ||
+      episodeDir;
+  }
   const videoPath = path.join(
     path.dirname(mp3Path),
     `ths-${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}.mp4`,
@@ -934,14 +975,42 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
       try {
         const payload = JSON.parse(body || "{}");
 
+        // Review-phase edits saved before any generation (title, topic, description,
+        // links) come back into the derived values, so a restart or crash never
+        // loses them. The empty form fields on a fresh page defer to the overrides;
+        // typed values win. Found via the episode code, which needs no discovery.
+        let reviewOverrides = null;
+        try {
+          const meta = parseEpisodeFromMp3Path(payload.mp3Path);
+          const season = resolveSeasonInfo(meta);
+          const stateDir = episodeState.findStateDirByCode(
+            path.join(
+              repoRoot,
+              loadPostprocessConfig(repoRoot).outputRoot,
+              `year${season.year}`,
+              season.folder,
+            ),
+            `${meta.seasonCode}-${meta.episodeCode}-`,
+          );
+          reviewOverrides = stateDir
+            ? (await episodeState.readState(stateDir))?.reviewOverrides || null
+            : null;
+        } catch {
+          // No parseable episode code yet; discovery derives everything itself.
+        }
+
         const discovered = await discoverEpisodeData({
           mp3Path: payload.mp3Path,
           transcriptMdPath: payload.transcriptMdPath,
           transcriptVttPath: payload.transcriptVttPath,
-          episodeTitle: payload.episodeTitle,
-          description: payload.description,
-          mainTopic: payload.mainTopic,
-          publishDate: payload.publishDate,
+          episodeTitle:
+            payload.episodeTitle || reviewOverrides?.episodeTitle || undefined,
+          description:
+            payload.description || reviewOverrides?.description || undefined,
+          mainTopic:
+            payload.mainTopic || reviewOverrides?.mainTopic || undefined,
+          publishDate:
+            payload.publishDate || reviewOverrides?.publishDate || undefined,
           onProgress: stream.progress,
         });
 
@@ -1014,7 +1083,9 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
               discovered.shownotesLinkSeeds || discovered.hiddenLinks,
             existingShownotesLinks: Array.isArray(state?.shownotesLinks)
               ? state.shownotesLinks
-              : null,
+              : Array.isArray(state?.reviewOverrides?.shownotesLinks)
+                ? state.reviewOverrides.shownotesLinks
+                : null,
           },
           discoveryData: JSON.stringify(discovered),
         });
@@ -1102,6 +1173,21 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
       }
+      return;
+    }
+
+    // The UI tails the server's console output from here: without ?after it hands
+    // back only the current cursor (no history replay on page load), with it every
+    // line printed since.
+    if (req.method === "GET" && pathname === "/api/server-log") {
+      const afterParam = parsedUrl.searchParams.get("after");
+      const after = afterParam === null ? NaN : Number(afterParam);
+      sendJson(res, 200, {
+        last: serverLogSeq,
+        entries: Number.isFinite(after)
+          ? serverLog.filter((entry) => entry.seq > after)
+          : [],
+      });
       return;
     }
 
@@ -1364,6 +1450,58 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
       return;
     }
 
+    // Review-phase edits (title, topic, description, publish date, links) saved as
+    // they change, debounced by the client - so closing the app or a crash before
+    // Approve never loses them. Creates the state file when it is the first thing to
+    // persist; discovery reads the overrides back.
+    if (req.method === "POST" && pathname === "/api/save-review-overrides") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const raw = payload.overrides || {};
+        const reviewOverrides = {
+          episodeTitle: String(raw.episodeTitle || "").trim() || null,
+          description: String(raw.description || "").trim() || null,
+          mainTopic: String(raw.mainTopic || "").trim() || null,
+          publishDate: String(raw.publishDate || "").trim() || null,
+          shownotesLinks: Array.isArray(raw.shownotesLinks)
+            ? raw.shownotesLinks
+                .map((link) => ({
+                  title: String(link?.title || "").trim(),
+                  url: String(link?.url || "").trim() || null,
+                }))
+                .filter((link) => link.title || link.url)
+            : null,
+        };
+
+        await episodeState.updateState(episodeDir, (state) => ({
+          ...(state || { phase: "discovered", jobs: {} }),
+          reviewOverrides,
+        }));
+        sendJson(res, 200, { success: true });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
     // Clip curation - trims, per-clip cue exclusions, approve/deny decisions - is
     // saved into the episode report as it changes, so an app restart or crash never
     // loses review work. The suggestions are stored whole; the approvals ride
@@ -1583,6 +1721,91 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
     // off-limits, and the new ones are appended - approvals on the existing set
     // survive untouched. Reads the episode's written (fixed) transcripts when they
     // exist, falling back to discovery-time text before a run.
+    // "Find this moment": the user describes a moment and the model locates it. Found
+    // clips join the list as ordinary undecided cards; overlap with existing clips is
+    // fine here, the user asked for this moment specifically.
+    if (req.method === "POST" && pathname === "/api/find-clip") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        const description = String(payload.description || "").trim();
+        if (!description) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Describe the moment you want to find",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const mdPath = path.join(episodeDir, "transcript.md");
+        const vttPath = path.join(episodeDir, "transcript.vtt");
+        const mdText = fs.existsSync(mdPath)
+          ? fs.readFileSync(mdPath, "utf8")
+          : discovered.transcriptMdText;
+        const vttText = fs.existsSync(vttPath)
+          ? fs.readFileSync(vttPath, "utf8")
+          : discovered.transcriptVttText;
+
+        const llm = resolveLlm(loadPostprocessConfig(repoRoot));
+        if (!llm) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Finding a moment needs an LLM API key",
+          });
+          return;
+        }
+        const existing = Array.isArray(payload.existingClipSuggestions)
+          ? payload.existingClipSuggestions
+          : [];
+        const found = await findClipLlmCached({
+          cacheDir: path.join(
+            repoRoot,
+            ".cache",
+            "postprocess",
+            "clip-suggestions",
+          ),
+          transcriptMdText: mdText,
+          transcriptVttText: vttText,
+          description,
+          llm,
+        });
+        const combined = [...existing, ...found.suggestions];
+        if (found.suggestions.length > 0) {
+          await episodeState.updateState(episodeDir, (state) => {
+            if (!state) {
+              return null;
+            }
+            state.clipSuggestions = combined;
+            return state;
+          });
+        }
+        sendJson(res, 200, {
+          success: true,
+          clipSuggestions: combined,
+          added: found.suggestions.length,
+        });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
     if (req.method === "POST" && pathname === "/api/clip-suggestions") {
       try {
         const body = await readRequestBody(req);
@@ -2127,6 +2350,60 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
       return;
     }
 
+    // Title candidates for the weeks the recording tool left a "THS XX-YY"
+    // placeholder: the model mines the transcript for the show's kind of title (an
+    // in-joke or odd quote), and the user picks in the UI - nothing is applied here.
+    if (req.method === "POST" && pathname === "/api/title-suggestions") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        const llm = resolveLlm(loadPostprocessConfig(repoRoot));
+        if (!llm) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Title suggestions need an LLM API key",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const mdPath = path.join(episodeDir, "transcript.md");
+        const mdText = fs.existsSync(mdPath)
+          ? fs.readFileSync(mdPath, "utf8")
+          : discovered.transcriptMdText;
+
+        const result = await suggestTitlesLlmCached({
+          cacheDir: path.join(
+            repoRoot,
+            ".cache",
+            "postprocess",
+            "title-suggestions",
+          ),
+          transcriptMdText: mdText,
+          llm,
+        });
+        sendJson(res, 200, { success: true, titles: result.titles });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
     // Re-bounds one clip to cover the whole conversation it sits in: the LLM reads
     // the transcript around the clip and returns wider quotes, located back onto cue
     // timings. The card's trim strip handles seconds; this handles minutes.
@@ -2236,6 +2513,16 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           });
           return;
         }
+        // The background analysis is rewriting these same files; two writers would
+        // race over the transcripts.
+        if (episodeState.isJobActive(episodeDir, "aiAnalysis")) {
+          sendJson(res, 400, {
+            success: false,
+            error:
+              "The run's AI analysis is still working on the transcripts - wait for it to finish",
+          });
+          return;
+        }
 
         const mdText = fs.readFileSync(mdPath, "utf8");
         const vttText = fs.readFileSync(vttPath, "utf8");
@@ -2336,6 +2623,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           transcriptVttPath: payload.transcriptVttPath,
           episodeTitle: payload.episodeTitle,
           description: payload.description,
+          mainTopic: payload.mainTopic,
           publishDate: payload.publishDate,
           skipVideo: Boolean(payload.skipVideo),
           episodeFolderPath: payload.episodeFolderPath,
@@ -2350,6 +2638,22 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
             runOptions.discoveredData = JSON.parse(payload.discoveryData);
           } catch (e) {
             console.error("Failed to parse discoveryData:", e);
+          }
+        }
+
+        // A re-approve while the last run's analysis is still rewriting the
+        // transcripts would race it over the same files.
+        if (runOptions.discoveredData) {
+          const { episodeDir } = deriveEpisodeOutputPaths({
+            repoRoot,
+            discovered: runOptions.discoveredData,
+            mp3Path: payload.mp3Path,
+          });
+          if (episodeState.isJobActive(episodeDir, "aiAnalysis")) {
+            stream.error(
+              "The previous run's AI analysis is still working - wait for it to finish",
+            );
+            return;
           }
         }
 
@@ -2417,10 +2721,16 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
               },
             });
 
+            // Recorded so a later Approve with unchanged inputs keeps this render.
+            const inputsHash = computeMp4RenderInputsHash({
+              mp3Sha256: await sha256FileHex(mp3Path),
+              chapters: discovered.chapters,
+            });
             await episodeState.finishJob(episodeDir, "mp4Render", {
               status: "completed",
               videoPath,
               percent: 100,
+              inputsHash,
             });
           } catch (error) {
             await episodeState

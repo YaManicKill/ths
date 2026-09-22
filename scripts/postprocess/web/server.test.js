@@ -63,6 +63,23 @@ async function main() {
   assert.equal(status.headers.get("cache-control"), "no-store");
   assert.deepEqual(await status.json(), { exists: false });
 
+  // The server-log tail: the first call hands back only the cursor (no history
+  // replay), later calls return every console line printed since.
+  const logStart = await (
+    await fetch(`http://127.0.0.1:${PORT}/api/server-log`)
+  ).json();
+  assert.deepEqual(logStart.entries, [], "no history replay without a cursor");
+  console.error("tail-me: a retry line");
+  const logTail = await (
+    await fetch(
+      `http://127.0.0.1:${PORT}/api/server-log?after=${logStart.last}`,
+    )
+  ).json();
+  assert.ok(
+    logTail.entries.some((entry) => entry.line.includes("tail-me")),
+    "console output must reach the log tail",
+  );
+
   // The lockfile enforces one server per repo: a second start must be refused while
   // the first is alive.
   assert.ok(fs.existsSync(lockPath), "the running server must hold the lock");

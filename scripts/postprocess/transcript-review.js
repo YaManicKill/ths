@@ -287,6 +287,7 @@ async function reviewTranscript({
         .join("\n");
 
       const result = await complete({
+        label: "Transcript check",
         llm,
         system: systemPrompt,
         prompt,

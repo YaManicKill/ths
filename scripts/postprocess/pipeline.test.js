@@ -13,7 +13,9 @@ function makeEpisodeFixture() {
     metadataPath,
     [
       ";FFMETADATA1",
-      "title=Test Episode",
+      // The recording tool's placeholder: the run must replace it with the real
+      // episode title when it embeds the chapter images.
+      "title=THS 99-01",
       "[CHAPTER]",
       "TIMEBASE=1/1000",
       "START=0",
@@ -122,6 +124,22 @@ function initGitRepo(root) {
   assert.equal(committed.status, 0, `git commit failed: ${committed.stderr}`);
 }
 
+// The run returns before its LLM work: tests wait for the background job to settle
+// before asserting on its output (and before cleaning up under its feet).
+async function waitForAiAnalysis(episodeDir) {
+  for (let i = 0; i < 400; i += 1) {
+    const state = JSON.parse(
+      fs.readFileSync(path.join(episodeDir, "postprocess-state.json"), "utf8"),
+    );
+    const status = state.jobs?.aiAnalysis?.status;
+    if (status === "completed" || status === "failed") {
+      return state;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  throw new Error("AI analysis did not finish in time");
+}
+
 async function main() {
   const discovered = await discoverEpisodeData({
     repoRoot,
@@ -217,12 +235,35 @@ async function main() {
     "chapter images were not embedded",
   );
 
+  // The embed step also syncs the ID3 title: the fixture MP3 carried the recording
+  // tool's "THS 99-01" placeholder, the episode is titled from the transcript file.
+  const taggedTitle = runCommand("ffprobe", [
+    "-v",
+    "error",
+    "-show_entries",
+    "format_tags=title",
+    "-of",
+    "default=noprint_wrappers=1:nokey=1",
+    runMp3,
+  ]);
+  assert.equal(
+    taggedTitle.stdout.trim(),
+    "Test Episode",
+    "the MP3 title tag must follow the chosen episode title",
+  );
+
   const episodeDir = path.dirname(
     path.join(report.episode.outputDirectory, "index.md"),
   );
 
+  // The LLM work happens after the run returns: the response only marks it pending,
+  // and the job in the state file is what settles.
   assert.equal(report.transcriptReview.enabled, true);
-  assert.equal(report.transcriptReview.findings.length, 3);
+  assert.equal(report.transcriptReview.pending, true);
+  assert.equal(report.aiAnalysis.started, true);
+  const analyzedState = await waitForAiAnalysis(episodeDir);
+  assert.equal(analyzedState.jobs.aiAnalysis.status, "completed");
+  assert.equal(analyzedState.transcriptReview.findings.length, 3);
 
   // High-confidence review findings are applied to the written transcripts; medium
   // ones are not (they need an explicit transcriptFixes list from the UI).
@@ -237,6 +278,11 @@ async function main() {
   assert.ok(writtenMd.includes("Why would somebody genuinely do that"));
   assert.ok(writtenMd.includes("honestly"), "medium fix must not auto-apply");
   assert.ok(writtenVtt.includes("Why would somebody do that?"));
+  assert.deepEqual(
+    analyzedState.appliedTranscriptFixes.map((fix) => fix.correction),
+    ["Why would somebody", "genuinely do that"],
+    "background-applied fixes must be remembered for re-runs",
+  );
 
   // The raw transcript is staged before fixes land, so `git diff` shows exactly what
   // the AI changed against the pristine version.
@@ -253,13 +299,9 @@ async function main() {
     stagedMd.stdout.includes("Why would anyone actually do that"),
     "the staged copy must be the unfixed transcript",
   );
-  assert.deepEqual(report.transcriptFixes, {
-    attempted: 2,
-    mdApplied: 2,
-    vttApplied: 1,
-    mdMissed: [],
-    vttMissed: ["actually do that"],
-  });
+  // No ticked or remembered fixes existed at write time; the AI's own fixes landed
+  // from the background job above.
+  assert.equal(report.transcriptFixes.attempted, 0);
 
   // Shownotes links from the UI land in the Links section: URL rows as markdown
   // links, title-only rows as bare text.
@@ -285,28 +327,34 @@ async function main() {
     { startTime: 45, title: "Secret Game", toc: false },
   ]);
 
-  // The AI clip picks replace the heuristic suggestions, grounded in the VTT timings.
-  assert.equal(report.clipSource, "llm");
-  assert.equal(report.clipSuggestions.length, 1);
-  assert.equal(report.clipSuggestions[0].startSeconds, 45);
-  assert.equal(report.clipSuggestions[0].endSeconds, 72);
-  assert.equal(report.clipSuggestions[0].summary, "A good idea at the time");
-  assert.equal(report.clipSuggestions[0].speaker, "Al");
-  const savedState = JSON.parse(
-    fs.readFileSync(path.join(episodeDir, "postprocess-state.json"), "utf8"),
+  // The AI clip picks land in the state from the background job, grounded in the
+  // VTT timings; the run's own response only carried heuristics.
+  assert.equal(report.clipSource, "heuristic");
+  const savedState = analyzedState;
+  assert.equal(savedState.clipSource, "llm");
+  assert.equal(savedState.clipSuggestions.length, 1);
+  assert.equal(savedState.clipSuggestions[0].startSeconds, 45);
+  assert.equal(savedState.clipSuggestions[0].endSeconds, 72);
+  assert.equal(
+    savedState.clipSuggestions[0].summary,
+    "A good idea at the time",
   );
+  assert.equal(savedState.clipSuggestions[0].speaker, "Al");
 
   // Content is on disk, so the state machine must have landed in "generated"; a
   // skipped video leaves no mp4Render job behind.
   assert.equal(savedState.phase, "generated");
   assert.equal(savedState.jobs.mp4Render, undefined);
-  assert.equal(savedState.clipSource, "llm");
 
   // Medium fixes applied after a run (recorded in the state by the review endpoint)
   // must survive a re-run, which regenerates the transcripts from source.
   savedState.appliedTranscriptFixes = [
     { quote: "honestly", correction: "frankly" },
   ];
+  // State-owned records the run report knows nothing about: a re-approve must layer
+  // its output over them, never wipe them.
+  savedState.reviewOverrides = { episodeTitle: "Kept Title" };
+  savedState.mp3Upload = { sha256: "x", url: "u", acl: "private" };
   fs.writeFileSync(
     path.join(episodeDir, "postprocess-state.json"),
     JSON.stringify(savedState),
@@ -322,6 +370,35 @@ async function main() {
     llmComplete: async ({ schema }) =>
       schema?.properties?.clips ? fakeClips : { findings: [] },
   });
+  const rerunState = await waitForAiAnalysis(episodeDir);
+  assert.equal(
+    rerunState.reviewOverrides?.episodeTitle,
+    "Kept Title",
+    "review overrides must survive a re-approve",
+  );
+  assert.equal(
+    rerunState.mp3Upload?.url,
+    "u",
+    "the upload record must survive a re-approve",
+  );
+  assert.equal(
+    rerunState.clipApprovals,
+    null,
+    "approvals must reset with the replaced suggestion set",
+  );
+
+  // Nothing the embed writes changed between the runs, so the MP3's bytes must be
+  // left alone - re-approving must not invalidate upload checksums or the render.
+  assert.equal(
+    rerunReport.mp3ChapterImages.unchanged,
+    true,
+    "an unchanged re-run must skip the MP3 embed",
+  );
+  assert.equal(
+    rerunReport.mp3Embed.mp3Sha256,
+    report.mp3Embed.mp3Sha256,
+    "the MP3 checksum must be stable across unchanged re-runs",
+  );
 
   const rerunMd = fs.readFileSync(
     path.join(episodeDir, "transcript.md"),
@@ -371,6 +448,57 @@ async function main() {
   assert.ok(
     !reopenProgress.some((message) => /Steam links|audio levels/.test(message)),
     "review-phase lookups must not run on a generated episode",
+  );
+
+  // A retitle changes the directory slug: the run must find the old slug's state by
+  // episode code, carry its memory, and re-home it beside the new files.
+  const { report: retitledReport } = await runPipeline({
+    repoRoot: runRoot,
+    mp3Path: runMp3,
+    transcriptMdPath: fixture.transcriptMdPath,
+    transcriptVttPath: fixture.transcriptVttPath,
+    episodeTitle: "Renamed Episode",
+    skipVideo: true,
+    onProgress: () => {},
+    llmComplete: async ({ schema }) =>
+      schema?.properties?.clips ? fakeClips : { findings: [] },
+  });
+  const renamedDir = retitledReport.episode.outputDirectory;
+  assert.notEqual(renamedDir, episodeDir);
+  assert.notEqual(
+    retitledReport.mp3ChapterImages.unchanged,
+    true,
+    "a new title must re-embed (the ID3 title changed)",
+  );
+  await waitForAiAnalysis(renamedDir);
+  assert.ok(
+    !fs.existsSync(path.join(episodeDir, "postprocess-state.json")),
+    "the old slug's state file must migrate away",
+  );
+  assert.ok(
+    fs
+      .readFileSync(path.join(renamedDir, "transcript.md"), "utf8")
+      .includes("frankly"),
+    "fix memory must survive the retitle",
+  );
+
+  // With a placeholder transcript filename, the title comes back from the MP3's own
+  // ID3 tag, which the retitle run just wrote.
+  const placeholderMd = path.join(path.dirname(runMp3), "THS 99-01.md");
+  const placeholderVtt = path.join(path.dirname(runMp3), "THS 99-01.vtt");
+  fs.copyFileSync(fixture.transcriptMdPath, placeholderMd);
+  fs.copyFileSync(fixture.transcriptVttPath, placeholderVtt);
+  const rediscovered = await discoverEpisodeData({
+    repoRoot: runRoot,
+    mp3Path: runMp3,
+    transcriptMdPath: placeholderMd,
+    transcriptVttPath: placeholderVtt,
+    onProgress: () => {},
+  });
+  assert.equal(
+    rediscovered.episodeTitle,
+    "Renamed Episode",
+    "the MP3 tag must rescue a placeholder filename title",
   );
 
   fs.rmSync(repoRoot, { recursive: true, force: true });

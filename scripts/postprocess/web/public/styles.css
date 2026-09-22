@@ -140,3 +140,8 @@ section {
     padding: 1rem;
   }
 }
+
+/* Server log lines tailed into the status area: context, not outcomes. */
+.status-secondary {
+  opacity: 0.55;
+}
