@@ -49,7 +49,10 @@ episode title, burned-in subtitles and a progress bar.
 - **AI clip suggestions**: up to 10 moments picked from the whole transcript, each with
   a hook title, reason, and a paste-ready caption (the show hashtags are always
   included). Heuristic suggestions are the fallback without a key; **Suggest More
-  Clips** adds new moments the existing picks don't cover. Rendering is incremental:
+  Clips** adds new moments the existing picks don't cover, and **Find Moment** takes a
+  description of a moment you remember ("the chickens escaping the barn") and adds up
+  to three candidate clips for it, alternative cuts included, even where they overlap
+  an existing clip. Rendering is incremental:
   clips whose content hasn't changed since their last render are reused, changed ones
   replace their old file, and `captions.txt` is merged to match.
 - **Clip cards** have audio preview, approve/deny, a waveform trim for the clip's
@@ -84,7 +87,7 @@ episode title, burned-in subtitles and a progress bar.
   for a fresh start.
 - LLM results are cached by content and all AI checks are warning-only — failures never
   block a run. A full episode costs ~4 requests; free-tier quotas are per model, so a
-  rate-limited request automatically retries on `llm.fallbackModel`.
+  rate-limited request automatically moves down the `llm.fallbackModels` list.
 
 ## Episode Number Inference
 
@@ -114,7 +117,7 @@ defaults in `config.js`.
 | `hostNames`          | the five regulars             | Correct spellings of the recurring hosts. The AI transcript check flags any other spelling of them as a mistake. |
 | `llm.provider`       | `gemini`                      | Which LLM backs the AI features. Only `gemini` is implemented so far.                                            |
 | `llm.model`          | `gemini-3.6-flash`            | The model used for the AI features.                                                                              |
-| `llm.fallbackModel`  | `gemini-3.5-flash`            | Retried when the main model is rate limited (quotas are per model); `null` disables the failover.                |
+| `llm.fallbackModels` | `["gemini-3.6-flash"]`        | Tried in order when the main model is rate limited (quotas are per model); `[]` disables the failover.           |
 | `llm.apiKey`         | unset                         | API key for the LLM provider. **Never put this in the main config** — see below.                                 |
 | `spaces.bucket`      | `ymk`                         | DigitalOcean Space the MP3 uploads to; `spaces.region` (default `nyc3`) picks the endpoint.                      |
 | `spaces.accessKeyId` | unset                         | Spaces credentials, with `spaces.secretAccessKey`. **Local config only** — see below.                            |

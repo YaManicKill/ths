@@ -182,7 +182,7 @@ async function main() {
     llm: {
       ...LLM,
       model: "gemini-3.6-flash",
-      fallbackModel: "gemini-3.5-flash",
+      fallbackModels: ["gemini-3.5-flash"],
     },
     system: "s",
     prompt: "p",
@@ -208,7 +208,7 @@ async function main() {
     llm: {
       ...LLM,
       model: "gemini-3.6-flash",
-      fallbackModel: "gemini-3.5-flash",
+      fallbackModels: ["gemini-3.5-flash"],
     },
     system: "s",
     prompt: "p",
@@ -238,7 +238,7 @@ async function main() {
       llm: {
         ...LLM,
         model: "gemini-3.6-flash",
-        fallbackModel: "gemini-3.5-flash",
+        fallbackModels: ["gemini-3.5-flash"],
       },
       system: "s",
       prompt: "p",
@@ -259,11 +259,71 @@ async function main() {
     "one fail-fast attempt per model, then give up",
   );
 
+  // Several fallbacks are walked in order, each getting its own fail-fast attempt,
+  // until one answers.
+  const chainModels = [];
+  const chained = await completeJson({
+    llm: {
+      ...LLM,
+      model: "gemini-3.7-flash",
+      fallbackModels: ["gemini-3.6-flash", "gemini-3.7-flash", "gemini-3.5-flash"],
+    },
+    system: "s",
+    prompt: "p",
+    schema: SCHEMA,
+    retryDelayMs: 1,
+    fetchImpl: async (url, options) => {
+      const model = JSON.parse(options.body).model;
+      chainModels.push(model);
+      return model === "gemini-3.5-flash"
+        ? fakeResponse(200, { output_text: '{"ok": true}' })
+        : fakeResponse(429, {
+            error: { message: "Quota exceeded. Please retry in 57600s." },
+          });
+    },
+  });
+  assert.deepEqual(chained, { ok: true });
+  assert.deepEqual(
+    chainModels,
+    ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash"],
+    "the primary is not revisited even when listed as a fallback",
+  );
+
+  // The older single-string config still works.
+  const legacy = resolveLlm({
+    llm: {
+      provider: "gemini",
+      model: "gemini-3.7-flash",
+      fallbackModel: "gemini-3.6-flash",
+      apiKey: "k",
+    },
+  });
+  assert.deepEqual(legacy.fallbackModels, ["gemini-3.6-flash"]);
+  assert.deepEqual(
+    resolveLlm({
+      llm: {
+        provider: "gemini",
+        model: "m",
+        fallbackModel: null,
+        fallbackModels: ["ignored-default"],
+        apiKey: "k",
+      },
+    }).fallbackModels,
+    [],
+    "an explicit legacy null still disables the failover",
+  );
+  assert.deepEqual(
+    resolveLlm({
+      llm: { provider: "gemini", model: "m", fallbackModels: [], apiKey: "k" },
+    }).fallbackModels,
+    [],
+  );
+
   // Non-quota failures (auth, bad request) never trigger the failover.
   let authAttempts = 0;
   await assert.rejects(
     completeJson({
-      llm: { ...LLM, fallbackModel: "gemini-3.5-flash" },
+      llm: { ...LLM, fallbackModels: ["gemini-3.5-flash"] },
       system: "s",
       prompt: "p",
       schema: SCHEMA,

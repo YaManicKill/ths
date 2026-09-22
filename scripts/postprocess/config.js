@@ -12,10 +12,15 @@ const DEFAULT_CONFIG = {
   episodesRoot: "~/Google Drive/My Drive/Projects/ths/Episodes",
   llm: {
     provider: "gemini",
-    model: "gemini-3.7-flash",
-    // Free-tier quotas are per model; a rate-limited request retries here instead of
-    // failing. null disables the failover.
-    fallbackModel: "gemini-3.8-flash",
+    model: "gemini-3.8-flash",
+    // Free-tier quotas are per model; a rate-limited request moves down this list
+    // instead of failing. An empty list disables the failover. (The older single
+    // "fallbackModel" string is still accepted.)
+    fallbackModels: [
+      "gemini-3.7-flash",
+      "gemini-3.6-flash",
+      "gemini-3.5-flash",
+    ],
     apiKey: null,
   },
   // Where the finished MP3 uploads to. Bucket and region are public knowledge (they
@@ -92,9 +97,23 @@ function assertValidLlm(llm) {
     );
   }
   assertNonEmptyString("llm.model", llm.model);
-  if (llm.fallbackModel !== null && typeof llm.fallbackModel !== "string") {
+  if (
+    llm.fallbackModel !== undefined &&
+    llm.fallbackModel !== null &&
+    typeof llm.fallbackModel !== "string"
+  ) {
     throw new Error(
       `Invalid "llm.fallbackModel" in ${CONFIG_FILE_NAME}: expected a string or null.`,
+    );
+  }
+  if (
+    !Array.isArray(llm.fallbackModels) ||
+    llm.fallbackModels.some(
+      (model) => typeof model !== "string" || model.trim() === "",
+    )
+  ) {
+    throw new Error(
+      `Invalid "llm.fallbackModels" in ${CONFIG_FILE_NAME}: expected an array of model names.`,
     );
   }
   if (llm.apiKey !== null && typeof llm.apiKey !== "string") {

@@ -3,7 +3,30 @@ const os = require("node:os");
 const path = require("node:path");
 const http = require("node:http");
 const crypto = require("node:crypto");
+const util = require("node:util");
 const { spawnSync } = require("node:child_process");
+
+// Everything the process prints (LLM retry waits, model failovers, background job
+// errors) is kept in a ring buffer the UI tails - in the packaged app the real
+// stdout goes to a log file nobody watches.
+const SERVER_LOG_LIMIT = 300;
+const serverLog = [];
+let serverLogSeq = 0;
+for (const level of ["log", "warn", "error"]) {
+  const original = console[level].bind(console);
+  console[level] = (...parts) => {
+    serverLogSeq += 1;
+    serverLog.push({
+      seq: serverLogSeq,
+      level,
+      line: util.format(...parts),
+    });
+    if (serverLog.length > SERVER_LOG_LIMIT) {
+      serverLog.shift();
+    }
+    original(...parts);
+  };
+}
 const {
   runPipeline,
   discoverEpisodeData,
@@ -20,6 +43,7 @@ const {
 const { resolveLlm } = require("../llm");
 const {
   expandClipLlmCached,
+  findClipLlmCached,
   suggestClipsLlmCached,
 } = require("../clip-suggestions-llm");
 const { suggestTitlesLlmCached } = require("../title-suggestions-llm");
@@ -1152,6 +1176,21 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
       return;
     }
 
+    // The UI tails the server's console output from here: without ?after it hands
+    // back only the current cursor (no history replay on page load), with it every
+    // line printed since.
+    if (req.method === "GET" && pathname === "/api/server-log") {
+      const afterParam = parsedUrl.searchParams.get("after");
+      const after = afterParam === null ? NaN : Number(afterParam);
+      sendJson(res, 200, {
+        last: serverLogSeq,
+        entries: Number.isFinite(after)
+          ? serverLog.filter((entry) => entry.seq > after)
+          : [],
+      });
+      return;
+    }
+
     if (req.method === "GET" && pathname === "/api/episode-state") {
       const episodeDir = parsedUrl.searchParams.get("dir");
       if (!episodeDir || !path.isAbsolute(episodeDir)) {
@@ -1682,6 +1721,91 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
     // off-limits, and the new ones are appended - approvals on the existing set
     // survive untouched. Reads the episode's written (fixed) transcripts when they
     // exist, falling back to discovery-time text before a run.
+    // "Find this moment": the user describes a moment and the model locates it. Found
+    // clips join the list as ordinary undecided cards; overlap with existing clips is
+    // fine here, the user asked for this moment specifically.
+    if (req.method === "POST" && pathname === "/api/find-clip") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        const description = String(payload.description || "").trim();
+        if (!description) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Describe the moment you want to find",
+          });
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path: String(payload.mp3Path || ""),
+        });
+        const mdPath = path.join(episodeDir, "transcript.md");
+        const vttPath = path.join(episodeDir, "transcript.vtt");
+        const mdText = fs.existsSync(mdPath)
+          ? fs.readFileSync(mdPath, "utf8")
+          : discovered.transcriptMdText;
+        const vttText = fs.existsSync(vttPath)
+          ? fs.readFileSync(vttPath, "utf8")
+          : discovered.transcriptVttText;
+
+        const llm = resolveLlm(loadPostprocessConfig(repoRoot));
+        if (!llm) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Finding a moment needs an LLM API key",
+          });
+          return;
+        }
+        const existing = Array.isArray(payload.existingClipSuggestions)
+          ? payload.existingClipSuggestions
+          : [];
+        const found = await findClipLlmCached({
+          cacheDir: path.join(
+            repoRoot,
+            ".cache",
+            "postprocess",
+            "clip-suggestions",
+          ),
+          transcriptMdText: mdText,
+          transcriptVttText: vttText,
+          description,
+          llm,
+        });
+        const combined = [...existing, ...found.suggestions];
+        if (found.suggestions.length > 0) {
+          await episodeState.updateState(episodeDir, (state) => {
+            if (!state) {
+              return null;
+            }
+            state.clipSuggestions = combined;
+            return state;
+          });
+        }
+        sendJson(res, 200, {
+          success: true,
+          clipSuggestions: combined,
+          added: found.suggestions.length,
+        });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
     if (req.method === "POST" && pathname === "/api/clip-suggestions") {
       try {
         const body = await readRequestBody(req);

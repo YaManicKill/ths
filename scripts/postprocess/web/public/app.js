@@ -50,6 +50,8 @@ const generateClipVideosButton = document.getElementById(
 const moreClipSuggestionsButton = document.getElementById(
   "more-clip-suggestions-button",
 );
+const findClipInput = document.getElementById("find-clip-input");
+const findClipButton = document.getElementById("find-clip-button");
 const titleSuggestionsSection = document.getElementById(
   "title-suggestions-section",
 );
@@ -722,6 +724,21 @@ function renderChapterPreviews(discovered) {
 
 function renderStatus() {
   resultBox.textContent = statusLines.map((line) => line.text).join("\n");
+  // Per-line elements only so secondary lines can be styled; the plain text above is
+  // what the box reads as (and what the UI tests read).
+  if (typeof resultBox.replaceChildren !== "function") {
+    return;
+  }
+  resultBox.replaceChildren(
+    ...statusLines.map((line) => {
+      const element = document.createElement("span");
+      element.textContent = `${line.text}\n`;
+      if (line.secondary) {
+        element.className = "status-secondary";
+      }
+      return element;
+    }),
+  );
 }
 
 function resetStatus() {
@@ -730,13 +747,15 @@ function resetStatus() {
   renderStatus();
 }
 
-function addStatus(text) {
+// Secondary lines are background detail (the server's own log) and render dimmer, so
+// they are not mistaken for the outcome of whatever the user just clicked.
+function addStatus(text, { secondary = false } = {}) {
   if (!text) {
     return null;
   }
   statusLineSeq += 1;
   const id = statusLineSeq;
-  statusLines.push({ id, text: String(text) });
+  statusLines.push({ id, text: String(text), secondary });
   renderStatus();
   return id;
 }
@@ -780,6 +799,13 @@ function startStatusSpinner(prefix, suffix = "") {
     clearInterval(timer);
     if (finalText) {
       setStatusLine(lineId, finalText);
+      // Server log lines and other actions land underneath while this runs, and the
+      // last line is what gets read as the result. The outcome moves to the bottom.
+      const index = statusLines.findIndex((line) => line.id === lineId);
+      if (index !== -1 && index !== statusLines.length - 1) {
+        statusLines.push(...statusLines.splice(index, 1));
+        renderStatus();
+      }
     }
     return lineId;
   };
@@ -1868,6 +1894,13 @@ function renderClipSuggestions(suggestions) {
       expandButton.addEventListener("click", async () => {
         expandButton.disabled = true;
         expandButton.textContent = "Expanding...";
+        // A visible heartbeat: the LLM call can sit in quota retries for minutes,
+        // and a lone disabled button reads as a hang.
+        const clipName = suggestion.title || suggestion.summary || "clip";
+        const stopSpinner = startStatusSpinner(
+          `⤢ Expanding "${clipName}"`,
+          " (quota retries can take a few minutes)",
+        );
         try {
           const response = await fetch("/api/expand-clip", {
             method: "POST",
@@ -1889,7 +1922,7 @@ function renderClipSuggestions(suggestions) {
             throw new Error(body.error || "Expand request failed");
           }
           if (body.durationSeconds === suggestion.durationSeconds) {
-            addStatus(
+            stopSpinner(
               "ℹ The AI thinks this clip already covers the whole conversation.",
             );
             return;
@@ -1911,11 +1944,11 @@ function renderClipSuggestions(suggestions) {
             transcriptEditor = nextTranscript;
           }
           scheduleClipCurationSave();
-          addStatus(
+          stopSpinner(
             `✓ Clip expanded to ${Math.round(body.durationSeconds)}s (${body.timestampLabel})`,
           );
         } catch (error) {
-          addStatus(`❌ Expand failed: ${error.message}`);
+          stopSpinner(`❌ Expand failed: ${error.message}`);
         } finally {
           expandButton.disabled = false;
           expandButton.textContent = "⤢ Expand";
@@ -3186,6 +3219,77 @@ moreClipSuggestionsButton.addEventListener("click", async () => {
   }
 });
 
+// "Find this moment": the description is only a locator; title and caption come from
+// the model as for any other clip. Results join the list as undecided cards.
+async function findClipMoment() {
+  const description = findClipInput.value.trim();
+  if (!description) {
+    addStatus("Describe the moment you want to find first.");
+    findClipInput.focus();
+    return;
+  }
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+  const unsavedEdits = [...clipEditorDirtyChecks].reduce(
+    (sum, check) => sum + check(),
+    0,
+  );
+  if (unsavedEdits > 0) {
+    addStatus(
+      `⚠ ${unsavedEdits} unsaved transcript edit(s) - press "Save Transcript Edits" on the open card(s) first.`,
+    );
+    return;
+  }
+
+  findClipButton.disabled = true;
+  findClipInput.disabled = true;
+  const stopSpinner = startStatusSpinner(
+    `🔍 Finding "${description}"`,
+    " (quota retries can take a few minutes)",
+  );
+  try {
+    const response = await fetch("/api/find-clip", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+        description,
+        existingClipSuggestions: currentClipSuggestions,
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || "Find moment request failed");
+    }
+    if (!result.added) {
+      stopSpinner(`ℹ Nothing in the transcript matched "${description}"`);
+      return;
+    }
+    stopSpinner(`✓ ${result.added} clip(s) found for "${description}"`);
+    renderClipSuggestions(result.clipSuggestions || currentClipSuggestions);
+    scheduleClipCurationSave();
+    findClipInput.value = "";
+  } catch (error) {
+    stopSpinner(`❌ Find moment failed: ${error.message}`);
+  } finally {
+    findClipButton.disabled = false;
+    findClipInput.disabled = false;
+  }
+}
+
+findClipButton.addEventListener("click", findClipMoment);
+findClipInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    findClipMoment();
+  }
+});
+
 async function executeClipGenerationRequest(request) {
   if (!request || isGeneratingClips) {
     return;
@@ -3834,6 +3938,30 @@ generateClipVideosButton.addEventListener("click", async () => {
 
   executeClipGenerationRequest(requestPayload);
 });
+
+// Tail the server's own console output (LLM retry waits, failovers, background job
+// errors) into the status area - in the packaged app that output is otherwise
+// invisible. The first fetch only takes the cursor, so a reload never replays
+// history.
+let serverLogCursor = null;
+async function pollServerLog() {
+  try {
+    const response = await fetch(
+      `/api/server-log${serverLogCursor === null ? "" : `?after=${serverLogCursor}`}`,
+    );
+    const body = await response.json();
+    if (serverLogCursor !== null) {
+      for (const entry of body.entries) {
+        addStatus(`⚙ ${entry.line}`, { secondary: true });
+      }
+    }
+    serverLogCursor = body.last;
+  } catch {
+    // Server briefly unreachable; the next tick catches up.
+  }
+}
+pollServerLog();
+setInterval(pollServerLog, 4000);
 
 prefillFromQuery();
 runDiscovery().finally(() => {

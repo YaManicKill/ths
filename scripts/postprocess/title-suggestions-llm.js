@@ -65,6 +65,7 @@ async function suggestTitlesLlm({
 
   // A whole episode in one request takes the model well past the default timeout.
   const result = await complete({
+    label: "Title suggestions",
     llm,
     system: SYSTEM_PROMPT,
     prompt,
