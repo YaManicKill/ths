@@ -239,6 +239,24 @@ function computeMp4RenderInputsHash({ mp3Sha256, chapters }) {
     .digest("hex");
 }
 
+// Mirrors the UI's placeholder check: the recorder names sessions "THS XX-YY".
+function isPlaceholderTitle(title) {
+  return /^ths[\s_-]*\d{1,3}\s*-\s*\d{1,3}$/i.test(String(title || "").trim());
+}
+
+function readMp3TitleTag(mp3Path) {
+  const result = runCommand("ffprobe", [
+    "-v",
+    "error",
+    "-show_entries",
+    "format_tags=title",
+    "-of",
+    "default=noprint_wrappers=1:nokey=1",
+    mp3Path,
+  ]);
+  return result.status === 0 ? result.stdout.trim() : "";
+}
+
 function pickMainTopic(chapters) {
   if (chapters.length < 2) {
     return chapters[0] ? chapters[0].title : "Main Topic";
@@ -563,11 +581,20 @@ async function discoverEpisodeData(inputOptions = {}) {
   const audioDurationSeconds = getAudioDurationSeconds(inputOptions.mp3Path);
   const chapters = attachChapterDurations(baseChapters, audioDurationSeconds);
 
-  const episodeTitle = episodeTitleFromInputs({
+  let episodeTitle = episodeTitleFromInputs({
     explicitTitle: inputOptions.episodeTitle,
     transcriptMdPath: inputOptions.transcriptMdPath,
     mp3Path: inputOptions.mp3Path,
   });
+  // The transcript filename often stays the recorder's "THS XX-YY" placeholder, but
+  // once a run has baked the chosen title into the MP3's ID3 tag, the file itself
+  // knows better.
+  if (!inputOptions.episodeTitle && isPlaceholderTitle(episodeTitle)) {
+    const taggedTitle = readMp3TitleTag(inputOptions.mp3Path);
+    if (taggedTitle && !isPlaceholderTitle(taggedTitle)) {
+      episodeTitle = taggedTitle;
+    }
+  }
   // The main topic drives the derived description, the tumblr tags and the YouTube
   // title, and the guess (the chapter before Outro) is editable in the UI - the
   // override arrives here on re-discovery.
@@ -1258,8 +1285,14 @@ async function runPipeline(inputOptions = {}) {
 
   // Content is on disk: the episode is "generated". The MP4 render is a job on top of
   // that phase, not a phase of its own - re-renders and clip runs happen here too.
+  // The run's output lands ON TOP of the existing state, never as a replacement:
+  // state-owned records the report knows nothing about (review edits, upload
+  // receipts) must outlive every re-approve. Approvals do reset - they index into
+  // the replaced suggestion set.
   await episodeState.updateState(episodeDir, (state) => ({
+    ...(state || {}),
     ...report,
+    clipApprovals: null,
     phase: "generated",
     jobs: state?.jobs || {},
   }));

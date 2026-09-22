@@ -351,6 +351,10 @@ async function main() {
   savedState.appliedTranscriptFixes = [
     { quote: "honestly", correction: "frankly" },
   ];
+  // State-owned records the run report knows nothing about: a re-approve must layer
+  // its output over them, never wipe them.
+  savedState.reviewOverrides = { episodeTitle: "Kept Title" };
+  savedState.mp3Upload = { sha256: "x", url: "u", acl: "private" };
   fs.writeFileSync(
     path.join(episodeDir, "postprocess-state.json"),
     JSON.stringify(savedState),
@@ -366,7 +370,22 @@ async function main() {
     llmComplete: async ({ schema }) =>
       schema?.properties?.clips ? fakeClips : { findings: [] },
   });
-  await waitForAiAnalysis(episodeDir);
+  const rerunState = await waitForAiAnalysis(episodeDir);
+  assert.equal(
+    rerunState.reviewOverrides?.episodeTitle,
+    "Kept Title",
+    "review overrides must survive a re-approve",
+  );
+  assert.equal(
+    rerunState.mp3Upload?.url,
+    "u",
+    "the upload record must survive a re-approve",
+  );
+  assert.equal(
+    rerunState.clipApprovals,
+    null,
+    "approvals must reset with the replaced suggestion set",
+  );
 
   // Nothing the embed writes changed between the runs, so the MP3's bytes must be
   // left alone - re-approving must not invalidate upload checksums or the render.
@@ -461,6 +480,25 @@ async function main() {
       .readFileSync(path.join(renamedDir, "transcript.md"), "utf8")
       .includes("frankly"),
     "fix memory must survive the retitle",
+  );
+
+  // With a placeholder transcript filename, the title comes back from the MP3's own
+  // ID3 tag, which the retitle run just wrote.
+  const placeholderMd = path.join(path.dirname(runMp3), "THS 99-01.md");
+  const placeholderVtt = path.join(path.dirname(runMp3), "THS 99-01.vtt");
+  fs.copyFileSync(fixture.transcriptMdPath, placeholderMd);
+  fs.copyFileSync(fixture.transcriptVttPath, placeholderVtt);
+  const rediscovered = await discoverEpisodeData({
+    repoRoot: runRoot,
+    mp3Path: runMp3,
+    transcriptMdPath: placeholderMd,
+    transcriptVttPath: placeholderVtt,
+    onProgress: () => {},
+  });
+  assert.equal(
+    rediscovered.episodeTitle,
+    "Renamed Episode",
+    "the MP3 tag must rescue a placeholder filename title",
   );
 
   fs.rmSync(repoRoot, { recursive: true, force: true });

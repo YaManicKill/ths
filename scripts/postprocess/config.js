@@ -12,10 +12,10 @@ const DEFAULT_CONFIG = {
   episodesRoot: "~/Google Drive/My Drive/Projects/ths/Episodes",
   llm: {
     provider: "gemini",
-    model: "gemini-3.6-flash",
+    model: "gemini-3.7-flash",
     // Free-tier quotas are per model; a rate-limited request retries here instead of
     // failing. null disables the failover.
-    fallbackModel: "gemini-3.5-flash",
+    fallbackModel: "gemini-3.8-flash",
     apiKey: null,
   },
   // Where the finished MP3 uploads to. Bucket and region are public knowledge (they
