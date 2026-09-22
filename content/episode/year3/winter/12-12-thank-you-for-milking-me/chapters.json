@@ -1,0 +1,98 @@
+{
+  "version": "1.2.0",
+  "chapters": [
+    {
+      "startTime": 0,
+      "title": "Theme Tune"
+    },
+    {
+      "startTime": 30.224,
+      "title": "Intro"
+    },
+    {
+      "startTime": 80.941,
+      "title": "What Have We Been Up To"
+    },
+    {
+      "startTime": 956.916,
+      "title": "Game News"
+    },
+    {
+      "startTime": 959.169,
+      "title": "Gaucho Origins",
+      "toc": false
+    },
+    {
+      "startTime": 997.237,
+      "title": "Moonlight In Garland",
+      "toc": false
+    },
+    {
+      "startTime": 1018.859,
+      "title": "The Ranchers",
+      "toc": false
+    },
+    {
+      "startTime": 1061.316,
+      "title": "Tiny Eden",
+      "toc": false
+    },
+    {
+      "startTime": 1160.453,
+      "title": "Village In The Shade",
+      "toc": false
+    },
+    {
+      "startTime": 1284.527,
+      "title": "New Games"
+    },
+    {
+      "startTime": 1296.406,
+      "title": "Welcome To Elderfield",
+      "toc": false
+    },
+    {
+      "startTime": 1501.931,
+      "title": "Ethra",
+      "toc": false
+    },
+    {
+      "startTime": 1610.51,
+      "title": "Voltaire: The Vegan Vampire",
+      "toc": false
+    },
+    {
+      "startTime": 1774.603,
+      "title": "Story Of Seasons: Your Wonderful Life",
+      "toc": false
+    },
+    {
+      "startTime": 2089.273,
+      "title": "Demos"
+    },
+    {
+      "startTime": 2104.468,
+      "title": "Mayday: The Survival Island",
+      "toc": false
+    },
+    {
+      "startTime": 2185.21,
+      "title": "Cropia",
+      "toc": false
+    },
+    {
+      "startTime": 2403.167,
+      "title": "Danchi Days",
+      "toc": false
+    },
+    {
+      "startTime": 2717.697,
+      "title": "Farm & Feast",
+      "toc": false
+    },
+    {
+      "startTime": 3745.762,
+      "title": "Outro"
+    }
+  ]
+}
