@@ -1,0 +1,54 @@
+{
+  "version": "1.2.0",
+  "chapters": [
+    {
+      "startTime": 0,
+      "title": "Theme Tune"
+    },
+    {
+      "startTime": 30.224,
+      "title": "Intro"
+    },
+    {
+      "startTime": 119.466,
+      "title": "What Have We Been Up To"
+    },
+    {
+      "startTime": 246.016,
+      "title": "Game News"
+    },
+    {
+      "startTime": 254.209,
+      "title": "Loftia",
+      "toc": false
+    },
+    {
+      "startTime": 397.429,
+      "title": "Outbound",
+      "toc": false
+    },
+    {
+      "startTime": 514.104,
+      "title": "Disney Dreamlight Valley",
+      "toc": false
+    },
+    {
+      "startTime": 671.731,
+      "title": "Petunia's Purgatory",
+      "toc": false
+    },
+    {
+      "startTime": 776.813,
+      "title": "Dave The Diver",
+      "toc": false
+    },
+    {
+      "startTime": 984.927,
+      "title": "Neopets"
+    },
+    {
+      "startTime": 4282.302,
+      "title": "Outro"
+    }
+  ]
+}
