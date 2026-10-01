@@ -1847,6 +1847,12 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
         const existing = Array.isArray(payload.existingClipSuggestions)
           ? payload.existingClipSuggestions
           : [];
+        // A set with no AI picks at all is the quota-outage fallback, not curation
+        // worth preserving: the AI's full pick replaces it (nothing declared
+        // off-limits) instead of squeezing new clips around heuristic guesses.
+        const replacingHeuristics =
+          existing.length > 0 &&
+          existing.every((suggestion) => suggestion?.source !== "llm");
         const llmClips = await suggestClipsLlmCached({
           cacheDir: path.join(
             repoRoot,
@@ -1857,16 +1863,24 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           transcriptMdText: mdText,
           transcriptVttText: vttText,
           llm,
-          avoidClips: existing,
-          maxSuggestions: 5,
+          avoidClips: replacingHeuristics ? [] : existing,
+          maxSuggestions: replacingHeuristics ? undefined : 5,
         });
-        const combined = [...existing, ...llmClips.suggestions];
+        const combined = replacingHeuristics
+          ? llmClips.suggestions.length > 0
+            ? llmClips.suggestions
+            : existing
+          : [...existing, ...llmClips.suggestions];
         if (llmClips.suggestions.length > 0) {
           await episodeState.updateState(episodeDir, (state) => {
             if (!state) {
               return null;
             }
             state.clipSuggestions = combined;
+            state.clipSource = "llm";
+            if (replacingHeuristics) {
+              state.clipApprovals = null;
+            }
             return state;
           });
         }
@@ -1874,6 +1888,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           success: true,
           clipSuggestions: combined,
           added: llmClips.suggestions.length,
+          replaced: replacingHeuristics && llmClips.suggestions.length > 0,
           source: "llm",
         });
       } catch (error) {

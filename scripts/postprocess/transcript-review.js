@@ -11,7 +11,10 @@ const MAX_CHUNK_CHARS = 24_000;
 // well, and the free tier allows only a handful of requests per minute/day, so a full
 // episode should cost ~3 requests rather than one per chapter.
 const MERGE_BUDGET_CHARS = 80_000;
-const CONCURRENCY = 2;
+// Chunks go one at a time: the review runs as a background job so nobody is waiting
+// on it, and a second in-flight request doubles the pressure on the free tier's
+// per-minute quota exactly when the API is struggling.
+const CONCURRENCY = 1;
 
 const REVIEW_SCHEMA = {
   type: "object",
@@ -254,6 +257,19 @@ async function mapWithConcurrency(items, limit, worker) {
   return results;
 }
 
+// Requests are the scarce resource (the free tier allows 20 per model per day), so
+// each chunk's verdict is cached on its own: when a multi-chunk review dies partway
+// through an outage, the retry only pays for the chunks that actually failed.
+function chunkCachePath(cacheDir, hostNames, chunk) {
+  const key = crypto
+    .createHash("sha1")
+    .update(
+      `${PROMPT_VERSION}:${(hostNames || []).join(",")}:${chunk.chapterTitle}:${chunk.text}`,
+    )
+    .digest("hex");
+  return path.join(cacheDir, `review-chunk-${key}.json`);
+}
+
 async function reviewTranscript({
   transcriptMdText,
   transcriptVttText,
@@ -262,6 +278,7 @@ async function reviewTranscript({
   hostNames = [],
   complete = completeJson,
   mergeBudgetChars = MERGE_BUDGET_CHARS,
+  cacheDir = null,
 }) {
   const systemPrompt = buildSystemPrompt(hostNames);
   const chunks = mergeChunks(
@@ -273,6 +290,16 @@ async function reviewTranscript({
     chunks,
     CONCURRENCY,
     async (chunk) => {
+      const cachePath = cacheDir
+        ? chunkCachePath(cacheDir, hostNames, chunk)
+        : null;
+      if (cachePath && fileExists(cachePath)) {
+        const cached = readJson(cachePath, false);
+        if (cached) {
+          return { chunk, findings: cached.findings || [] };
+        }
+      }
+
       const prompt = [
         "Podcast: The Harvest Season, a conversational podcast about farming and",
         "life-sim video games.",
@@ -292,8 +319,16 @@ async function reviewTranscript({
         system: systemPrompt,
         prompt,
         schema: REVIEW_SCHEMA,
+        // Review chunks are the largest payloads sent anywhere: an abandoned request
+        // still counts against the daily quota (the model keeps working on it), so
+        // waiting out a slow answer is far cheaper than resending.
+        timeoutMs: 300_000,
       });
-      return { chunk, findings: result?.findings || [] };
+      const findings = result?.findings || [];
+      if (cachePath) {
+        writeJson(cachePath, { findings });
+      }
+      return { chunk, findings };
     },
   );
 
@@ -396,7 +431,7 @@ async function reviewTranscriptCached({ cacheDir, ...options }) {
     }
   }
 
-  const result = await reviewTranscript(options);
+  const result = await reviewTranscript({ ...options, cacheDir });
   if (cachePath) {
     writeJson(cachePath, result);
   }

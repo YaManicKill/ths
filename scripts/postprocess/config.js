@@ -12,12 +12,12 @@ const DEFAULT_CONFIG = {
   episodesRoot: "~/Google Drive/My Drive/Projects/ths/Episodes",
   llm: {
     provider: "gemini",
-    model: "gemini-3.8-flash",
+    model: "gemini-3.7-flash",
     // Free-tier quotas are per model; a rate-limited request moves down this list
     // instead of failing. An empty list disables the failover. (The older single
     // "fallbackModel" string is still accepted.)
     fallbackModels: [
-      "gemini-3.7-flash",
+      "gemini-3.8-flash",
       "gemini-3.6-flash",
       "gemini-3.5-flash",
     ],

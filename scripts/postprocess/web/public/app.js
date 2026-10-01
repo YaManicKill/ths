@@ -2931,9 +2931,10 @@ async function pollAiAnalysis(episodeDir) {
         setStatusLine(
           lineId,
           `🧠 AI analysis running in the background... (${
-            job.stage === "clip-selection"
+            job.note ||
+            (job.stage === "clip-selection"
               ? "picking clips"
-              : "checking the transcript"
+              : "checking the transcript")
           })`,
         );
         continue;
@@ -2948,9 +2949,14 @@ async function pollAiAnalysis(episodeDir) {
         renderTranscriptFixSection();
         clipApprovalState = [];
         renderClipSuggestions(data.clipSuggestions || []);
+        // A run whose LLM steps never succeeded is not a success, whatever the job's
+        // terminal status says.
+        const counts = `${job.findings ?? 0} transcript finding(s), ${job.fixesApplied ?? 0} fix(es) applied, ${job.clipCount ?? 0} clip suggestion(s) (${job.clipSource || "heuristic"})`;
         setStatusLine(
           lineId,
-          `✓ AI analysis complete - ${job.findings ?? 0} transcript finding(s), ${job.fixesApplied ?? 0} fix(es) applied, ${job.clipCount ?? 0} clip suggestion(s) (${job.clipSource || "heuristic"})`,
+          job.reviewError || job.clipWarning
+            ? `⚠ AI analysis finished with problems - ${counts}`
+            : `✓ AI analysis complete - ${counts}`,
         );
         if (job.reviewError) {
           addStatus(`⚠ Transcript check failed: ${job.reviewError}`);
@@ -3207,8 +3213,17 @@ moreClipSuggestionsButton.addEventListener("click", async () => {
       stopSpinner("ℹ No new distinct moments found beyond the existing clips");
       return;
     }
-    stopSpinner(`✓ ${result.added} new clip suggestion(s) added`);
-    // Existing approvals keep their positions; the new clips arrive undecided.
+    if (result.replaced) {
+      // The old set was pure heuristics (a quota-outage fallback); the AI's picks
+      // replace it wholesale, so old approvals would point at the wrong cards.
+      stopSpinner(
+        `✓ ${result.added} AI clip suggestion(s) replaced the heuristic set`,
+      );
+      clipApprovalState = [];
+    } else {
+      stopSpinner(`✓ ${result.added} new clip suggestion(s) added`);
+      // Existing approvals keep their positions; the new clips arrive undecided.
+    }
     renderClipSuggestions(result.clipSuggestions || currentClipSuggestions);
     scheduleClipCurationSave();
   } catch (error) {
@@ -3944,7 +3959,15 @@ generateClipVideosButton.addEventListener("click", async () => {
 // invisible. The first fetch only takes the cursor, so a reload never replays
 // history.
 let serverLogCursor = null;
+// Two overlapping polls fetch the same window twice and print every line doubled
+// (a slow response during heavy LLM traffic outlives the 4s interval), so only one
+// runs at a time.
+let serverLogPollInFlight = false;
 async function pollServerLog() {
+  if (serverLogPollInFlight) {
+    return;
+  }
+  serverLogPollInFlight = true;
   try {
     const response = await fetch(
       `/api/server-log${serverLogCursor === null ? "" : `?after=${serverLogCursor}`}`,
@@ -3958,6 +3981,8 @@ async function pollServerLog() {
     serverLogCursor = body.last;
   } catch {
     // Server briefly unreachable; the next tick catches up.
+  } finally {
+    serverLogPollInFlight = false;
   }
 }
 pollServerLog();

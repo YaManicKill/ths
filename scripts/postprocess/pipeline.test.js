@@ -2,7 +2,11 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { discoverEpisodeData, runPipeline } = require("./pipeline");
+const {
+  discoverEpisodeData,
+  runPipeline,
+  isDailyExhaustion,
+} = require("./pipeline");
 const { runCommand } = require("./utils");
 
 // Discovery needs a real MP3 with chapters, so build a tiny one with ffmpeg.
@@ -367,10 +371,30 @@ async function main() {
     transcriptVttPath: fixture.transcriptVttPath,
     skipVideo: true,
     onProgress: () => {},
-    llmComplete: async ({ schema }) =>
-      schema?.properties?.clips ? fakeClips : { findings: [] },
+    // The first review call hits a quota outage; the background job must park,
+    // wait (10ms here), and succeed on its next attempt rather than settling for
+    // heuristics.
+    llmComplete: (() => {
+      let reviewCalls = 0;
+      return async ({ schema }) => {
+        if (schema?.properties?.clips) {
+          return fakeClips;
+        }
+        reviewCalls += 1;
+        if (reviewCalls === 1) {
+          throw new Error("Gemini request failed (429): rate limited");
+        }
+        return { findings: [] };
+      };
+    })(),
+    aiAnalysisQuotaRetryDelaysMs: [10],
   });
   const rerunState = await waitForAiAnalysis(episodeDir);
+  assert.equal(
+    rerunState.jobs.aiAnalysis.reviewError,
+    undefined,
+    "a transient quota outage must be retried by the job, not recorded as failure",
+  );
   assert.equal(
     rerunState.reviewOverrides?.episodeTitle,
     "Kept Title",
@@ -499,6 +523,25 @@ async function main() {
     rediscovered.episodeTitle,
     "Renamed Episode",
     "the MP3 tag must rescue a placeholder filename title",
+  );
+
+  // Daily exhaustion (a retry hint hours away) must be told apart from a per-minute
+  // blip: the former fails the job immediately instead of walking the retry ladder.
+  assert.equal(
+    isDailyExhaustion(
+      "Gemini request failed (429): Quota exceeded. Please retry in 57600s.",
+    ),
+    true,
+  );
+  assert.equal(
+    isDailyExhaustion(
+      "Gemini request failed (429): Quota exceeded. Please retry in 36.4s.",
+    ),
+    false,
+  );
+  assert.equal(
+    isDailyExhaustion("Gemini request failed (429): rate limited"),
+    false,
   );
 
   fs.rmSync(repoRoot, { recursive: true, force: true });

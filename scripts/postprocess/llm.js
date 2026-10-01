@@ -22,8 +22,43 @@ function resolveLlm(config) {
     provider: llm.provider,
     model: llm.model,
     fallbackModels: resolveFallbackModels(llm),
+    // Shared across every request made with this resolved llm (all the review
+    // chunks, then the clip pick): quota buckets are shared the same way, so once
+    // one request finds a model rate limited, the next gains nothing by re-burning
+    // it - re-walking a dead chain is itself what keeps the buckets empty.
+    failover: PROCESS_FAILOVER,
+    paced: true,
     apiKey,
   };
+}
+
+// One memory for the whole process, not per resolved client: the server resolves a
+// fresh client per request, and two clicks seconds apart should not each rediscover
+// that the primary is down. The TTL below keeps it from going stale.
+const PROCESS_FAILOVER = { modelIndex: 0, since: 0 };
+
+// Per-minute buckets refresh on their own, so remembered failover expires: after
+// this long the primary model gets tried again.
+const FAILOVER_TTL_MS = 90_000;
+
+// The free tier allows 5 requests per minute, and nothing about the natural flow
+// guarantees staying under it - review chunks followed straight by the clip pick sit
+// at 3-4/min already, so one retry or one interactive click tips it over and the 429
+// cascade begins. Requests therefore start at most one per 13s (~4.6/min), enforced
+// process-wide because every feature drains the same buckets. Only resolveLlm-built
+// clients are paced; hand-built ones (tests) run free.
+const MIN_REQUEST_INTERVAL_MS = 13_000;
+let nextPacedRequestAt = 0;
+
+async function waitForPacedSlot(intervalMs) {
+  // The slot is reserved synchronously so concurrent callers queue up instead of
+  // reading the same timestamp and starting together.
+  const startAt = Math.max(Date.now(), nextPacedRequestAt);
+  nextPacedRequestAt = startAt + intervalMs;
+  const wait = startAt - Date.now();
+  if (wait > 0) {
+    await new Promise((resolve) => setTimeout(resolve, wait));
+  }
 }
 
 // Tried in order after the primary. A config still using the older single
@@ -41,7 +76,12 @@ function resolveFallbackModels(llm) {
       : [];
   const chain = [];
   for (const model of listed) {
-    if (typeof model === "string" && model && model !== llm.model && !chain.includes(model)) {
+    if (
+      typeof model === "string" &&
+      model &&
+      model !== llm.model &&
+      !chain.includes(model)
+    ) {
       chain.push(model);
     }
   }
@@ -158,11 +198,15 @@ const MAX_ATTEMPTS = 4;
 const MAX_RETRY_WAIT_MS = 70_000;
 const MAX_TOTAL_RETRY_WAIT_MS = 150_000;
 
-function retryDelayFromError(error, fallbackMs, attempt) {
-  const retryable =
+function isTransientError(error) {
+  return (
     /\((429|500|502|503|529)\)/.test(error.message) ||
-    /timed out after \d+ms/.test(error.message);
-  if (!retryable) {
+    /timed out after \d+ms/.test(error.message)
+  );
+}
+
+function retryDelayFromError(error, fallbackMs, attempt) {
+  if (!isTransientError(error)) {
     return null;
   }
   const hint = /retry in (\d+(?:\.\d+)?)s/i.exec(error.message);
@@ -184,6 +228,7 @@ async function completeJson({
   timeoutMs = REQUEST_TIMEOUT_MS,
   retryDelayMs = 2000,
   maxTotalRetryWaitMs = MAX_TOTAL_RETRY_WAIT_MS,
+  pacedIntervalMs = MIN_REQUEST_INTERVAL_MS,
   fetchImpl = fetch,
 }) {
   if (llm.provider !== "gemini") {
@@ -193,11 +238,18 @@ async function completeJson({
   // completeJson is also called with hand-built llm objects (tests, callers that
   // bypass resolveLlm), so the chain is normalised here too.
   const models = [llm.model, ...resolveFallbackModels(llm)];
-  let modelIndex = 0;
-  let model = models[0];
+  const shared = llm.failover;
+  let modelIndex =
+    shared && Date.now() - shared.since < FAILOVER_TTL_MS
+      ? Math.min(shared.modelIndex, models.length - 1)
+      : 0;
+  let model = models[modelIndex];
   let totalWaitedMs = 0;
   for (let attempt = 1; ; attempt += 1) {
     try {
+      if (llm.paced) {
+        await waitForPacedSlot(pacedIntervalMs);
+      }
       return await geminiCompleteJson({
         llm: { ...llm, model },
         system,
@@ -209,20 +261,27 @@ async function completeJson({
     } catch (error) {
       const delay = retryDelayFromError(error, retryDelayMs, attempt);
       const quotaError = /\(429\)/.test(error.message);
+      const transient = isTransientError(error);
       const fallbackAvailable = modelIndex < models.length - 1;
       if (
         delay === null ||
         attempt >= MAX_ATTEMPTS ||
         totalWaitedMs + delay > maxTotalRetryWaitMs ||
-        // Free-tier quotas are per model, so with a fresh bucket one switch away,
-        // sitting out the primary's full retry ladder is pure waiting: one retry
-        // covers a transient blip, then the fallback takes over.
-        (quotaError && fallbackAvailable && attempt >= 2)
+        // Quota buckets, "high demand" 503s and slow answers are all per model, so
+        // with a fresh model one switch away, sitting out the sick one's full retry
+        // ladder is pure waiting - and with timeouts it burns daily quota, since the
+        // model keeps working on every abandoned request. One retry covers a
+        // transient blip, then the fallback takes over.
+        (transient && fallbackAvailable && attempt >= 2)
       ) {
-        if (quotaError && fallbackAvailable) {
+        if (transient && fallbackAvailable) {
           modelIndex += 1;
+          if (shared) {
+            shared.modelIndex = modelIndex;
+            shared.since = Date.now();
+          }
           console.error(
-            `${label}: ${model} is rate limited - falling back to ${models[modelIndex]} (${modelIndex} of ${models.length - 1})`,
+            `${label}: ${model} is ${quotaError ? "rate limited" : "unavailable"} - falling back to ${models[modelIndex]} (${modelIndex} of ${models.length - 1})`,
           );
           model = models[modelIndex];
           totalWaitedMs = 0;
