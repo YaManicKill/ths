@@ -406,11 +406,15 @@ async function main() {
   assert.equal(wide.title, "Chicken on a cow");
   assert.equal(wide.foundFor, "the chicken on the cow");
   assert.equal(wide.speaker, "Codey");
-  assert.match(wide.caption, /#theharvestseason #cottagecore #farminggames #funny$/);
+  assert.match(
+    wide.caption,
+    /#theharvestseason #cottagecore #farminggames #funny$/,
+  );
   assert.equal(tight.startSeconds, 20);
   assert.equal(tight.endSeconds, 35);
   assert.ok(
-    tight.startSeconds < wide.endSeconds && wide.startSeconds < tight.endSeconds,
+    tight.startSeconds < wide.endSeconds &&
+      wide.startSeconds < tight.endSeconds,
     "overlapping alternative cuts are both kept",
   );
 
@@ -426,7 +430,9 @@ async function main() {
   );
 
   // Cached by description too, with case and spacing folded.
-  const findCacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "find-clip-cache-"));
+  const findCacheDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), "find-clip-cache-"),
+  );
   let findCalls = 0;
   const fakeFind = async () => {
     findCalls += 1;

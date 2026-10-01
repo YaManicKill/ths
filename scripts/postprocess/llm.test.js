@@ -231,6 +231,65 @@ async function main() {
     "gemini-3.5-flash",
   ]);
 
+  // "High demand" 503s and timeouts are also per model, so they fail over the same
+  // way instead of burning the whole retry ladder on the one sick model.
+  const overloadedModels = [];
+  const overloaded = await completeJson({
+    llm: {
+      ...LLM,
+      model: "gemini-3.6-flash",
+      fallbackModels: ["gemini-3.5-flash"],
+    },
+    system: "s",
+    prompt: "p",
+    schema: SCHEMA,
+    retryDelayMs: 1,
+    fetchImpl: async (url, options) => {
+      const model = JSON.parse(options.body).model;
+      overloadedModels.push(model);
+      return model === "gemini-3.6-flash"
+        ? fakeResponse(503, {
+            error: { message: "currently experiencing high demand" },
+          })
+        : fakeResponse(200, { output_text: '{"ok": true}' });
+    },
+  });
+  assert.deepEqual(overloaded, { ok: true });
+  assert.deepEqual(overloadedModels, [
+    "gemini-3.6-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+  ]);
+
+  const timeoutModels = [];
+  const timedOut = await completeJson({
+    llm: {
+      ...LLM,
+      model: "gemini-3.6-flash",
+      fallbackModels: ["gemini-3.5-flash"],
+    },
+    system: "s",
+    prompt: "p",
+    schema: SCHEMA,
+    retryDelayMs: 1,
+    fetchImpl: async (url, options) => {
+      const model = JSON.parse(options.body).model;
+      timeoutModels.push(model);
+      if (model === "gemini-3.6-flash") {
+        const abort = new Error("aborted");
+        abort.name = "AbortError";
+        throw abort;
+      }
+      return fakeResponse(200, { output_text: '{"ok": true}' });
+    },
+  });
+  assert.deepEqual(timedOut, { ok: true });
+  assert.deepEqual(timeoutModels, [
+    "gemini-3.6-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+  ]);
+
   // A rate-limited fallback is the end of the line - no ping-ponging.
   let bothLimitedAttempts = 0;
   await assert.rejects(
@@ -266,7 +325,11 @@ async function main() {
     llm: {
       ...LLM,
       model: "gemini-3.7-flash",
-      fallbackModels: ["gemini-3.6-flash", "gemini-3.7-flash", "gemini-3.5-flash"],
+      fallbackModels: [
+        "gemini-3.6-flash",
+        "gemini-3.7-flash",
+        "gemini-3.5-flash",
+      ],
     },
     system: "s",
     prompt: "p",
@@ -287,6 +350,78 @@ async function main() {
     chainModels,
     ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash"],
     "the primary is not revisited even when listed as a fallback",
+  );
+
+  // Failover state on the llm object is shared between calls: once one request has
+  // found the primary rate limited, the next starts at the fallback instead of
+  // re-burning the primary's empty bucket.
+  const sharedLlm = {
+    ...LLM,
+    model: "gemini-3.7-flash",
+    fallbackModels: ["gemini-3.5-flash"],
+    failover: { modelIndex: 0, since: 0 },
+  };
+  const sharedModels = [];
+  const sharedFetch = async (url, options) => {
+    const model = JSON.parse(options.body).model;
+    sharedModels.push(model);
+    return model === "gemini-3.7-flash"
+      ? fakeResponse(429, {
+          error: { message: "Quota exceeded. Please retry in 57600s." },
+        })
+      : fakeResponse(200, { output_text: '{"ok": true}' });
+  };
+  const callArgs = {
+    llm: sharedLlm,
+    system: "s",
+    prompt: "p",
+    schema: SCHEMA,
+    retryDelayMs: 1,
+    fetchImpl: sharedFetch,
+  };
+  await completeJson(callArgs);
+  await completeJson(callArgs);
+  assert.deepEqual(
+    sharedModels,
+    ["gemini-3.7-flash", "gemini-3.5-flash", "gemini-3.5-flash"],
+    "the second call skips the rate-limited primary",
+  );
+
+  // Remembered failover expires: per-minute buckets refresh, so an old verdict on
+  // the primary is retried rather than trusted forever.
+  sharedLlm.failover.since = Date.now() - 10 * 60 * 1000;
+  sharedModels.length = 0;
+  await completeJson(callArgs);
+  assert.deepEqual(
+    sharedModels,
+    ["gemini-3.7-flash", "gemini-3.5-flash"],
+    "after the TTL the primary is tried again",
+  );
+
+  // Paced clients (everything built by resolveLlm) start requests at most one per
+  // interval, process-wide - the free tier's per-minute cap is shared by every
+  // feature, so the spacing has to be too. Concurrent callers queue rather than
+  // reading the same slot and starting together.
+  assert.equal(resolveLlm({ llm: LLM })?.paced, true);
+  const pacedStarts = [];
+  const pacedCall = () =>
+    completeJson({
+      llm: { ...LLM, paced: true },
+      system: "s",
+      prompt: "p",
+      schema: SCHEMA,
+      pacedIntervalMs: 80,
+      fetchImpl: async () => {
+        pacedStarts.push(Date.now());
+        return fakeResponse(200, { output_text: '{"ok": true}' });
+      },
+    });
+  await Promise.all([pacedCall(), pacedCall(), pacedCall()]);
+  assert.equal(pacedStarts.length, 3);
+  assert.ok(
+    pacedStarts[1] - pacedStarts[0] >= 75 &&
+      pacedStarts[2] - pacedStarts[1] >= 75,
+    `request starts must be spaced apart, got gaps ${pacedStarts[1] - pacedStarts[0]}ms and ${pacedStarts[2] - pacedStarts[1]}ms`,
   );
 
   // The older single-string config still works.

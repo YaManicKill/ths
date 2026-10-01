@@ -224,10 +224,11 @@ async function main() {
   });
   assert.ok(calls > callsBeforeHostChange, "changed host names must re-run");
 
-  // The VTT drives vttLine numbers and the chapters drive chunking, so both belong to
-  // the cache key.
+  // The VTT drives vttLine numbers, so it invalidates the whole-review cache - but
+  // the model only ever saw the MD chunks, and vttLine is recomputed from the raw
+  // verdicts, so the per-chunk cache answers without spending any requests.
   const callsBeforeVttChange = calls;
-  await reviewTranscriptCached({
+  const vttEdited = await reviewTranscriptCached({
     cacheDir,
     transcriptMdText,
     transcriptVttText: transcriptVttText + "\nedited",
@@ -235,7 +236,12 @@ async function main() {
     llm: LLM,
     complete: fakeComplete,
   });
-  assert.ok(calls > callsBeforeVttChange, "edited vtt must re-run");
+  assert.equal(vttEdited.fromCache, false, "edited vtt must re-process");
+  assert.equal(
+    calls,
+    callsBeforeVttChange,
+    "unchanged chunks must not be re-bought for a vtt edit",
+  );
 
   const callsBeforeChapterChange = calls;
   await reviewTranscriptCached({
@@ -249,6 +255,48 @@ async function main() {
   assert.ok(calls > callsBeforeChapterChange, "changed chapters must re-run");
 
   fs.rmSync(cacheDir, { recursive: true, force: true });
+
+  // A review that dies partway through must not re-buy the chunks that already
+  // answered: the retry only pays for what failed. (Distinct transcript text so the
+  // whole-review cache from the runs above cannot answer first.)
+  const partialCacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "ths-review-"));
+  const partialMd = transcriptMdText + "\npartial-fail";
+  let partialCalls = 0;
+  await assert.rejects(
+    reviewTranscriptCached({
+      cacheDir: partialCacheDir,
+      transcriptMdText: partialMd,
+      transcriptVttText,
+      chapters,
+      llm: LLM,
+      mergeBudgetChars: 10,
+      complete: async () => {
+        partialCalls += 1;
+        if (partialCalls === 2) {
+          throw new Error("Gemini request failed (429): rate limited");
+        }
+        return { findings: [] };
+      },
+    }),
+    /429/,
+  );
+  assert.equal(partialCalls, 2, "the first chunk succeeds, the second fails");
+
+  const retried = await reviewTranscriptCached({
+    cacheDir: partialCacheDir,
+    transcriptMdText: partialMd,
+    transcriptVttText,
+    chapters,
+    llm: LLM,
+    mergeBudgetChars: 10,
+    complete: async () => {
+      partialCalls += 1;
+      return { findings: [] };
+    },
+  });
+  assert.equal(retried.fromCache, false);
+  assert.equal(partialCalls, 3, "the retry must only pay for the failed chunk");
+  fs.rmSync(partialCacheDir, { recursive: true, force: true });
 
   // applyTranscriptFixes replaces every occurrence of a quote, reports quotes that no
   // longer match, and skips degenerate fixes rather than counting them as misses.

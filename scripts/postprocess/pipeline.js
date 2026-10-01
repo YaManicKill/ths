@@ -808,6 +808,30 @@ async function discoverEpisodeData(inputOptions = {}) {
 // used to), then the clip picker reads the fixed text. Results land in the state
 // file, where the UI's poller and every later restore find them. Warning-only
 // throughout: LLM failures leave heuristics and a note, never a broken episode.
+// A 429/503 that survived the whole in-request retry ladder means every model's
+// per-minute bucket (or Google itself) is exhausted right now - which recovers in
+// minutes, not never. The background job can afford to wait it out.
+const QUOTA_RETRY_DELAYS_MS = [
+  2 * 60 * 1000,
+  5 * 60 * 1000,
+  10 * 60 * 1000,
+  15 * 60 * 1000,
+  15 * 60 * 1000,
+];
+
+function isQuotaOutage(message) {
+  return /\((429|503)\)/.test(String(message || ""));
+}
+
+// A 429 whose retry hint is hours away means the daily allowance is gone, not the
+// per-minute bucket. Waiting the retry schedule out cannot succeed before midnight
+// Pacific, and every extra walk of the model chain spends requests from tomorrow's
+// diagnosis, so the job gives up immediately and says why.
+function isDailyExhaustion(message) {
+  const hint = /retry in (\d+(?:\.\d+)?)s/i.exec(String(message || ""));
+  return Boolean(hint && Number(hint[1]) > 600);
+}
+
 function startBackgroundAiAnalysis({
   repoRoot,
   episodeDir,
@@ -816,7 +840,48 @@ function startBackgroundAiAnalysis({
   hostNames,
   heuristicClipSuggestions,
   llmComplete,
+  quotaRetryDelaysMs = QUOTA_RETRY_DELAYS_MS,
 }) {
+  // Shared by both LLM steps: runs fn, and on a quota outage parks the job in
+  // "waiting" with a visible resume time, then tries again - up to the delay
+  // schedule's length (~45 minutes) before giving up for real.
+  const withQuotaRetries = async (stage, fn) => {
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        return await fn();
+      } catch (error) {
+        if (isDailyExhaustion(error.message)) {
+          console.error(
+            `${stage}: daily API quota exhausted - it resets at midnight Pacific; rerun from the UI after that`,
+          );
+          throw new Error(
+            `${error.message} [daily quota exhausted - resets at midnight Pacific]`,
+          );
+        }
+        if (
+          !isQuotaOutage(error.message) ||
+          attempt >= quotaRetryDelaysMs.length
+        ) {
+          throw error;
+        }
+        const delayMs = quotaRetryDelaysMs[attempt];
+        const resumeAt = new Date(Date.now() + delayMs);
+        console.error(
+          `${stage}: models exhausted - waiting ${Math.round(delayMs / 60000)} min for quota (retry ${attempt + 1} of ${quotaRetryDelaysMs.length})`,
+        );
+        await episodeState.patchJob(episodeDir, "aiAnalysis", {
+          status: "waiting",
+          note: `waiting for API quota, resuming ${resumeAt.toLocaleTimeString()}`,
+        });
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        await episodeState.patchJob(episodeDir, "aiAnalysis", {
+          status: "running",
+          note: null,
+        });
+      }
+    }
+  };
+
   setImmediate(async () => {
     try {
       const mdPath = path.join(episodeDir, "transcript.md");
@@ -824,20 +889,22 @@ function startBackgroundAiAnalysis({
 
       let review;
       try {
-        review = await reviewTranscriptCached({
-          cacheDir: path.join(
-            repoRoot,
-            ".cache",
-            "postprocess",
-            "transcript-review",
-          ),
-          transcriptMdText: fs.readFileSync(mdPath, "utf8"),
-          transcriptVttText: fs.readFileSync(vttPath, "utf8"),
-          chapters,
-          llm,
-          hostNames,
-          complete: llmComplete,
-        });
+        review = await withQuotaRetries("Transcript check", () =>
+          reviewTranscriptCached({
+            cacheDir: path.join(
+              repoRoot,
+              ".cache",
+              "postprocess",
+              "transcript-review",
+            ),
+            transcriptMdText: fs.readFileSync(mdPath, "utf8"),
+            transcriptVttText: fs.readFileSync(vttPath, "utf8"),
+            chapters,
+            llm,
+            hostNames,
+            complete: llmComplete,
+          }),
+        );
       } catch (error) {
         review = { findings: [], error: error.message };
       }
@@ -886,25 +953,27 @@ function startBackgroundAiAnalysis({
       let clipSuggestions = heuristicClipSuggestions;
       let clipSource = "heuristic";
       let clipWarning = null;
-      // A 429 that survived the model failover means quota is gone everywhere;
-      // asking again for clips would just re-walk the retry waits.
-      if (/\(429\)/.test(review.error || "")) {
+      // A quota outage that outlasted even the job-level waits above means the whole
+      // API is out for the long haul; asking again for clips would only repeat it.
+      if (isQuotaOutage(review.error)) {
         clipWarning =
           "skipped: the transcript check already exhausted the API quota";
       } else {
         try {
-          const llmClips = await suggestClipsLlmCached({
-            cacheDir: path.join(
-              repoRoot,
-              ".cache",
-              "postprocess",
-              "clip-suggestions",
-            ),
-            transcriptMdText: fs.readFileSync(mdPath, "utf8"),
-            transcriptVttText: fs.readFileSync(vttPath, "utf8"),
-            llm,
-            complete: llmComplete,
-          });
+          const llmClips = await withQuotaRetries("Clip suggestions", () =>
+            suggestClipsLlmCached({
+              cacheDir: path.join(
+                repoRoot,
+                ".cache",
+                "postprocess",
+                "clip-suggestions",
+              ),
+              transcriptMdText: fs.readFileSync(mdPath, "utf8"),
+              transcriptVttText: fs.readFileSync(vttPath, "utf8"),
+              llm,
+              complete: llmComplete,
+            }),
+          );
           if (llmClips.suggestions.length > 0) {
             clipSuggestions = llmClips.suggestions;
             clipSource = "llm";
@@ -1312,6 +1381,7 @@ async function runPipeline(inputOptions = {}) {
       hostNames: config.hostNames,
       heuristicClipSuggestions: discovered.clipSuggestions,
       llmComplete: inputOptions.llmComplete,
+      quotaRetryDelaysMs: inputOptions.aiAnalysisQuotaRetryDelaysMs,
     });
     report.aiAnalysis = { started: true };
   }
@@ -1399,4 +1469,5 @@ module.exports = {
   discoverEpisodeData,
   resolveSeasonInfo,
   computeMp4RenderInputsHash,
+  isDailyExhaustion,
 };
