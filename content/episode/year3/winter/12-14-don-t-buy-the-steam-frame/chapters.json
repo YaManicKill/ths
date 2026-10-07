@@ -1,0 +1,101 @@
+{
+  "version": "1.2.0",
+  "chapters": [
+    {
+      "startTime": 0,
+      "title": "Theme Tune"
+    },
+    {
+      "startTime": 30.224,
+      "title": "Intro"
+    },
+    {
+      "startTime": 140.84,
+      "title": "What Have We Been Up To"
+    },
+    {
+      "startTime": 995.495,
+      "title": "Wolverine Spoilers"
+    },
+    {
+      "startTime": 2035.384,
+      "title": "I Know What You Released Last Month"
+    },
+    {
+      "startTime": 2224.915,
+      "title": "Game News"
+    },
+    {
+      "startTime": 2228.508,
+      "title": "Pokopia",
+      "toc": false
+    },
+    {
+      "startTime": 2407.06,
+      "title": "Hello Kitty Island Adventure",
+      "toc": false
+    },
+    {
+      "startTime": 2449.213,
+      "title": "Keep Watering",
+      "toc": false
+    },
+    {
+      "startTime": 2600.34,
+      "title": "Luma Island",
+      "toc": false
+    },
+    {
+      "startTime": 2678.283,
+      "title": "Grave Seasons",
+      "toc": false
+    },
+    {
+      "startTime": 2907.605,
+      "title": "Lightyear Frontier",
+      "toc": false
+    },
+    {
+      "startTime": 3115.617,
+      "title": "Meadgard",
+      "toc": false
+    },
+    {
+      "startTime": 3239.961,
+      "title": "Pathless Woods",
+      "toc": false
+    },
+    {
+      "startTime": 3469.936,
+      "title": "Farm To Table",
+      "toc": false
+    },
+    {
+      "startTime": 3497.982,
+      "title": "New Games"
+    },
+    {
+      "startTime": 3563.03,
+      "title": "Aniimo",
+      "toc": false
+    },
+    {
+      "startTime": 3929.309,
+      "title": "Nivalis Nights",
+      "toc": false
+    },
+    {
+      "startTime": 4038.942,
+      "title": "Seikyu Let's Go",
+      "toc": false
+    },
+    {
+      "startTime": 4239.699,
+      "title": "AR/VR Discussion"
+    },
+    {
+      "startTime": 6624.532,
+      "title": "Outro"
+    }
+  ]
+}
