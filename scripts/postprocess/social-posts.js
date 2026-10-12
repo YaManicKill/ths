@@ -1,7 +1,12 @@
 const crypto = require("node:crypto");
+const fs = require("node:fs");
 const path = require("node:path");
 const { completeJson } = require("./llm");
 const { fileExists, readJson, writeJson } = require("./utils");
+const {
+  parseFrontmatterDescription,
+  readShowLinksFromConfig,
+} = require("./youtube-description");
 
 // Bump when the prompt, schema, or result shape changes so cached posts are not
 // reused.
@@ -143,6 +148,51 @@ async function generateSocialPosts({ episode, llm, complete = completeJson }) {
   };
 }
 
+// The cache below is keyed on this exact object, so the background pre-generation
+// after a run and the Social Posts click must assemble it identically - both come
+// through here. Any drift (an edited title, new clips, a hand-edited description in
+// index.md) changes the key and regenerates, which is what should be announced.
+function buildSocialEpisode({
+  repoRoot,
+  episodeDir,
+  episodeTitle,
+  fallbackDescription,
+  chapters,
+  clipSuggestions,
+  mainTopic,
+}) {
+  const indexPath = path.join(episodeDir, "index.md");
+  const configTomlPath = path.join(repoRoot, "config.toml");
+  const showLinks = fs.existsSync(configTomlPath)
+    ? readShowLinksFromConfig(fs.readFileSync(configTomlPath, "utf8"))
+    : {};
+  const baseUrl = (showLinks.baseUrl || "https://harvestseason.club/").replace(
+    /\/+$/,
+    "",
+  );
+  const episodeUrl = `${baseUrl}/${path
+    .relative(path.join(repoRoot, "content"), episodeDir)
+    .split(path.sep)
+    .join("/")}/`;
+
+  return {
+    title: episodeTitle,
+    // The description is read from index.md rather than discovery data, so hand
+    // edits made after the run are what get announced.
+    description:
+      (fs.existsSync(indexPath) &&
+        parseFrontmatterDescription(fs.readFileSync(indexPath, "utf8"))) ||
+      fallbackDescription,
+    chapters: (chapters || []).map((chapter) => chapter.title),
+    clipHooks: (clipSuggestions || []).map((suggestion) => ({
+      title: suggestion.title,
+      caption: suggestion.llmReason || "",
+    })),
+    episodeUrl,
+    mainTopic,
+  };
+}
+
 // Same shape as the other LLM caches: repeated clicks are free until the episode's
 // material actually changes.
 async function generateSocialPostsCached({ cacheDir, ...options }) {
@@ -169,6 +219,7 @@ async function generateSocialPostsCached({ cacheDir, ...options }) {
 }
 
 module.exports = {
+  buildSocialEpisode,
   composeBlueskyPost,
   composeTumblrPost,
   generateSocialPosts,
