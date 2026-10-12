@@ -2932,9 +2932,11 @@ async function pollAiAnalysis(episodeDir) {
           lineId,
           `🧠 AI analysis running in the background... (${
             job.note ||
-            (job.stage === "clip-selection"
-              ? "picking clips"
-              : "checking the transcript")
+            (job.stage === "social-posts"
+              ? "drafting social posts"
+              : job.stage === "clip-selection"
+                ? "picking clips"
+                : "checking the transcript")
           })`,
         );
         continue;
@@ -2951,10 +2953,16 @@ async function pollAiAnalysis(episodeDir) {
         renderClipSuggestions(data.clipSuggestions || []);
         // A run whose LLM steps never succeeded is not a success, whatever the job's
         // terminal status says.
-        const counts = `${job.findings ?? 0} transcript finding(s), ${job.fixesApplied ?? 0} fix(es) applied, ${job.clipCount ?? 0} clip suggestion(s) (${job.clipSource || "heuristic"})`;
+        const counts = `${job.findings ?? 0} transcript finding(s), ${job.fixesApplied ?? 0} fix(es) applied, ${job.clipCount ?? 0} clip suggestion(s) (${job.clipSource || "heuristic"})${
+          job.socialDrafted === undefined
+            ? ""
+            : job.socialDrafted
+              ? ", social posts drafted"
+              : ", social posts NOT drafted"
+        }`;
         setStatusLine(
           lineId,
-          job.reviewError || job.clipWarning
+          job.reviewError || job.clipWarning || job.socialWarning
             ? `⚠ AI analysis finished with problems - ${counts}`
             : `✓ AI analysis complete - ${counts}`,
         );
@@ -2963,6 +2971,11 @@ async function pollAiAnalysis(episodeDir) {
         }
         if (job.clipWarning) {
           addStatus(`⚠ AI clip selection: ${job.clipWarning}`);
+        }
+        if (job.socialWarning) {
+          addStatus(
+            `⚠ Social post drafting: ${job.socialWarning} - the Social Posts button will retry when clicked`,
+          );
         }
         if (currentTranscriptFindings.length > 0) {
           addStatus(

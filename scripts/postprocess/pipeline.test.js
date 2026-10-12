@@ -181,6 +181,7 @@ async function main() {
   // completer stands in for Gemini, answering by request schema, so both paths run
   // without a network call.
   process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || "test-key";
+  let socialCalls = 0;
   const fakeClips = {
     clips: [
       {
@@ -204,33 +205,43 @@ async function main() {
       { title: "Cool Bug", url: "https://example.com/bug" },
       { title: "A Game With No Steam Page", url: "" },
     ],
-    llmComplete: async ({ schema }) =>
-      schema?.properties?.clips
-        ? fakeClips
-        : {
-            findings: [
-              {
-                quote: "Why would anyone",
-                correction: "Why would somebody",
-                reason: "test",
-                confidence: "high",
-              },
-              // Present in the md fixture but not the vtt one, so it must be reported
-              // as missed there rather than silently dropped.
-              {
-                quote: "actually do that",
-                correction: "genuinely do that",
-                reason: "test",
-                confidence: "high",
-              },
-              {
-                quote: "honestly",
-                correction: "frankly",
-                reason: "test",
-                confidence: "medium",
-              },
-            ],
+    llmComplete: async ({ schema }) => {
+      if (schema?.properties?.clips) {
+        return fakeClips;
+      }
+      if (schema?.properties?.bluesky) {
+        socialCalls += 1;
+        return {
+          bluesky: "New episode about bugs!",
+          tumblrTitle: "New episode",
+          tumblrBody: "We talk about bugs.",
+        };
+      }
+      return {
+        findings: [
+          {
+            quote: "Why would anyone",
+            correction: "Why would somebody",
+            reason: "test",
+            confidence: "high",
           },
+          // Present in the md fixture but not the vtt one, so it must be reported
+          // as missed there rather than silently dropped.
+          {
+            quote: "actually do that",
+            correction: "genuinely do that",
+            reason: "test",
+            confidence: "high",
+          },
+          {
+            quote: "honestly",
+            correction: "frankly",
+            reason: "test",
+            confidence: "medium",
+          },
+        ],
+      };
+    },
   });
 
   assert.equal(report.gitBranch.name, "ep-99-01");
@@ -268,6 +279,20 @@ async function main() {
   const analyzedState = await waitForAiAnalysis(episodeDir);
   assert.equal(analyzedState.jobs.aiAnalysis.status, "completed");
   assert.equal(analyzedState.transcriptReview.findings.length, 3);
+
+  // Social posts are drafted as the analysis job's last stage, so the Social Posts
+  // click later answers from the cache instead of calling the LLM.
+  assert.equal(
+    socialCalls,
+    1,
+    "social posts must be drafted in the background",
+  );
+  assert.equal(analyzedState.jobs.aiAnalysis.socialWarning, undefined);
+  assert.equal(
+    analyzedState.jobs.aiAnalysis.socialDrafted,
+    true,
+    "the job must state the social outcome, not leave it to be inferred",
+  );
 
   // High-confidence review findings are applied to the written transcripts; medium
   // ones are not (they need an explicit transcriptFixes list from the UI).
@@ -364,6 +389,7 @@ async function main() {
     JSON.stringify(savedState),
   );
 
+  let rerunSocialCalls = 0;
   const { report: rerunReport } = await runPipeline({
     repoRoot: runRoot,
     mp3Path: runMp3,
@@ -380,6 +406,10 @@ async function main() {
         if (schema?.properties?.clips) {
           return fakeClips;
         }
+        if (schema?.properties?.bluesky) {
+          rerunSocialCalls += 1;
+          return { bluesky: "b", tumblrTitle: "t", tumblrBody: "B" };
+        }
         reviewCalls += 1;
         if (reviewCalls === 1) {
           throw new Error("Gemini request failed (429): rate limited");
@@ -394,6 +424,11 @@ async function main() {
     rerunState.jobs.aiAnalysis.reviewError,
     undefined,
     "a transient quota outage must be retried by the job, not recorded as failure",
+  );
+  assert.equal(
+    rerunSocialCalls,
+    0,
+    "an unchanged re-run must serve the social drafts from the cache",
   );
   assert.equal(
     rerunState.reviewOverrides?.episodeTitle,
@@ -485,7 +520,11 @@ async function main() {
     skipVideo: true,
     onProgress: () => {},
     llmComplete: async ({ schema }) =>
-      schema?.properties?.clips ? fakeClips : { findings: [] },
+      schema?.properties?.clips
+        ? fakeClips
+        : schema?.properties?.bluesky
+          ? { bluesky: "b", tumblrTitle: "t", tumblrBody: "B" }
+          : { findings: [] },
   });
   const renamedDir = retitledReport.episode.outputDirectory;
   assert.notEqual(renamedDir, episodeDir);

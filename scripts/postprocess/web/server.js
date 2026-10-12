@@ -50,10 +50,12 @@ const { suggestTitlesLlmCached } = require("../title-suggestions-llm");
 const { stripSpeakerPrefix } = require("../clip-subtitles");
 const {
   buildYoutubeDescription,
-  parseFrontmatterDescription,
   readShowLinksFromConfig,
 } = require("../youtube-description");
-const { generateSocialPostsCached } = require("../social-posts");
+const {
+  buildSocialEpisode,
+  generateSocialPostsCached,
+} = require("../social-posts");
 const {
   resolveSpaces,
   setObjectAcl,
@@ -1397,33 +1399,16 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           return;
         }
 
-        const showLinks = readShowLinksFromConfig(
-          fs.readFileSync(path.join(repoRoot, "config.toml"), "utf8"),
-        );
-        const baseUrl = (
-          showLinks.baseUrl || "https://harvestseason.club/"
-        ).replace(/\/+$/, "");
-        const episodeUrl = `${baseUrl}/${path
-          .relative(path.join(repoRoot, "content"), episodeDir)
-          .split(path.sep)
-          .join("/")}/`;
-
         const state = await episodeState.readState(episodeDir);
-        const episode = {
-          title: discovered.episodeTitle,
-          // The description is read from index.md rather than discovery data, so
-          // hand edits made after the run are what get announced.
-          description:
-            parseFrontmatterDescription(fs.readFileSync(indexPath, "utf8")) ||
-            discovered.description,
-          chapters: (discovered.chapters || []).map((ch) => ch.title),
-          clipHooks: (state?.clipSuggestions || []).map((suggestion) => ({
-            title: suggestion.title,
-            caption: suggestion.llmReason || "",
-          })),
-          episodeUrl,
+        const episode = buildSocialEpisode({
+          repoRoot,
+          episodeDir,
+          episodeTitle: discovered.episodeTitle,
+          fallbackDescription: discovered.description,
+          chapters: discovered.chapters,
+          clipSuggestions: state?.clipSuggestions,
           mainTopic: discovered.mainTopic,
-        };
+        });
 
         const result = await generateSocialPostsCached({
           cacheDir: path.join(

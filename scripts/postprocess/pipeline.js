@@ -21,6 +21,10 @@ const {
   selectTranscriptFixes,
 } = require("./transcript-review");
 const { suggestClipsLlmCached } = require("./clip-suggestions-llm");
+const {
+  buildSocialEpisode,
+  generateSocialPostsCached,
+} = require("./social-posts");
 const { analyzeAudioCached, buildAudioQcWarnings } = require("./audio-qc");
 const episodeState = require("./episode-state");
 const { sha256FileHex } = require("./spaces");
@@ -839,6 +843,9 @@ function startBackgroundAiAnalysis({
   chapters,
   hostNames,
   heuristicClipSuggestions,
+  episodeTitle,
+  mainTopic,
+  fallbackDescription,
   llmComplete,
   quotaRetryDelaysMs = QUOTA_RETRY_DELAYS_MS,
 }) {
@@ -907,6 +914,15 @@ function startBackgroundAiAnalysis({
         );
       } catch (error) {
         review = { findings: [], error: error.message };
+      }
+      // Retry/failover lines stream to the UI as they happen, so every stage states
+      // its outcome too - otherwise a stage that struggled and then succeeded is
+      // indistinguishable from one that silently died. Cache hits did no work and
+      // had no struggle to resolve, so they stay quiet.
+      if (!review.error && !review.fromCache) {
+        console.log(
+          `Transcript check: done - ${review.findings.length} finding(s)`,
+        );
       }
 
       const highFixes = selectTranscriptFixes(review, undefined);
@@ -977,6 +993,11 @@ function startBackgroundAiAnalysis({
           if (llmClips.suggestions.length > 0) {
             clipSuggestions = llmClips.suggestions;
             clipSource = "llm";
+            if (!llmClips.fromCache) {
+              console.log(
+                `Clip suggestions: done - ${llmClips.suggestions.length} clip(s)`,
+              );
+            }
           } else {
             clipWarning = "the AI returned nothing usable";
           }
@@ -994,14 +1015,61 @@ function startBackgroundAiAnalysis({
         return state;
       });
 
+      // Social posts are drafted now, while nobody is waiting, so the Social Posts
+      // button at release time answers from the cache instantly instead of sitting
+      // through whatever weather the LLMs are having. The click still regenerates
+      // when the title, description or clips have changed since - that is the cache
+      // key doing its job.
+      await episodeState.patchJob(episodeDir, "aiAnalysis", {
+        stage: "social-posts",
+      });
+      let socialWarning = null;
+      if (isQuotaOutage(review.error) || isQuotaOutage(clipWarning)) {
+        socialWarning = "skipped: the API quota is already exhausted";
+      } else {
+        try {
+          const social = await withQuotaRetries("Social posts", () =>
+            generateSocialPostsCached({
+              cacheDir: path.join(
+                repoRoot,
+                ".cache",
+                "postprocess",
+                "social-posts",
+              ),
+              episode: buildSocialEpisode({
+                repoRoot,
+                episodeDir,
+                episodeTitle,
+                fallbackDescription,
+                chapters,
+                clipSuggestions,
+                mainTopic,
+              }),
+              llm,
+              complete: llmComplete,
+            }),
+          );
+          if (!social.fromCache) {
+            console.log(
+              "Social posts: drafted - the Social Posts button is ready",
+            );
+          }
+        } catch (error) {
+          socialWarning = error.message;
+          console.error(`Social posts: failed - ${error.message}`);
+        }
+      }
+
       await episodeState.finishJob(episodeDir, "aiAnalysis", {
         status: "completed",
         findings: review.findings.length,
         fixesApplied: appliedFixes.length,
         clipCount: clipSuggestions.length,
         clipSource,
+        socialDrafted: !socialWarning,
         ...(review.error ? { reviewError: review.error } : {}),
         ...(clipWarning ? { clipWarning } : {}),
+        ...(socialWarning ? { socialWarning } : {}),
       });
     } catch (error) {
       console.error("AI analysis error:", error.message);
@@ -1368,7 +1436,7 @@ async function runPipeline(inputOptions = {}) {
 
   if (llm) {
     onProgress(
-      "AI transcript check and clip selection queued in the background...",
+      "AI transcript check, clip selection and social posts queued in the background...",
     );
     await episodeState.startJob(episodeDir, "aiAnalysis", {
       stage: "transcript-check",
@@ -1380,6 +1448,9 @@ async function runPipeline(inputOptions = {}) {
       chapters: chaptersWithImages,
       hostNames: config.hostNames,
       heuristicClipSuggestions: discovered.clipSuggestions,
+      episodeTitle,
+      mainTopic: discovered.mainTopic,
+      fallbackDescription: description,
       llmComplete: inputOptions.llmComplete,
       quotaRetryDelaysMs: inputOptions.aiAnalysisQuotaRetryDelaysMs,
     });
