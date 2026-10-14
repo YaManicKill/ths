@@ -1,0 +1,25 @@
+{
+  "version": "1.2.0",
+  "chapters": [
+    {
+      "startTime": 0,
+      "title": "Theme Tune"
+    },
+    {
+      "startTime": 30.224,
+      "title": "Intro"
+    },
+    {
+      "startTime": 297.61,
+      "title": "What Have We Been Up To"
+    },
+    {
+      "startTime": 2350.319,
+      "title": "Fields Of Mistria"
+    },
+    {
+      "startTime": 5860.958,
+      "title": "Outro"
+    }
+  ]
+}
