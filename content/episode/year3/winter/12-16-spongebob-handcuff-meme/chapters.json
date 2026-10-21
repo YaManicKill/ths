@@ -1,0 +1,137 @@
+{
+  "version": "1.2.0",
+  "chapters": [
+    {
+      "startTime": 0,
+      "title": "Theme Tune"
+    },
+    {
+      "startTime": 30.224,
+      "title": "Intro"
+    },
+    {
+      "startTime": 186.019,
+      "title": "What Have We Been Up To"
+    },
+    {
+      "startTime": 1920.749,
+      "title": "Game Releases"
+    },
+    {
+      "startTime": 1940.205,
+      "title": "Hammer And Harvest: Dwarven Roots",
+      "toc": false
+    },
+    {
+      "startTime": 2047.285,
+      "title": "Usagi Shima",
+      "toc": false
+    },
+    {
+      "startTime": 2182.327,
+      "title": "Meadgard",
+      "toc": false
+    },
+    {
+      "startTime": 2216.026,
+      "title": "Out And About",
+      "toc": false
+    },
+    {
+      "startTime": 2282.58,
+      "title": "Game Updates"
+    },
+    {
+      "startTime": 2289.116,
+      "title": "Moonlight Peaks",
+      "toc": false
+    },
+    {
+      "startTime": 2402.44,
+      "title": "Coral Island",
+      "toc": false
+    },
+    {
+      "startTime": 3405.081,
+      "title": "Farlands",
+      "toc": false
+    },
+    {
+      "startTime": 3480.318,
+      "title": "Star Birds",
+      "toc": false
+    },
+    {
+      "startTime": 3719.018,
+      "title": "Solarpunk",
+      "toc": false
+    },
+    {
+      "startTime": 3786.401,
+      "title": "Dragon Acres",
+      "toc": false
+    },
+    {
+      "startTime": 3843.541,
+      "title": "Hello Kitty: Island Adventure",
+      "toc": false
+    },
+    {
+      "startTime": 4068.244,
+      "title": "Lou's Lagoon",
+      "toc": false
+    },
+    {
+      "startTime": 4085.937,
+      "title": "One Lonely Outpost",
+      "toc": false
+    },
+    {
+      "startTime": 4228.381,
+      "title": "Dave The Diver",
+      "toc": false
+    },
+    {
+      "startTime": 4367.587,
+      "title": "Other News"
+    },
+    {
+      "startTime": 4372.35,
+      "title": "Pokopia",
+      "toc": false
+    },
+    {
+      "startTime": 4479.573,
+      "title": "Lightyear Frontier",
+      "toc": false
+    },
+    {
+      "startTime": 4524.217,
+      "title": "Country Slime",
+      "toc": false
+    },
+    {
+      "startTime": 4743.543,
+      "title": "Lone Farm",
+      "toc": false
+    },
+    {
+      "startTime": 4801.028,
+      "title": "Haunted Chocolatier",
+      "toc": false
+    },
+    {
+      "startTime": 5099.224,
+      "title": "New Games"
+    },
+    {
+      "startTime": 5104.001,
+      "title": "Moonfrost",
+      "toc": false
+    },
+    {
+      "startTime": 5430.533,
+      "title": "Outro"
+    }
+  ]
+}
