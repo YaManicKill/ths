@@ -10,7 +10,7 @@
     "package": "npm run dist && open -R \"dist/mac-arm64/THS Post-Process.app\""
   },
   "devDependencies": {
-    "electron": "^44.0.0",
+    "electron": "^45.0.0",
     "electron-builder": "^26.15.3"
   },
   "build": {
