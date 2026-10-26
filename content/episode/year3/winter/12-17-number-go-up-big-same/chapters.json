@@ -1,0 +1,63 @@
+{
+  "version": "1.2.0",
+  "chapters": [
+    {
+      "startTime": 0,
+      "title": "Theme Tune"
+    },
+    {
+      "startTime": 30.224,
+      "title": "Intro"
+    },
+    {
+      "startTime": 131.869,
+      "title": "What Have We Been Up To"
+    },
+    {
+      "startTime": 1025.331,
+      "title": "Game News"
+    },
+    {
+      "startTime": 1028.959,
+      "title": "Early Access Releases",
+      "toc": false
+    },
+    {
+      "startTime": 1284.551,
+      "title": "Farlands",
+      "toc": false
+    },
+    {
+      "startTime": 1443.841,
+      "title": "Travellers Rest",
+      "toc": false
+    },
+    {
+      "startTime": 1610.112,
+      "title": "Disney Dreamlight Valley",
+      "toc": false
+    },
+    {
+      "startTime": 1758.898,
+      "title": "Usagi Shima",
+      "toc": false
+    },
+    {
+      "startTime": 1820.718,
+      "title": "New Games"
+    },
+    {
+      "startTime": 1829.161,
+      "title": "Crop",
+      "toc": false
+    },
+    {
+      "startTime": 1960.361,
+      "title": "Keep Watering"
+    },
+    {
+      "startTime": 3786.206,
+      "title": "Outro"
+    }
+  ]
+}
