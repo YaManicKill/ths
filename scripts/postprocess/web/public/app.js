@@ -8,7 +8,6 @@ const rerenderMp4Button = document.getElementById("rerender-mp4-button");
 const previewSection = document.getElementById("image-preview-section");
 const chaptersGrid = document.getElementById("chapters-grid");
 const approveButton = document.getElementById("approve-button");
-const toggleOverridesButton = document.getElementById("toggle-overrides");
 const skipVideoCheckbox = document.getElementById("skip-video");
 const discoverySummarySection = document.getElementById("discovery-summary");
 const discoverySummaryContent = document.getElementById(
@@ -122,7 +121,6 @@ function setVideoRenderUiState(inProgress) {
   setProcessActionsVisibility();
 
   if (isVideoRenderInProgress) {
-    toggleOverridesButton.style.display = "none";
     previewSection.style.display = "none";
     shownotesLinksSection.style.display = "none";
     approveButton.disabled = true;
@@ -147,7 +145,6 @@ function setVideoRenderCompletedUiState(completed) {
   }
 
   isVideoRenderInProgress = false;
-  toggleOverridesButton.style.display = "none";
   previewSection.style.display = "none";
   shownotesLinksSection.style.display = "none";
   clipSuggestionsSection.style.display = "none";
@@ -159,13 +156,12 @@ function setVideoRenderCompletedUiState(completed) {
 
 function setProcessActionsVisibility() {
   processActionsSection.style.display = currentDiscoveryData ? "block" : "none";
-  // YouTube description and social posts read the generated index.md; before the
-  // episode exists they can only error.
-  const publishDisplay = isEpisodeGenerated ? "inline-block" : "none";
-  uploadMp3Button.style.display = publishDisplay;
-  publishMp3Button.style.display = publishDisplay;
-  uploadYoutubeButton.style.display = publishDisplay;
-  socialPostsButton.style.display = publishDisplay;
+  // Re-checking reads the written episode transcripts, which exist once generated.
+  recheckTranscriptButton.style.display = isEpisodeGenerated
+    ? "inline-block"
+    : "none";
+  // The publish buttons' visibility lives in renderPublishChecklist, which knows
+  // what is already done; only the can't-act-right-now disabling belongs here.
   // An in-flight Approve rewrites the MP3 (the chapter-image embed), so uploading
   // mid-run would ship a half-written file; and there is nothing to make public until
   // an upload has been recorded. YouTube needs the finished MP4.
@@ -243,7 +239,56 @@ function setInputValue(name, value) {
   }
 
   element.value = value;
+  fieldRowSync.get(name)?.();
 }
+
+// ---------- Inline-editable episode fields ----------
+// Each field reads as text with a pencil; the pencil swaps in the real input, and
+// leaving the input swaps the text back. The inputs stay in the form throughout,
+// so FormData, auto-discovery and override saving are untouched.
+const fieldRowSync = new Map();
+
+function setupFieldRows() {
+  if (typeof form.querySelectorAll !== "function") {
+    return;
+  }
+  for (const row of form.querySelectorAll(".field-row")) {
+    const input = row.querySelector("input");
+    const value = row.querySelector(".field-value");
+    const editButton = row.querySelector(".field-edit");
+    if (!input || !value || !editButton) {
+      continue;
+    }
+    const showText = () => {
+      // A discovery result landing while this field is being edited must not
+      // snatch the editor away mid-keystroke; the swap happens on its blur.
+      if (document.activeElement === input) {
+        return;
+      }
+      value.textContent = input.value || "—";
+      value.style.color = input.value ? "" : "var(--muted)";
+      value.style.display = "";
+      editButton.style.display = "";
+      input.style.display = "none";
+    };
+    editButton.addEventListener("click", () => {
+      value.style.display = "none";
+      editButton.style.display = "none";
+      input.style.display = "block";
+      input.focus();
+    });
+    input.addEventListener("blur", showText);
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        input.blur();
+      }
+    });
+    fieldRowSync.set(input.name, showText);
+    showText();
+  }
+}
+setupFieldRows();
 
 function prefillFromQuery() {
   const params = new URLSearchParams(window.location.search);
@@ -870,12 +915,10 @@ function renderTranscriptReview(review) {
 function renderTranscriptFixSection() {
   transcriptReviewList.innerHTML = "";
 
-  // Once the episode is generated the section stays up even with nothing pending, so
-  // the re-check button has a home after hand edits.
+  // The re-check button lives in Process Actions, so with nothing pending there is
+  // nothing to show here.
   transcriptReviewSection.style.display =
-    currentTranscriptFindings.length > 0 || isEpisodeGenerated
-      ? "block"
-      : "none";
+    currentTranscriptFindings.length > 0 ? "block" : "none";
   applyTranscriptFixesButton.style.display =
     currentTranscriptFindings.length > 0 ? "inline-block" : "none";
   if (currentTranscriptFindings.length === 0) {
@@ -1177,26 +1220,15 @@ function renderProfanityStatus(
   }
 }
 
+// Only the facts that have no editable row of their own; title, topic, description
+// and date all live in the field rows above.
 function renderDiscoverySummary(discovered) {
-  const lines = [];
-  lines.push(`Episode: ${discovered.episodeTitle}`);
-  lines.push(
-    `Code: ths-${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}`,
-  );
-  lines.push(
-    `Season: ${discovered.seasonInfo.seasonName} (Year ${discovered.seasonInfo.year})`,
-  );
-  lines.push(`Chapters discovered: ${discovered.chapters.length}`);
-  lines.push(`Links placeholders: ${discovered.hiddenLinkTitles.length}`);
-  if (discovered.dateString) {
-    lines.push(`Publish date: ${discovered.dateString}`);
-  }
-  if (discovered.description) {
-    lines.push("");
-    lines.push(`Description: ${discovered.description}`);
-  }
-
-  discoverySummaryContent.textContent = lines.join("\n");
+  discoverySummaryContent.textContent = [
+    `ths-${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}`,
+    `${discovered.seasonInfo.seasonName} (Year ${discovered.seasonInfo.year})`,
+    `${discovered.chapters.length} chapters`,
+    `${discovered.hiddenLinkTitles.length} link placeholder(s)`,
+  ].join(" · ");
 }
 
 // One shared player: starting a preview stops any other, and playback pauses itself
@@ -2242,6 +2274,10 @@ function renderTitleSuggestions(titles) {
   });
 }
 
+// Set by a main-topic edit: the description it cleared must be re-derived rather
+// than restored from the saved overrides on the next discovery.
+let descriptionRederivePending = false;
+
 function buildDiscoverPayload() {
   const formData = new FormData(form);
   return {
@@ -2253,6 +2289,7 @@ function buildDiscoverPayload() {
       String(formData.get("episodeTitle") || "").trim() || undefined,
     description: String(formData.get("description") || "").trim() || undefined,
     publishDate: String(formData.get("publishDate") || "").trim() || undefined,
+    ...(descriptionRederivePending ? { rederiveDescription: true } : {}),
   };
 }
 
@@ -2320,7 +2357,6 @@ async function runDiscovery() {
     !payload.transcriptMdPath ||
     !payload.transcriptVttPath
   ) {
-    toggleOverridesButton.style.display = "none";
     addStatus(
       "Fill in MP3 + transcript paths. Discovery will run automatically.",
     );
@@ -2334,7 +2370,6 @@ async function runDiscovery() {
 
   resetStatus();
   isDiscovering = true;
-  toggleOverridesButton.style.display = "none";
   currentTranscriptFindings = [];
   renderTranscriptFixSection();
 
@@ -2349,12 +2384,14 @@ async function runDiscovery() {
     stopDiscoverSpinner("✓ Discovery complete");
 
     if (result.type === "error" || !result.success) {
-      toggleOverridesButton.style.display = "none";
       addStatus(`❌ Discovery failed: ${result.error}`);
       return;
     }
 
     setInputValue("description", result.discovered.description || "");
+    // The field now holds the freshly derived description; later discoveries may
+    // defer to the saved overrides again.
+    descriptionRederivePending = false;
     setInputValue("publishDate", result.discovered.dateString || "");
     setInputValue("episodeTitle", result.discovered.episodeTitle || "");
     setInputValue("mainTopic", result.discovered.mainTopic || "");
@@ -2488,10 +2525,6 @@ async function runDiscovery() {
       );
     }
 
-    if (!hasActiveVideoRun && !hasCompletedVideoRun) {
-      toggleOverridesButton.style.display = "inline-block";
-    }
-
     renderDiscoverySummary(result.discovered);
     discoverySummarySection.style.display = "block";
     if (!hasActiveVideoRun && !hasCompletedVideoRun) {
@@ -2524,11 +2557,13 @@ form.addEventListener("submit", async (event) => {
   runDiscovery();
 });
 
+// "change", not "input": re-discovery mid-typing would close the inline editor
+// under the user's cursor. Committing the edit (blur or Enter) is the trigger.
 ["mp3Path", "transcriptMdPath", "transcriptVttPath", "episodeTitle"].forEach(
   (name) => {
     const input = form.elements.namedItem(name);
     if (input) {
-      input.addEventListener("input", scheduleDiscovery);
+      input.addEventListener("change", scheduleDiscovery);
     }
   },
 );
@@ -2545,8 +2580,9 @@ form.addEventListener("submit", async (event) => {
 // override, so re-discovery derives it fresh from the new topic.
 const mainTopicInput = form.elements.namedItem("mainTopic");
 if (mainTopicInput) {
-  mainTopicInput.addEventListener("input", () => {
+  mainTopicInput.addEventListener("change", () => {
     setInputValue("description", "");
+    descriptionRederivePending = true;
     scheduleDiscovery();
   });
 }
@@ -2656,7 +2692,6 @@ async function pollVideoStatus(episodeDir) {
         setVideoRenderCompletedUiState(false);
         previewSection.style.display = "block";
         shownotesLinksSection.style.display = "block";
-        toggleOverridesButton.style.display = "inline-block";
         setStatusLine(
           videoLineId,
           "ℹ Previous MP4 generation was interrupted by a server restart. Start a new run to continue.",
@@ -2671,7 +2706,6 @@ async function pollVideoStatus(episodeDir) {
         // visible too - otherwise the re-approve happens blind.
         previewSection.style.display = "block";
         shownotesLinksSection.style.display = "block";
-        toggleOverridesButton.style.display = "inline-block";
         setStatusLine(videoLineId, `❌ MP4 generation failed: ${mp4.error}`);
         return { status: "failed", error: mp4.error };
       } else {
@@ -3508,6 +3542,12 @@ let socialDraftsGeneratedThisSession = false;
 
 async function renderPublishChecklist() {
   const episodeDir = currentEpisodeDir;
+  const publishButtons = [
+    uploadMp3Button,
+    publishMp3Button,
+    uploadYoutubeButton,
+    socialPostsButton,
+  ];
   const setAll = (text) => {
     for (const element of [
       publishMp3State,
@@ -3516,6 +3556,10 @@ async function renderPublishChecklist() {
       publishClipsState,
     ]) {
       element.textContent = text;
+      element.style.color = "";
+    }
+    for (const button of publishButtons) {
+      button.style.display = "none";
     }
   };
   if (!episodeDir) {
@@ -3537,25 +3581,45 @@ async function renderPublishChecklist() {
     return;
   }
 
+  // A finished item's button disappears: the ✓ is the whole story, and what is
+  // left to do is exactly what still shows a button. The generated gate stays:
+  // these all read the generated index.md or the embedded MP3.
+  const generated = data.phase === "generated";
+  const markDone = (element, done) => {
+    element.style.color = done ? "#4ade80" : "";
+  };
+
   const mp3 = data.mp3Upload;
+  const mp3Public = mp3?.acl === "public-read";
   publishMp3State.textContent = !mp3
     ? "Not uploaded yet."
-    : mp3.acl === "public-read"
+    : mp3Public
       ? `✓ Public${mp3.publishedAt ? ` since ${new Date(mp3.publishedAt).toLocaleString("en-GB")}` : ""}.`
       : `Uploaded privately${mp3.size ? ` (${(mp3.size / (1024 * 1024)).toFixed(1)} MB)` : ""} - make it public at release time.`;
+  markDone(publishMp3State, mp3Public);
+  uploadMp3Button.style.display =
+    generated && !mp3Public ? "inline-block" : "none";
+  publishMp3Button.style.display =
+    generated && mp3 && !mp3Public ? "inline-block" : "none";
 
   const youtube = data.youtubeUpload;
   publishYoutubeState.textContent = youtube?.videoId
     ? `✓ Uploaded${youtube.publishAt ? ` - goes public ${new Date(youtube.publishAt).toLocaleString("en-GB")}` : ""}.`
     : "Not uploaded yet - needs the finished MP4.";
+  markDone(publishYoutubeState, Boolean(youtube?.videoId));
+  uploadYoutubeButton.style.display =
+    generated && !youtube?.videoId ? "inline-block" : "none";
 
   const drafted = data.jobs?.aiAnalysis?.socialDrafted;
-  publishSocialState.textContent =
-    drafted === true || socialDraftsGeneratedThisSession
-      ? "✓ Drafts ready - the button opens prefilled compose tabs."
-      : drafted === false
-        ? "⚠ NOT drafted - the button will generate fresh drafts first, which can take a while."
-        : "Drafts are made during generation - run the process first.";
+  const draftsReady = drafted === true || socialDraftsGeneratedThisSession;
+  publishSocialState.textContent = draftsReady
+    ? "✓ Drafts ready - the button opens prefilled compose tabs."
+    : drafted === false
+      ? "⚠ NOT drafted - the button will generate fresh drafts first, which can take a while."
+      : "Drafts are made during generation - run the process first.";
+  markDone(publishSocialState, draftsReady);
+  // Posting social is always a manual act, so its button never disappears.
+  socialPostsButton.style.display = generated ? "inline-block" : "none";
 
   const clipJob = data.jobs?.clipGeneration;
   const rendered =
@@ -3563,16 +3627,18 @@ async function renderPublishChecklist() {
   const schedule = data.clipSchedule || [];
   if (rendered === 0 && schedule.length === 0) {
     publishClipsState.textContent = "No clip videos rendered yet.";
+    markDone(publishClipsState, false);
   } else {
     const lastDue = schedule
       .map((entry) => entry.dueAt)
       .sort()
       .at(-1);
-    publishClipsState.textContent = `${rendered} rendered, ${
+    publishClipsState.textContent = `${schedule.length ? "✓ " : ""}${rendered} rendered, ${
       schedule.length
         ? `${schedule.length} scheduled on Buffer through ${formatScheduledDue(lastDue)}.`
         : "none scheduled on Buffer yet."
     }`;
+    markDone(publishClipsState, schedule.length > 0);
   }
 }
 
@@ -4404,7 +4470,6 @@ recheckTranscriptButton.addEventListener("click", () => {
 
 approveButton.addEventListener("click", async () => {
   approveButton.disabled = true;
-  toggleOverridesButton.style.display = "none";
   isRunRequestInFlight = true;
   setProcessActionsVisibility();
   setVideoRenderUiState(true);
@@ -4549,6 +4614,7 @@ approveButton.addEventListener("click", async () => {
       addStatus("✓ Episode files written");
       isEpisodeGenerated = true;
       setProcessActionsVisibility();
+      renderPublishChecklist();
       renderTranscriptFixSection();
       if (result.mp3ChapterImages && result.mp3ChapterImages.completed) {
         addStatus(
@@ -4599,14 +4665,6 @@ approveButton.addEventListener("click", async () => {
       approveButton.disabled = false;
     }
   }
-});
-
-toggleOverridesButton.addEventListener("click", () => {
-  const showing = form.style.display !== "none";
-  form.style.display = showing ? "none" : "block";
-  toggleOverridesButton.textContent = showing
-    ? "Show Overrides"
-    : "Hide Overrides";
 });
 
 generateClipVideosButton.addEventListener("click", async () => {

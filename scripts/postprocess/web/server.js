@@ -1013,8 +1013,15 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           transcriptVttPath: payload.transcriptVttPath,
           episodeTitle:
             payload.episodeTitle || reviewOverrides?.episodeTitle || undefined,
+          // An empty field normally defers to the saved override (a fresh page must
+          // restore edits), but a topic edit clears the description on purpose so a
+          // new one is derived - the client says so explicitly.
           description:
-            payload.description || reviewOverrides?.description || undefined,
+            payload.description ||
+            (payload.rederiveDescription
+              ? undefined
+              : reviewOverrides?.description) ||
+            undefined,
           mainTopic:
             payload.mainTopic || reviewOverrides?.mainTopic || undefined,
           publishDate:

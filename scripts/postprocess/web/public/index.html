@@ -25,9 +25,84 @@
       </nav>
 
       <div id="tab-generation" class="tab-panel">
-        <section id="discovery-summary" style="display: none">
-          <h2>Discovered Episode Data</h2>
-          <pre id="discovery-summary-content"></pre>
+        <section>
+          <h2>Episode</h2>
+          <div
+            id="discovery-summary"
+            class="tab-blurb"
+            style="display: none; margin: 10px 0"
+          >
+            <span id="discovery-summary-content"></span>
+          </div>
+          <form id="run-form">
+            <div class="field-row">
+              <span class="field-name">Title</span>
+              <span class="field-value"></span>
+              <button type="button" class="field-edit" title="Edit">✎</button>
+              <input name="episodeTitle" placeholder="Custom episode title" />
+            </div>
+            <div class="field-row">
+              <span class="field-name">Main topic</span>
+              <span class="field-value"></span>
+              <button type="button" class="field-edit" title="Edit">✎</button>
+              <input
+                name="mainTopic"
+                placeholder="What the episode is about (guessed from the chapter before Outro)"
+                title="Drives the derived description and the YouTube title; editing it regenerates the description"
+              />
+            </div>
+            <div class="field-row">
+              <span class="field-name">Description</span>
+              <span class="field-value"></span>
+              <button type="button" class="field-edit" title="Edit">✎</button>
+              <input
+                name="description"
+                placeholder="Custom frontmatter description"
+              />
+            </div>
+            <div class="field-row">
+              <span class="field-name">Publish date</span>
+              <span class="field-value"></span>
+              <button type="button" class="field-edit" title="Edit">✎</button>
+              <input
+                name="publishDate"
+                placeholder="2026-05-13T19:00:00+01:00"
+              />
+            </div>
+            <details id="path-fields">
+              <summary>File paths</summary>
+              <div class="field-row">
+                <span class="field-name">MP3</span>
+                <span class="field-value"></span>
+                <button type="button" class="field-edit" title="Edit">✎</button>
+                <input
+                  name="mp3Path"
+                  required
+                  placeholder="/absolute/path/to/ths-11-18.mp3"
+                />
+              </div>
+              <div class="field-row">
+                <span class="field-name">Transcript MD</span>
+                <span class="field-value"></span>
+                <button type="button" class="field-edit" title="Edit">✎</button>
+                <input
+                  name="transcriptMdPath"
+                  required
+                  placeholder="/absolute/path/to/Episode Name.md"
+                />
+              </div>
+              <div class="field-row">
+                <span class="field-name">Transcript VTT</span>
+                <span class="field-value"></span>
+                <button type="button" class="field-edit" title="Edit">✎</button>
+                <input
+                  name="transcriptVttPath"
+                  required
+                  placeholder="/absolute/path/to/Episode Name.vtt"
+                />
+              </div>
+            </details>
+          </form>
         </section>
 
         <section id="process-actions-section" style="display: none">
@@ -39,13 +114,15 @@
             <button type="button" id="rerender-mp4-button">
               Re-render MP4
             </button>
+            <button
+              type="button"
+              id="recheck-transcript-button"
+              style="display: none"
+              title="Re-review the written transcripts after hand edits"
+            >
+              Re-run Transcript Check
+            </button>
           </div>
-        </section>
-
-        <section>
-          <button type="button" id="toggle-overrides" style="display: none">
-            Show Overrides
-          </button>
         </section>
 
         <section id="title-suggestions-section" style="display: none">
@@ -57,72 +134,9 @@
           <div id="title-suggestions-list"></div>
         </section>
 
-        <form id="run-form" style="display: none">
-          <label>
-            MP3 path
-            <input
-              name="mp3Path"
-              required
-              placeholder="/absolute/path/to/ths-11-18.mp3"
-            />
-          </label>
-
-          <label>
-            Transcript MD path
-            <input
-              name="transcriptMdPath"
-              required
-              placeholder="/absolute/path/to/Episode Name.md"
-            />
-          </label>
-
-          <label>
-            Transcript VTT path
-            <input
-              name="transcriptVttPath"
-              required
-              placeholder="/absolute/path/to/Episode Name.vtt"
-            />
-          </label>
-
-          <label>
-            Episode title
-            <input name="episodeTitle" placeholder="Custom episode title" />
-          </label>
-
-          <label>
-            Main topic
-            <input
-              name="mainTopic"
-              placeholder="What the episode is about (guessed from the chapter before Outro)"
-              title="Drives the derived description and the YouTube title; editing it regenerates the description"
-            />
-          </label>
-
-          <label>
-            Description
-            <input
-              name="description"
-              placeholder="Custom frontmatter description"
-            />
-          </label>
-
-          <label>
-            Publish date
-            <input name="publishDate" placeholder="2026-05-13T19:00:00+01:00" />
-          </label>
-        </form>
-
         <section id="transcript-review-section" style="display: none">
           <h2>AI Transcript Fixes</h2>
           <div id="transcript-review-list"></div>
-          <button
-            type="button"
-            id="recheck-transcript-button"
-            style="margin-top: 12px"
-          >
-            Re-run Transcript Check
-          </button>
           <button
             type="button"
             id="apply-transcript-fixes-button"
