@@ -12,230 +12,348 @@
         <h1>THS Post-Process Runner</h1>
       </header>
 
-      <section id="discovery-summary" style="display: none">
-        <h2>Discovered Episode Data</h2>
-        <pre id="discovery-summary-content"></pre>
-      </section>
-
-      <section>
-        <h2>Status</h2>
-        <pre id="result"></pre>
-      </section>
-
-      <section id="process-actions-section" style="display: none">
-        <h2>Process Actions</h2>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap">
-          <button type="button" id="restart-process-button" class="danger">
-            Clear & Restart Process
-          </button>
-          <button type="button" id="rerender-mp4-button">Re-render MP4</button>
-          <button
-            type="button"
-            id="upload-mp3-button"
-            style="display: none"
-            title="Upload the embedded MP3 to DigitalOcean Spaces (private) at the feed's enclosure path"
-          >
-            Upload MP3
-          </button>
-          <button
-            type="button"
-            id="publish-mp3-button"
-            style="display: none"
-            title="Make the uploaded MP3 public - do this just before release"
-          >
-            Make MP3 Public
-          </button>
-          <button
-            type="button"
-            id="upload-youtube-button"
-            style="display: none"
-            title="Upload the chapter MP4 to YouTube with the generated description, scheduled for the episode's publish time"
-          >
-            Upload to YouTube
-          </button>
-          <button type="button" id="social-posts-button" style="display: none">
-            Social Posts
-          </button>
-          <button
-            type="button"
-            id="cancel-clips-button"
-            class="danger"
-            style="display: none"
-          >
-            Cancel Clip Generation
-          </button>
-        </div>
-      </section>
-
-      <section>
-        <button type="button" id="toggle-overrides" style="display: none">
-          Show Overrides
+      <nav id="tab-bar">
+        <button type="button" id="tab-button-generation" class="tab-button">
+          Generation
         </button>
-      </section>
-
-      <section id="title-suggestions-section" style="display: none">
-        <h2>Title Suggestions</h2>
-        <div style="color: #94a3b8; margin: 10px 0">
-          The episode title still looks like a placeholder — pick an AI
-          suggestion below, or set your own in Overrides.
-        </div>
-        <div id="title-suggestions-list"></div>
-      </section>
-
-      <form id="run-form" style="display: none">
-        <label>
-          MP3 path
-          <input
-            name="mp3Path"
-            required
-            placeholder="/absolute/path/to/ths-11-18.mp3"
-          />
-        </label>
-
-        <label>
-          Transcript MD path
-          <input
-            name="transcriptMdPath"
-            required
-            placeholder="/absolute/path/to/Episode Name.md"
-          />
-        </label>
-
-        <label>
-          Transcript VTT path
-          <input
-            name="transcriptVttPath"
-            required
-            placeholder="/absolute/path/to/Episode Name.vtt"
-          />
-        </label>
-
-        <label>
-          Episode title
-          <input name="episodeTitle" placeholder="Custom episode title" />
-        </label>
-
-        <label>
-          Main topic
-          <input
-            name="mainTopic"
-            placeholder="What the episode is about (guessed from the chapter before Outro)"
-            title="Drives the derived description and the YouTube title; editing it regenerates the description"
-          />
-        </label>
-
-        <label>
-          Description
-          <input
-            name="description"
-            placeholder="Custom frontmatter description"
-          />
-        </label>
-
-        <label>
-          Publish date
-          <input name="publishDate" placeholder="2026-05-13T19:00:00+01:00" />
-        </label>
-      </form>
-
-      <section id="transcript-review-section" style="display: none">
-        <h2>AI Transcript Fixes</h2>
-        <div id="transcript-review-list"></div>
-        <button
-          type="button"
-          id="recheck-transcript-button"
-          style="margin-top: 12px"
-        >
-          Re-run Transcript Check
+        <button type="button" id="tab-button-clips" class="tab-button">
+          Clips
         </button>
-        <button
-          type="button"
-          id="apply-transcript-fixes-button"
-          style="margin-top: 12px"
-        >
-          Apply Ticked Fixes
+        <button type="button" id="tab-button-publish" class="tab-button">
+          Publish
         </button>
-      </section>
+      </nav>
 
-      <section id="shownotes-links-section" style="display: none">
-        <h2>Shownotes Links</h2>
-        <div id="shownotes-links-list"></div>
-        <button type="button" id="add-shownotes-link-button">Add Link</button>
-      </section>
-
-      <section id="image-preview-section" style="display: none">
-        <h2>Chapter Images Preview</h2>
-        <div id="chapters-grid"></div>
-        <label class="checkbox" style="margin-top: 12px">
-          <input type="checkbox" id="skip-video" name="skipVideo" />
-          Skip MP4 generation for this run
-        </label>
-        <button
-          id="approve-button"
-          style="margin-top: 20px; padding: 10px 20px; font-size: 1em"
-        >
-          ✓ Approve & Generate Files
-        </button>
-      </section>
-
-      <section id="clip-suggestions-section" style="display: none">
-        <details>
-          <summary style="cursor: pointer">
-            <h2
-              id="clip-suggestions-summary"
-              style="display: inline; margin: 0"
-            >
-              Clip Suggestions
-            </h2>
-          </summary>
+      <div id="tab-generation" class="tab-panel">
+        <section>
+          <h2>Episode</h2>
           <div
-            id="clip-queue-note"
-            style="display: none; color: #94a3b8; margin: 10px 0"
+            id="discovery-summary"
+            class="tab-blurb"
+            style="display: none; margin: 10px 0"
           >
-            ⏳ An MP4 render is in progress — clips generated now will queue and
-            start when it finishes.
+            <span id="discovery-summary-content"></span>
           </div>
-          <div id="clip-suggestions-list" style="margin-top: 12px"></div>
-          <button
-            type="button"
-            id="more-clip-suggestions-button"
-            style="margin-top: 16px"
-            title="Ask the AI for new moments not covered by the clips above"
-          >
-            Suggest More Clips
-          </button>
-          <div
-            style="
-              display: flex;
-              gap: 8px;
-              margin-top: 12px;
-              align-items: center;
-            "
-          >
-            <input
-              type="text"
-              id="find-clip-input"
-              placeholder="Describe a moment, e.g. the chickens escaping the barn"
-              title="Ask the AI to find a moment you remember and turn it into a clip"
-              style="flex: 1; min-width: 0"
-            />
+          <form id="run-form">
+            <div class="field-row">
+              <span class="field-name">Title</span>
+              <span class="field-value"></span>
+              <button type="button" class="field-edit" title="Edit">✎</button>
+              <input name="episodeTitle" placeholder="Custom episode title" />
+            </div>
+            <div class="field-row">
+              <span class="field-name">Main topic</span>
+              <span class="field-value"></span>
+              <button type="button" class="field-edit" title="Edit">✎</button>
+              <input
+                name="mainTopic"
+                placeholder="What the episode is about (guessed from the chapter before Outro)"
+                title="Drives the derived description and the YouTube title; editing it regenerates the description"
+              />
+            </div>
+            <div class="field-row">
+              <span class="field-name">Description</span>
+              <span class="field-value"></span>
+              <button type="button" class="field-edit" title="Edit">✎</button>
+              <input
+                name="description"
+                placeholder="Custom frontmatter description"
+              />
+            </div>
+            <div class="field-row">
+              <span class="field-name">Publish date</span>
+              <span class="field-value"></span>
+              <button type="button" class="field-edit" title="Edit">✎</button>
+              <input
+                name="publishDate"
+                placeholder="2026-05-13T19:00:00+01:00"
+              />
+            </div>
+            <details id="path-fields">
+              <summary>File paths</summary>
+              <div class="field-row">
+                <span class="field-name">MP3</span>
+                <span class="field-value"></span>
+                <button type="button" class="field-edit" title="Edit">✎</button>
+                <input
+                  name="mp3Path"
+                  required
+                  placeholder="/absolute/path/to/ths-11-18.mp3"
+                />
+              </div>
+              <div class="field-row">
+                <span class="field-name">Transcript MD</span>
+                <span class="field-value"></span>
+                <button type="button" class="field-edit" title="Edit">✎</button>
+                <input
+                  name="transcriptMdPath"
+                  required
+                  placeholder="/absolute/path/to/Episode Name.md"
+                />
+              </div>
+              <div class="field-row">
+                <span class="field-name">Transcript VTT</span>
+                <span class="field-value"></span>
+                <button type="button" class="field-edit" title="Edit">✎</button>
+                <input
+                  name="transcriptVttPath"
+                  required
+                  placeholder="/absolute/path/to/Episode Name.vtt"
+                />
+              </div>
+            </details>
+          </form>
+        </section>
+
+        <section id="process-actions-section" style="display: none">
+          <h2>Process Actions</h2>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap">
+            <button type="button" id="restart-process-button" class="danger">
+              Clear & Restart Process
+            </button>
+            <button type="button" id="rerender-mp4-button">
+              Re-render MP4
+            </button>
             <button
               type="button"
-              id="find-clip-button"
-              title="Ask the AI to find this moment in the transcript (up to 3 candidates)"
+              id="recheck-transcript-button"
+              style="display: none"
+              title="Re-review the written transcripts after hand edits"
             >
-              Find Moment
+              Re-run Transcript Check
             </button>
           </div>
+        </section>
+
+        <section id="title-suggestions-section" style="display: none">
+          <h2>Title Suggestions</h2>
+          <div style="color: #94a3b8; margin: 10px 0">
+            The episode title still looks like a placeholder — pick an AI
+            suggestion below, or set your own in Overrides.
+          </div>
+          <div id="title-suggestions-list"></div>
+        </section>
+
+        <section id="transcript-review-section" style="display: none">
+          <h2>AI Transcript Fixes</h2>
+          <div id="transcript-review-list"></div>
           <button
-            id="generate-clip-videos-button"
-            style="margin-top: 16px; padding: 10px 20px; font-size: 1em"
+            type="button"
+            id="apply-transcript-fixes-button"
+            style="margin-top: 12px"
           >
-            Generate Approved Clip Videos
+            Apply Ticked Fixes
           </button>
-        </details>
-      </section>
+        </section>
+
+        <section id="shownotes-links-section" style="display: none">
+          <h2>Shownotes Links</h2>
+          <div id="shownotes-links-list"></div>
+          <button type="button" id="add-shownotes-link-button">Add Link</button>
+        </section>
+
+        <section id="image-preview-section" style="display: none">
+          <h2>Chapter Images Preview</h2>
+          <div id="chapters-grid"></div>
+          <label class="checkbox" style="margin-top: 12px">
+            <input type="checkbox" id="skip-video" name="skipVideo" />
+            Skip MP4 generation for this run
+          </label>
+          <button
+            id="approve-button"
+            style="margin-top: 20px; padding: 10px 20px; font-size: 1em"
+          >
+            ✓ Approve & Generate Files
+          </button>
+        </section>
+      </div>
+
+      <div id="tab-clips" class="tab-panel" style="display: none">
+        <p class="tab-blurb">
+          Pick, trim and render clip videos, then schedule them on Buffer.
+          Suggestions appear once an episode has been discovered and analysed.
+        </p>
+
+        <button
+          type="button"
+          id="cancel-clips-button"
+          class="danger"
+          style="display: none"
+        >
+          Cancel Clip Generation
+        </button>
+
+        <section id="clip-suggestions-section" style="display: none">
+          <details>
+            <summary style="cursor: pointer">
+              <h2
+                id="clip-suggestions-summary"
+                style="display: inline; margin: 0"
+              >
+                Clip Suggestions
+              </h2>
+            </summary>
+            <div
+              id="clip-queue-note"
+              style="display: none; color: #94a3b8; margin: 10px 0"
+            >
+              ⏳ An MP4 render is in progress — clips generated now will queue
+              and start when it finishes.
+            </div>
+            <div id="clip-suggestions-list" style="margin-top: 12px"></div>
+            <button
+              type="button"
+              id="more-clip-suggestions-button"
+              style="margin-top: 16px"
+              title="Ask the AI for new moments not covered by the clips above"
+            >
+              Suggest More Clips
+            </button>
+            <div
+              style="
+                display: flex;
+                gap: 8px;
+                margin-top: 12px;
+                align-items: center;
+              "
+            >
+              <input
+                type="text"
+                id="find-clip-input"
+                placeholder="Describe a moment, e.g. the chickens escaping the barn"
+                title="Ask the AI to find a moment you remember and turn it into a clip"
+                style="flex: 1; min-width: 0"
+              />
+              <button
+                type="button"
+                id="find-clip-button"
+                title="Ask the AI to find this moment in the transcript (up to 3 candidates)"
+              >
+                Find Moment
+              </button>
+            </div>
+            <button
+              id="generate-clip-videos-button"
+              style="margin-top: 16px; padding: 10px 20px; font-size: 1em"
+            >
+              Generate Approved Clip Videos
+            </button>
+          </details>
+        </section>
+
+        <section id="buffer-schedule-section" style="display: none">
+          <details>
+            <summary style="cursor: pointer">
+              <h2 style="display: inline; margin: 0">
+                Schedule Clips on Buffer
+              </h2>
+            </summary>
+            <div
+              id="buffer-schedule-note"
+              style="color: #94a3b8; margin: 10px 0"
+            ></div>
+            <div id="buffer-channel-list" style="margin: 10px 0"></div>
+            <div id="buffer-schedule-list"></div>
+            <button
+              type="button"
+              id="buffer-schedule-button"
+              style="
+                display: none;
+                margin-top: 16px;
+                padding: 10px 20px;
+                font-size: 1em;
+              "
+            >
+              Schedule on Buffer
+            </button>
+          </details>
+        </section>
+      </div>
+
+      <div id="tab-publish" class="tab-panel" style="display: none">
+        <section>
+          <h2>Release Checklist</h2>
+
+          <div class="publish-row">
+            <div class="publish-info">
+              <strong>Podcast MP3</strong>
+              <div id="publish-mp3-state" class="publish-state">
+                Load an episode to see its state.
+              </div>
+            </div>
+            <button
+              type="button"
+              id="upload-mp3-button"
+              style="display: none"
+              title="Upload the embedded MP3 to DigitalOcean Spaces (private) at the feed's enclosure path"
+            >
+              Upload MP3
+            </button>
+            <button
+              type="button"
+              id="publish-mp3-button"
+              style="display: none"
+              title="Make the uploaded MP3 public - do this just before release"
+            >
+              Make MP3 Public
+            </button>
+          </div>
+
+          <div class="publish-row">
+            <div class="publish-info">
+              <strong>YouTube</strong>
+              <div id="publish-youtube-state" class="publish-state">
+                Load an episode to see its state.
+              </div>
+            </div>
+            <button
+              type="button"
+              id="upload-youtube-button"
+              style="display: none"
+              title="Upload the chapter MP4 to YouTube with the generated description, scheduled for the episode's publish time"
+            >
+              Upload to YouTube
+            </button>
+          </div>
+
+          <div class="publish-row">
+            <div class="publish-info">
+              <strong>Social posts</strong>
+              <div id="publish-social-state" class="publish-state">
+                Load an episode to see its state.
+              </div>
+            </div>
+            <button
+              type="button"
+              id="social-posts-button"
+              style="display: none"
+            >
+              Social Posts
+            </button>
+          </div>
+
+          <div class="publish-row">
+            <div class="publish-info">
+              <strong>Clips</strong>
+              <div id="publish-clips-state" class="publish-state">
+                Load an episode to see its state.
+              </div>
+            </div>
+            <button type="button" id="publish-goto-clips-button">
+              Open Clips Tab
+            </button>
+          </div>
+        </section>
+      </div>
     </main>
+
+    <div id="status-dock">
+      <div id="status-dock-header">
+        <span>Status</span>
+        <button type="button" id="status-dock-toggle">Expand</button>
+      </div>
+      <pre id="result"></pre>
+    </div>
 
     <script src="/app.js"></script>
   </body>

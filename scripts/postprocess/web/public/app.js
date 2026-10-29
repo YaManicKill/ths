@@ -8,7 +8,6 @@ const rerenderMp4Button = document.getElementById("rerender-mp4-button");
 const previewSection = document.getElementById("image-preview-section");
 const chaptersGrid = document.getElementById("chapters-grid");
 const approveButton = document.getElementById("approve-button");
-const toggleOverridesButton = document.getElementById("toggle-overrides");
 const skipVideoCheckbox = document.getElementById("skip-video");
 const discoverySummarySection = document.getElementById("discovery-summary");
 const discoverySummaryContent = document.getElementById(
@@ -58,6 +57,14 @@ const titleSuggestionsSection = document.getElementById(
 const titleSuggestionsList = document.getElementById("title-suggestions-list");
 
 let currentDiscoveryData = null;
+let currentEpisodeDir = "";
+const bufferScheduleSection = document.getElementById(
+  "buffer-schedule-section",
+);
+const bufferScheduleNote = document.getElementById("buffer-schedule-note");
+const bufferChannelList = document.getElementById("buffer-channel-list");
+const bufferScheduleList = document.getElementById("buffer-schedule-list");
+const bufferScheduleButton = document.getElementById("buffer-schedule-button");
 // One fetch per session: re-discoveries (every input tweak) must not re-ask the LLM,
 // and the endpoint's content cache covers restarts.
 let titleSuggestionsPromise = null;
@@ -114,7 +121,6 @@ function setVideoRenderUiState(inProgress) {
   setProcessActionsVisibility();
 
   if (isVideoRenderInProgress) {
-    toggleOverridesButton.style.display = "none";
     previewSection.style.display = "none";
     shownotesLinksSection.style.display = "none";
     approveButton.disabled = true;
@@ -139,7 +145,6 @@ function setVideoRenderCompletedUiState(completed) {
   }
 
   isVideoRenderInProgress = false;
-  toggleOverridesButton.style.display = "none";
   previewSection.style.display = "none";
   shownotesLinksSection.style.display = "none";
   clipSuggestionsSection.style.display = "none";
@@ -151,13 +156,12 @@ function setVideoRenderCompletedUiState(completed) {
 
 function setProcessActionsVisibility() {
   processActionsSection.style.display = currentDiscoveryData ? "block" : "none";
-  // YouTube description and social posts read the generated index.md; before the
-  // episode exists they can only error.
-  const publishDisplay = isEpisodeGenerated ? "inline-block" : "none";
-  uploadMp3Button.style.display = publishDisplay;
-  publishMp3Button.style.display = publishDisplay;
-  uploadYoutubeButton.style.display = publishDisplay;
-  socialPostsButton.style.display = publishDisplay;
+  // Re-checking reads the written episode transcripts, which exist once generated.
+  recheckTranscriptButton.style.display = isEpisodeGenerated
+    ? "inline-block"
+    : "none";
+  // The publish buttons' visibility lives in renderPublishChecklist, which knows
+  // what is already done; only the can't-act-right-now disabling belongs here.
   // An in-flight Approve rewrites the MP3 (the chapter-image embed), so uploading
   // mid-run would ship a half-written file; and there is nothing to make public until
   // an upload has been recorded. YouTube needs the finished MP4.
@@ -235,7 +239,56 @@ function setInputValue(name, value) {
   }
 
   element.value = value;
+  fieldRowSync.get(name)?.();
 }
+
+// ---------- Inline-editable episode fields ----------
+// Each field reads as text with a pencil; the pencil swaps in the real input, and
+// leaving the input swaps the text back. The inputs stay in the form throughout,
+// so FormData, auto-discovery and override saving are untouched.
+const fieldRowSync = new Map();
+
+function setupFieldRows() {
+  if (typeof form.querySelectorAll !== "function") {
+    return;
+  }
+  for (const row of form.querySelectorAll(".field-row")) {
+    const input = row.querySelector("input");
+    const value = row.querySelector(".field-value");
+    const editButton = row.querySelector(".field-edit");
+    if (!input || !value || !editButton) {
+      continue;
+    }
+    const showText = () => {
+      // A discovery result landing while this field is being edited must not
+      // snatch the editor away mid-keystroke; the swap happens on its blur.
+      if (document.activeElement === input) {
+        return;
+      }
+      value.textContent = input.value || "—";
+      value.style.color = input.value ? "" : "var(--muted)";
+      value.style.display = "";
+      editButton.style.display = "";
+      input.style.display = "none";
+    };
+    editButton.addEventListener("click", () => {
+      value.style.display = "none";
+      editButton.style.display = "none";
+      input.style.display = "block";
+      input.focus();
+    });
+    input.addEventListener("blur", showText);
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        input.blur();
+      }
+    });
+    fieldRowSync.set(input.name, showText);
+    showText();
+  }
+}
+setupFieldRows();
 
 function prefillFromQuery() {
   const params = new URLSearchParams(window.location.search);
@@ -723,22 +776,28 @@ function renderChapterPreviews(discovered) {
 }
 
 function renderStatus() {
+  // The dock shows the tail of the log; stay pinned to the newest line unless the
+  // user has deliberately scrolled up to read something.
+  const pinned =
+    resultBox.scrollTop + resultBox.clientHeight >= resultBox.scrollHeight - 24;
   resultBox.textContent = statusLines.map((line) => line.text).join("\n");
   // Per-line elements only so secondary lines can be styled; the plain text above is
   // what the box reads as (and what the UI tests read).
-  if (typeof resultBox.replaceChildren !== "function") {
-    return;
+  if (typeof resultBox.replaceChildren === "function") {
+    resultBox.replaceChildren(
+      ...statusLines.map((line) => {
+        const element = document.createElement("span");
+        element.textContent = `${line.text}\n`;
+        if (line.secondary) {
+          element.className = "status-secondary";
+        }
+        return element;
+      }),
+    );
   }
-  resultBox.replaceChildren(
-    ...statusLines.map((line) => {
-      const element = document.createElement("span");
-      element.textContent = `${line.text}\n`;
-      if (line.secondary) {
-        element.className = "status-secondary";
-      }
-      return element;
-    }),
-  );
+  if (pinned) {
+    resultBox.scrollTop = resultBox.scrollHeight;
+  }
 }
 
 function resetStatus() {
@@ -856,12 +915,10 @@ function renderTranscriptReview(review) {
 function renderTranscriptFixSection() {
   transcriptReviewList.innerHTML = "";
 
-  // Once the episode is generated the section stays up even with nothing pending, so
-  // the re-check button has a home after hand edits.
+  // The re-check button lives in Process Actions, so with nothing pending there is
+  // nothing to show here.
   transcriptReviewSection.style.display =
-    currentTranscriptFindings.length > 0 || isEpisodeGenerated
-      ? "block"
-      : "none";
+    currentTranscriptFindings.length > 0 ? "block" : "none";
   applyTranscriptFixesButton.style.display =
     currentTranscriptFindings.length > 0 ? "inline-block" : "none";
   if (currentTranscriptFindings.length === 0) {
@@ -1163,26 +1220,15 @@ function renderProfanityStatus(
   }
 }
 
+// Only the facts that have no editable row of their own; title, topic, description
+// and date all live in the field rows above.
 function renderDiscoverySummary(discovered) {
-  const lines = [];
-  lines.push(`Episode: ${discovered.episodeTitle}`);
-  lines.push(
-    `Code: ths-${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}`,
-  );
-  lines.push(
-    `Season: ${discovered.seasonInfo.seasonName} (Year ${discovered.seasonInfo.year})`,
-  );
-  lines.push(`Chapters discovered: ${discovered.chapters.length}`);
-  lines.push(`Links placeholders: ${discovered.hiddenLinkTitles.length}`);
-  if (discovered.dateString) {
-    lines.push(`Publish date: ${discovered.dateString}`);
-  }
-  if (discovered.description) {
-    lines.push("");
-    lines.push(`Description: ${discovered.description}`);
-  }
-
-  discoverySummaryContent.textContent = lines.join("\n");
+  discoverySummaryContent.textContent = [
+    `ths-${String(discovered.episodeMeta.seasonCode)}-${String(discovered.episodeMeta.episodeCode)}`,
+    `${discovered.seasonInfo.seasonName} (Year ${discovered.seasonInfo.year})`,
+    `${discovered.chapters.length} chapters`,
+    `${discovered.hiddenLinkTitles.length} link placeholder(s)`,
+  ].join(" · ");
 }
 
 // One shared player: starting a preview stops any other, and playback pauses itself
@@ -2228,6 +2274,10 @@ function renderTitleSuggestions(titles) {
   });
 }
 
+// Set by a main-topic edit: the description it cleared must be re-derived rather
+// than restored from the saved overrides on the next discovery.
+let descriptionRederivePending = false;
+
 function buildDiscoverPayload() {
   const formData = new FormData(form);
   return {
@@ -2239,6 +2289,7 @@ function buildDiscoverPayload() {
       String(formData.get("episodeTitle") || "").trim() || undefined,
     description: String(formData.get("description") || "").trim() || undefined,
     publishDate: String(formData.get("publishDate") || "").trim() || undefined,
+    ...(descriptionRederivePending ? { rederiveDescription: true } : {}),
   };
 }
 
@@ -2306,7 +2357,6 @@ async function runDiscovery() {
     !payload.transcriptMdPath ||
     !payload.transcriptVttPath
   ) {
-    toggleOverridesButton.style.display = "none";
     addStatus(
       "Fill in MP3 + transcript paths. Discovery will run automatically.",
     );
@@ -2320,7 +2370,6 @@ async function runDiscovery() {
 
   resetStatus();
   isDiscovering = true;
-  toggleOverridesButton.style.display = "none";
   currentTranscriptFindings = [];
   renderTranscriptFixSection();
 
@@ -2335,12 +2384,14 @@ async function runDiscovery() {
     stopDiscoverSpinner("✓ Discovery complete");
 
     if (result.type === "error" || !result.success) {
-      toggleOverridesButton.style.display = "none";
       addStatus(`❌ Discovery failed: ${result.error}`);
       return;
     }
 
     setInputValue("description", result.discovered.description || "");
+    // The field now holds the freshly derived description; later discoveries may
+    // defer to the saved overrides again.
+    descriptionRederivePending = false;
     setInputValue("publishDate", result.discovered.dateString || "");
     setInputValue("episodeTitle", result.discovered.episodeTitle || "");
     setInputValue("mainTopic", result.discovered.mainTopic || "");
@@ -2351,12 +2402,30 @@ async function runDiscovery() {
       payload.transcriptMdPath,
     );
     renderAudioQc(result.discovered?.audioQc);
+    currentEpisodeDir = String(result.discovered?.episodeDir || "").trim();
     resumeVideoStatusPollingFromDiscover(result.discovered);
     resumeClipStatusPollingFromDiscover(result.discovered);
     resumeAiAnalysisPollingFromDiscover(result.discovered);
+    renderBufferSchedulePanel();
+    renderPublishChecklist();
     if (result.discovered?.jobs?.aiAnalysis?.status === "interrupted") {
       addStatus(
         "ℹ The last run's AI analysis was interrupted - Re-run Transcript Check and Suggest More Clips cover the same ground.",
+      );
+    }
+    // A failed background draft is otherwise invisible until posting day: the
+    // warning only shows live at run completion, and the button quietly
+    // regenerates on click without ever saying the pre-drafts were missing.
+    const lastAnalysis = result.discovered?.jobs?.aiAnalysis;
+    const socialDraftsMissing =
+      lastAnalysis?.status === "completed" &&
+      lastAnalysis.socialDrafted === false;
+    setSocialDraftsFailed(socialDraftsMissing);
+    if (socialDraftsMissing) {
+      addStatus(
+        `⚠ The last run did NOT draft the social posts${
+          lastAnalysis.socialWarning ? ` (${lastAnalysis.socialWarning})` : ""
+        } - click Social Posts now so the drafts are ready before posting day.`,
       );
     }
 
@@ -2456,10 +2525,6 @@ async function runDiscovery() {
       );
     }
 
-    if (!hasActiveVideoRun && !hasCompletedVideoRun) {
-      toggleOverridesButton.style.display = "inline-block";
-    }
-
     renderDiscoverySummary(result.discovered);
     discoverySummarySection.style.display = "block";
     if (!hasActiveVideoRun && !hasCompletedVideoRun) {
@@ -2492,11 +2557,13 @@ form.addEventListener("submit", async (event) => {
   runDiscovery();
 });
 
+// "change", not "input": re-discovery mid-typing would close the inline editor
+// under the user's cursor. Committing the edit (blur or Enter) is the trigger.
 ["mp3Path", "transcriptMdPath", "transcriptVttPath", "episodeTitle"].forEach(
   (name) => {
     const input = form.elements.namedItem(name);
     if (input) {
-      input.addEventListener("input", scheduleDiscovery);
+      input.addEventListener("change", scheduleDiscovery);
     }
   },
 );
@@ -2513,8 +2580,9 @@ form.addEventListener("submit", async (event) => {
 // override, so re-discovery derives it fresh from the new topic.
 const mainTopicInput = form.elements.namedItem("mainTopic");
 if (mainTopicInput) {
-  mainTopicInput.addEventListener("input", () => {
+  mainTopicInput.addEventListener("change", () => {
     setInputValue("description", "");
+    descriptionRederivePending = true;
     scheduleDiscovery();
   });
 }
@@ -2624,7 +2692,6 @@ async function pollVideoStatus(episodeDir) {
         setVideoRenderCompletedUiState(false);
         previewSection.style.display = "block";
         shownotesLinksSection.style.display = "block";
-        toggleOverridesButton.style.display = "inline-block";
         setStatusLine(
           videoLineId,
           "ℹ Previous MP4 generation was interrupted by a server restart. Start a new run to continue.",
@@ -2639,7 +2706,6 @@ async function pollVideoStatus(episodeDir) {
         // visible too - otherwise the re-approve happens blind.
         previewSection.style.display = "block";
         shownotesLinksSection.style.display = "block";
-        toggleOverridesButton.style.display = "inline-block";
         setStatusLine(videoLineId, `❌ MP4 generation failed: ${mp4.error}`);
         return { status: "failed", error: mp4.error };
       } else {
@@ -2841,6 +2907,12 @@ function startClipStatusPolling(episodeDir, { startMessage = "" } = {}) {
     promise: pollPromise,
   };
 
+  pollPromise.then((outcome) => {
+    if (outcome?.status === "completed") {
+      renderBufferSchedulePanel();
+    }
+  });
+
   return pollPromise;
 }
 
@@ -2895,6 +2967,679 @@ function resumeClipStatusPollingFromDiscover(discovered) {
     startMessage:
       "⏳ Reconnected to queued/in-progress clip generation from server status",
   });
+}
+
+// ---------- Buffer clip scheduling ----------
+// One dated video post per clip per channel; Buffer holds the schedule once
+// created, so nothing here needs to be running when the posts go out.
+
+let bufferChannelsCache = null;
+let bufferDayOptionsCache = [];
+let draggedBufferRow = null;
+
+// Brand icons (Simple Icons paths), inline so the page stays dependency-free.
+// Unmapped services fall back to their name as text.
+// Sized to the content up to six lines; only a longer caption scrolls. The six-line
+// cap comes from rows=6 at auto height - the browser's own line metrics - rather
+// than a computed line-height, which reads "normal" here and made a guessed cap
+// clip six real lines. A textarea on a hidden tab has no layout to measure, so it
+// keeps the six-row default until its tab is shown and resizeBufferCaptions runs.
+function sizeCaptionTextarea(caption) {
+  if (!caption.offsetParent) {
+    return;
+  }
+  caption.style.height = "auto";
+  if (caption.scrollHeight <= caption.clientHeight) {
+    const borders = caption.offsetHeight - caption.clientHeight;
+    caption.style.height = `${caption.scrollHeight + borders}px`;
+  }
+}
+
+function resizeBufferCaptions() {
+  for (const caption of bufferScheduleList.querySelectorAll("textarea")) {
+    sizeCaptionTextarea(caption);
+  }
+}
+
+const BUFFER_SERVICE_ICONS = {
+  youtube:
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="#FF0000" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
+  bluesky:
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="#0285FF" aria-hidden="true"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8Z"/></svg>',
+};
+
+// Days are positional: the first ticked row posts Thursday, the next Friday, and so
+// on through Tuesday. Unticked rows take no slot. The date each row will post on is
+// stamped onto the row here, so the label the user reads and the date that gets
+// submitted can never disagree.
+// The button is only clickable when the click would actually work; the tooltip
+// names what's in the way. The 300 limit is Bluesky's, so it only blocks while a
+// Bluesky channel is ticked.
+function updateBufferScheduleButtonState() {
+  const tickedChannels = [
+    ...bufferChannelList.querySelectorAll("input:checked"),
+  ];
+  const rows = [...bufferScheduleList.querySelectorAll("[data-file-name]")];
+  const ticked = rows.filter(
+    (row) => row.querySelector(".buffer-include")?.checked,
+  );
+  const captionOf = (row) => row.querySelector("textarea")?.value.trim() || "";
+
+  const problems = [];
+  if (tickedChannels.length === 0) {
+    problems.push("no channel is ticked");
+  }
+  if (ticked.length === 0) {
+    problems.push("no clip is ticked");
+  }
+  if (ticked.some((row) => !captionOf(row))) {
+    problems.push("a ticked clip has an empty caption");
+  }
+  if (
+    tickedChannels.some((box) => box.dataset.service === "bluesky") &&
+    ticked.some((row) => captionOf(row).length > 300)
+  ) {
+    problems.push("a caption is over Bluesky's 300-character limit");
+  }
+
+  bufferScheduleButton.disabled = problems.length > 0;
+  bufferScheduleButton.title = problems.length
+    ? `Fix first: ${problems.join("; ")}`
+    : "";
+}
+
+function updateBufferDayLabels() {
+  let slot = 0;
+  for (const row of bufferScheduleList.querySelectorAll("[data-file-name]")) {
+    const dayLabel = row.querySelector(".buffer-day");
+    if (!dayLabel) {
+      continue;
+    }
+    if (!row.querySelector(".buffer-include")?.checked) {
+      dayLabel.textContent = "not scheduled";
+      dayLabel.style.color = "#94a3b8";
+      delete row.dataset.date;
+      continue;
+    }
+    const option =
+      bufferDayOptionsCache[Math.min(slot, bufferDayOptionsCache.length - 1)];
+    slot += 1;
+    dayLabel.textContent = `posts ${option.label}, 7pm`;
+    dayLabel.style.color = "";
+    row.dataset.date = option.value;
+  }
+}
+
+async function fetchBufferChannels() {
+  if (bufferChannelsCache) {
+    return bufferChannelsCache;
+  }
+  const response = await fetch("/api/buffer-channels");
+  const body = await response.json();
+  if (!response.ok || !body.success) {
+    throw new Error(body.error || "Buffer channels request failed");
+  }
+  bufferChannelsCache = body.channels || [];
+  return bufferChannelsCache;
+}
+
+// The episode goes out on a Wednesday; the clips fill the following
+// Thursday through Tuesday, one per day.
+function bufferDayOptions() {
+  const publishValue = String(
+    form.elements.namedItem("publishDate")?.value || "",
+  ).trim();
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(publishValue);
+  if (!match) {
+    return [];
+  }
+  const baseNoonUtc = Date.UTC(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3]),
+    12,
+  );
+  const options = [];
+  for (let offset = 1; offset <= 6; offset += 1) {
+    const day = new Date(baseNoonUtc + offset * 86_400_000);
+    options.push({
+      value: day.toISOString().slice(0, 10),
+      label: day.toLocaleDateString("en-GB", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        timeZone: "UTC",
+      }),
+    });
+  }
+  return options;
+}
+
+function formatScheduledDue(dueAt) {
+  try {
+    return new Date(dueAt).toLocaleString("en-GB", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Europe/London",
+    });
+  } catch {
+    return String(dueAt);
+  }
+}
+
+async function renderBufferSchedulePanel() {
+  const episodeDir = currentEpisodeDir;
+  if (!episodeDir) {
+    bufferScheduleSection.style.display = "none";
+    return;
+  }
+
+  let data = null;
+  try {
+    data = await fetchEpisodeState(episodeDir);
+  } catch {
+    return;
+  }
+  // The fetches are slow enough that the user may have loaded another episode.
+  if (episodeDir !== currentEpisodeDir) {
+    return;
+  }
+
+  const clipJob = data?.exists ? data.jobs?.clipGeneration : null;
+  const outputs = clipJob?.status === "completed" ? clipJob.outputs || [] : [];
+  // Open where the work is: suggestions until the videos exist, then the
+  // scheduler until the posts are booked. Manual toggling still works - this only
+  // runs at the transitions (discover, render completion, after scheduling).
+  const clipDetails = clipSuggestionsSection.querySelector("details");
+  const bufferDetails = bufferScheduleSection.querySelector("details");
+  if (outputs.length === 0) {
+    if (clipDetails) {
+      clipDetails.open = true;
+    }
+    bufferScheduleSection.style.display = "none";
+    return;
+  }
+  const hasSchedule = (data.clipSchedule || []).length > 0;
+  if (clipDetails) {
+    clipDetails.open = false;
+  }
+  if (bufferDetails) {
+    bufferDetails.open = !hasSchedule;
+  }
+
+  bufferScheduleSection.style.display = "block";
+  bufferScheduleNote.textContent = "";
+  bufferChannelList.innerHTML = "";
+  bufferScheduleList.innerHTML = "";
+  bufferScheduleButton.style.display = "none";
+
+  const dayOptions = bufferDayOptions();
+  if (dayOptions.length === 0) {
+    bufferScheduleNote.textContent =
+      "Set the publish date above to pick posting days.";
+    return;
+  }
+  bufferDayOptionsCache = dayOptions;
+  bufferScheduleNote.textContent =
+    "Drag to reorder - the top ticked clip posts Thursday, then one per day through Tuesday.";
+
+  let channels;
+  try {
+    channels = await fetchBufferChannels();
+  } catch (error) {
+    bufferScheduleNote.textContent = `⚠ ${error.message}`;
+    return;
+  }
+  if (episodeDir !== currentEpisodeDir) {
+    return;
+  }
+  if (channels.length === 0) {
+    bufferScheduleNote.textContent =
+      "The Buffer account has no connected channels.";
+    return;
+  }
+
+  // The full paste-ready captions live in captions.txt, not in the clip job's
+  // outputs (whose caption is the model's raw text, without the identity line and
+  // hashtags). Prefill from the file so the panel matches what gets pasted
+  // everywhere else.
+  let fileCaptions = {};
+  try {
+    const captionsResponse = await fetch(
+      `/api/clip-captions?mp3Path=${encodeURIComponent(
+        buildDiscoverPayload().mp3Path || "",
+      )}`,
+    );
+    const captionsBody = await captionsResponse.json();
+    if (captionsBody.success) {
+      fileCaptions = captionsBody.captions || {};
+    }
+  } catch {
+    // The state captions below are a usable fallback.
+  }
+  if (episodeDir !== currentEpisodeDir) {
+    return;
+  }
+
+  bufferChannelList.style.cssText = "display: flex; gap: 20px";
+  for (const channel of channels) {
+    const label = document.createElement("label");
+    label.className = "checkbox";
+    label.style.cursor = "pointer";
+    // It's all The Harvest Season - the network is the only thing worth showing.
+    label.title = `${channel.service}: ${channel.name}`;
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = true;
+    checkbox.value = channel.id;
+    checkbox.dataset.service = String(channel.service || "").toLowerCase();
+    checkbox.addEventListener("change", updateBufferScheduleButtonState);
+    label.appendChild(checkbox);
+    const icon =
+      BUFFER_SERVICE_ICONS[String(channel.service || "").toLowerCase()];
+    if (icon) {
+      const iconSpan = document.createElement("span");
+      iconSpan.style.cssText = "display: inline-flex; align-items: center";
+      iconSpan.innerHTML = icon;
+      label.appendChild(iconSpan);
+    } else {
+      label.appendChild(document.createTextNode(channel.service));
+    }
+    bufferChannelList.appendChild(label);
+  }
+
+  const scheduledByFile = new Map(
+    (data.clipSchedule || []).map((entry) => [entry.fileName, entry]),
+  );
+
+  outputs.forEach((output) => {
+    const fileName =
+      String(output.outputPath || "")
+        .split("/")
+        .pop() || "";
+    const existing = scheduledByFile.get(fileName);
+
+    const row = document.createElement("div");
+    row.dataset.fileName = fileName;
+    row.style.cssText =
+      "border: 1px solid #334155; border-radius: 8px; padding: 10px; margin-top: 10px";
+
+    const header = document.createElement("div");
+    header.style.cssText = "display: flex; gap: 8px; align-items: center";
+
+    // Dragging is armed only from the handle, matching the shownotes rows: a
+    // draggable row would hijack text selection inside the caption.
+    const handle = document.createElement("span");
+    handle.textContent = "⠿";
+    handle.title = "Drag to reorder - top posts Thursday, bottom Tuesday";
+    handle.style.cssText =
+      "cursor: grab; color: #94a3b8; user-select: none; padding: 0 2px;";
+    handle.addEventListener("mousedown", () => {
+      row.draggable = true;
+    });
+    handle.addEventListener("mouseup", () => {
+      row.draggable = false;
+    });
+
+    row.addEventListener("dragstart", (event) => {
+      draggedBufferRow = row;
+      event.dataTransfer.effectAllowed = "move";
+      row.style.opacity = "0.4";
+    });
+    const dropsBelow = (event) => {
+      const rect = row.getBoundingClientRect();
+      return event.clientY >= rect.top + rect.height / 2;
+    };
+    row.addEventListener("dragend", () => {
+      row.draggable = false;
+      row.style.opacity = "";
+      draggedBufferRow = null;
+      for (const sibling of bufferScheduleList.children) {
+        sibling.style.boxShadow = "";
+      }
+    });
+    row.addEventListener("dragover", (event) => {
+      if (!draggedBufferRow || draggedBufferRow === row) {
+        return;
+      }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      for (const sibling of bufferScheduleList.children) {
+        sibling.style.boxShadow = "";
+      }
+      row.style.boxShadow = dropsBelow(event)
+        ? "0 2px 0 var(--accent)"
+        : "0 -2px 0 var(--accent)";
+    });
+    row.addEventListener("dragleave", () => {
+      row.style.boxShadow = "";
+    });
+    row.addEventListener("drop", (event) => {
+      event.preventDefault();
+      if (!draggedBufferRow || draggedBufferRow === row) {
+        return;
+      }
+      // The live nodes move rather than re-rendering, so unsaved caption edits
+      // survive the reorder.
+      bufferScheduleList.insertBefore(
+        draggedBufferRow,
+        dropsBelow(event) ? row.nextSibling : row,
+      );
+      row.style.boxShadow = "";
+      updateBufferDayLabels();
+    });
+
+    const includeLabel = document.createElement("label");
+    includeLabel.style.cssText =
+      "display: flex; gap: 8px; align-items: center; cursor: pointer";
+    const include = document.createElement("input");
+    include.type = "checkbox";
+    include.className = "buffer-include";
+    // Already-booked clips start unticked so a repeat visit can't double-post.
+    include.checked = !existing;
+    include.addEventListener("change", () => {
+      updateBufferDayLabels();
+      updateBufferScheduleButtonState();
+    });
+    const title = document.createElement("strong");
+    title.textContent = output.title || fileName;
+    includeLabel.appendChild(include);
+    includeLabel.appendChild(title);
+    header.appendChild(handle);
+    header.appendChild(includeLabel);
+    row.appendChild(header);
+
+    if (existing) {
+      const note = document.createElement("div");
+      note.style.cssText = "color: #4ade80; margin: 4px 0";
+      note.textContent = `✓ Scheduled for ${formatScheduledDue(existing.dueAt)} - ticking it again creates new posts (the old ones stay on Buffer)`;
+      row.appendChild(note);
+    }
+
+    const caption = document.createElement("textarea");
+    caption.rows = 6;
+    caption.style.cssText =
+      "width: 100%; margin-top: 6px; box-sizing: border-box";
+    caption.value =
+      existing?.caption ||
+      fileCaptions[fileName] ||
+      output.caption ||
+      output.summary ||
+      "";
+    row.appendChild(caption);
+    caption.addEventListener("input", () => sizeCaptionTextarea(caption));
+
+    const controls = document.createElement("div");
+    controls.style.cssText =
+      "display: flex; gap: 12px; align-items: center; margin-top: 6px";
+    const dayLabel = document.createElement("span");
+    dayLabel.className = "buffer-day";
+    dayLabel.style.fontWeight = "600";
+    const count = document.createElement("span");
+    const updateCount = () => {
+      const length = caption.value.trim().length;
+      count.textContent = `${length}/300`;
+      count.style.color = length > 300 ? "#f87171" : "#94a3b8";
+    };
+    caption.addEventListener("input", () => {
+      updateCount();
+      updateBufferScheduleButtonState();
+    });
+    updateCount();
+    controls.appendChild(dayLabel);
+    controls.appendChild(count);
+    row.appendChild(controls);
+
+    bufferScheduleList.appendChild(row);
+    // Measured after the row is in the document, since a detached node has no
+    // layout to size against.
+    sizeCaptionTextarea(caption);
+  });
+  updateBufferDayLabels();
+
+  bufferScheduleButton.style.display = "inline-block";
+  updateBufferScheduleButtonState();
+}
+
+bufferScheduleButton.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+
+  const channelIds = [
+    ...bufferChannelList.querySelectorAll("input:checked"),
+  ].map((checkbox) => checkbox.value);
+  if (channelIds.length === 0) {
+    addStatus("Pick at least one Buffer channel.");
+    return;
+  }
+
+  const clips = [];
+  for (const row of bufferScheduleList.querySelectorAll("[data-file-name]")) {
+    if (!row.querySelector(".buffer-include")?.checked) {
+      continue;
+    }
+    clips.push({
+      fileName: row.dataset.fileName,
+      caption: row.querySelector("textarea").value.trim(),
+      date: row.dataset.date,
+    });
+  }
+  if (clips.length === 0) {
+    addStatus("Tick at least one clip to schedule.");
+    return;
+  }
+
+  bufferScheduleButton.disabled = true;
+  try {
+    const result = await postWithProgress(
+      "/api/schedule-clips",
+      {
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+        channelIds,
+        clips,
+      },
+      (msg) => addStatus(`• ${msg}`),
+    );
+    if (result.type === "error" || !result.success) {
+      throw new Error(result.error || "Scheduling failed");
+    }
+    addStatus(
+      `✓ ${result.scheduled.length} clip(s) scheduled on Buffer across ${channelIds.length} channel(s)`,
+    );
+    renderBufferSchedulePanel();
+  } catch (error) {
+    addStatus(`❌ Buffer scheduling failed: ${error.message}`);
+  } finally {
+    updateBufferScheduleButtonState();
+    renderPublishChecklist();
+  }
+});
+
+// ---------- Tabs & status dock ----------
+// The status log is the feedback channel for actions on every tab, so it lives in
+// a dock that stays visible rather than on a tab of its own.
+
+const TAB_STORAGE_KEY = "ths-postprocess-active-tab";
+const tabPanels = {
+  generation: document.getElementById("tab-generation"),
+  clips: document.getElementById("tab-clips"),
+  publish: document.getElementById("tab-publish"),
+};
+const tabButtons = {
+  generation: document.getElementById("tab-button-generation"),
+  clips: document.getElementById("tab-button-clips"),
+  publish: document.getElementById("tab-button-publish"),
+};
+const statusDock = document.getElementById("status-dock");
+const statusDockHeader = document.getElementById("status-dock-header");
+const statusDockToggle = document.getElementById("status-dock-toggle");
+
+function setActiveTab(name) {
+  const tab = tabPanels[name] ? name : "generation";
+  for (const [key, panel] of Object.entries(tabPanels)) {
+    const active = key === tab;
+    panel.style.display = active ? "block" : "none";
+    tabButtons[key].className = active ? "tab-button active" : "tab-button";
+  }
+  try {
+    localStorage.setItem(TAB_STORAGE_KEY, tab);
+  } catch {
+    // Remembering the tab is a convenience only.
+  }
+  // Elements on a hidden tab have no layout, so anything that was rendered there
+  // re-measures on arrival, and the checklist re-reads the state file so it is
+  // never stale when looked at.
+  if (tab === "clips") {
+    resizeBufferCaptions();
+  }
+  if (tab === "publish") {
+    renderPublishChecklist();
+  }
+}
+
+for (const [key, button] of Object.entries(tabButtons)) {
+  button.addEventListener("click", () => setActiveTab(key));
+}
+document
+  .getElementById("publish-goto-clips-button")
+  .addEventListener("click", () => setActiveTab("clips"));
+
+let initialTab = "generation";
+try {
+  initialTab = localStorage.getItem(TAB_STORAGE_KEY) || "generation";
+} catch {
+  // Fall through to the default tab.
+}
+setActiveTab(initialTab);
+
+function setStatusDockExpanded(expanded) {
+  statusDock.className = expanded ? "expanded" : "";
+  statusDockToggle.textContent = expanded ? "Collapse" : "Expand";
+  resultBox.scrollTop = resultBox.scrollHeight;
+}
+
+statusDockHeader.addEventListener("click", () => {
+  setStatusDockExpanded(statusDock.className !== "expanded");
+});
+
+// ---------- Publish readiness checklist ----------
+// Each row reads its state from the episode's state file, so the tab answers
+// "what is left to do before Wednesday" at a glance.
+
+const publishMp3State = document.getElementById("publish-mp3-state");
+const publishYoutubeState = document.getElementById("publish-youtube-state");
+const publishSocialState = document.getElementById("publish-social-state");
+const publishClipsState = document.getElementById("publish-clips-state");
+// The job state only knows about background drafting; a manual Social Posts click
+// that generated drafts this session counts as ready too.
+let socialDraftsGeneratedThisSession = false;
+
+async function renderPublishChecklist() {
+  const episodeDir = currentEpisodeDir;
+  const publishButtons = [
+    uploadMp3Button,
+    publishMp3Button,
+    uploadYoutubeButton,
+    socialPostsButton,
+  ];
+  const setAll = (text) => {
+    for (const element of [
+      publishMp3State,
+      publishYoutubeState,
+      publishSocialState,
+      publishClipsState,
+    ]) {
+      element.textContent = text;
+      element.style.color = "";
+    }
+    for (const button of publishButtons) {
+      button.style.display = "none";
+    }
+  };
+  if (!episodeDir) {
+    setAll("Load an episode to see its state.");
+    return;
+  }
+
+  let data = null;
+  try {
+    data = await fetchEpisodeState(episodeDir);
+  } catch {
+    return;
+  }
+  if (episodeDir !== currentEpisodeDir) {
+    return;
+  }
+  if (!data?.exists) {
+    setAll("No processing state yet - run generation first.");
+    return;
+  }
+
+  // A finished item's button disappears: the ✓ is the whole story, and what is
+  // left to do is exactly what still shows a button. The generated gate stays:
+  // these all read the generated index.md or the embedded MP3.
+  const generated = data.phase === "generated";
+  const markDone = (element, done) => {
+    element.style.color = done ? "#4ade80" : "";
+  };
+
+  const mp3 = data.mp3Upload;
+  const mp3Public = mp3?.acl === "public-read";
+  publishMp3State.textContent = !mp3
+    ? "Not uploaded yet."
+    : mp3Public
+      ? `✓ Public${mp3.publishedAt ? ` since ${new Date(mp3.publishedAt).toLocaleString("en-GB")}` : ""}.`
+      : `Uploaded privately${mp3.size ? ` (${(mp3.size / (1024 * 1024)).toFixed(1)} MB)` : ""} - make it public at release time.`;
+  markDone(publishMp3State, mp3Public);
+  uploadMp3Button.style.display =
+    generated && !mp3Public ? "inline-block" : "none";
+  publishMp3Button.style.display =
+    generated && mp3 && !mp3Public ? "inline-block" : "none";
+
+  const youtube = data.youtubeUpload;
+  publishYoutubeState.textContent = youtube?.videoId
+    ? `✓ Uploaded${youtube.publishAt ? ` - goes public ${new Date(youtube.publishAt).toLocaleString("en-GB")}` : ""}.`
+    : "Not uploaded yet - needs the finished MP4.";
+  markDone(publishYoutubeState, Boolean(youtube?.videoId));
+  uploadYoutubeButton.style.display =
+    generated && !youtube?.videoId ? "inline-block" : "none";
+
+  const drafted = data.jobs?.aiAnalysis?.socialDrafted;
+  const draftsReady = drafted === true || socialDraftsGeneratedThisSession;
+  publishSocialState.textContent = draftsReady
+    ? "✓ Drafts ready - the button opens prefilled compose tabs."
+    : drafted === false
+      ? "⚠ NOT drafted - the button will generate fresh drafts first, which can take a while."
+      : "Drafts are made during generation - run the process first.";
+  markDone(publishSocialState, draftsReady);
+  // Posting social is always a manual act, so its button never disappears.
+  socialPostsButton.style.display = generated ? "inline-block" : "none";
+
+  const clipJob = data.jobs?.clipGeneration;
+  const rendered =
+    clipJob?.status === "completed" ? (clipJob.outputs || []).length : 0;
+  const schedule = data.clipSchedule || [];
+  if (rendered === 0 && schedule.length === 0) {
+    publishClipsState.textContent = "No clip videos rendered yet.";
+    markDone(publishClipsState, false);
+  } else {
+    const lastDue = schedule
+      .map((entry) => entry.dueAt)
+      .sort()
+      .at(-1);
+    publishClipsState.textContent = `${schedule.length ? "✓ " : ""}${rendered} rendered, ${
+      schedule.length
+        ? `${schedule.length} scheduled on Buffer through ${formatScheduledDue(lastDue)}.`
+        : "none scheduled on Buffer yet."
+    }`;
+    markDone(publishClipsState, schedule.length > 0);
+  }
 }
 
 // The run's AI analysis (transcript check + clip picks) finishes in the background;
@@ -2977,6 +3722,8 @@ async function pollAiAnalysis(episodeDir) {
             `⚠ Social post drafting: ${job.socialWarning} - the Social Posts button will retry when clicked`,
           );
         }
+        setSocialDraftsFailed(job.socialDrafted === false);
+        renderPublishChecklist();
         if (currentTranscriptFindings.length > 0) {
           addStatus(
             `⚠ ${currentTranscriptFindings.length} medium-confidence transcript suggestion(s) - review below`,
@@ -3436,6 +4183,15 @@ async function postTranscriptReview({ recheck }) {
   }
 }
 
+// The button doubles as the standing alert: a run whose social drafts failed marks
+// it, so the failure is still visible days later when it is time to post.
+function setSocialDraftsFailed(failed) {
+  socialPostsButton.textContent = failed ? "Social Posts ⚠" : "Social Posts";
+  socialPostsButton.title = failed
+    ? "The background drafts failed - clicking will generate them fresh, which can take a while"
+    : "";
+}
+
 socialPostsButton.addEventListener("click", async () => {
   if (!currentDiscoveryData?.discoveryData) {
     addStatus("Run discovery first.");
@@ -3512,6 +4268,9 @@ socialPostsButton.addEventListener("click", async () => {
     addStatus(
       `✓ Social drafts opened in Bluesky and Tumblr compose tabs (${body.blueskyLength}/300 chars)${copied ? " - Bluesky text also on the clipboard" : ""}`,
     );
+    setSocialDraftsFailed(false);
+    socialDraftsGeneratedThisSession = true;
+    renderPublishChecklist();
     if (!opensInSystemBrowser && (!blueskyWindow || !tumblrWindow)) {
       addStatus(
         "⚠ A popup was blocked - allow popups for this app to get both compose tabs.",
@@ -3572,6 +4331,7 @@ uploadMp3Button.addEventListener("click", async () => {
     addStatus(`❌ MP3 upload failed: ${error.message}`);
   } finally {
     setProcessActionsVisibility();
+    renderPublishChecklist();
   }
 });
 
@@ -3611,6 +4371,7 @@ publishMp3Button.addEventListener("click", async () => {
     addStatus(`❌ Making the MP3 public failed: ${error.message}`);
   } finally {
     setProcessActionsVisibility();
+    renderPublishChecklist();
   }
 });
 
@@ -3662,6 +4423,7 @@ uploadYoutubeButton.addEventListener("click", async () => {
     addStatus(`❌ YouTube upload failed: ${error.message}`);
   } finally {
     setProcessActionsVisibility();
+    renderPublishChecklist();
   }
 });
 
@@ -3708,7 +4470,6 @@ recheckTranscriptButton.addEventListener("click", () => {
 
 approveButton.addEventListener("click", async () => {
   approveButton.disabled = true;
-  toggleOverridesButton.style.display = "none";
   isRunRequestInFlight = true;
   setProcessActionsVisibility();
   setVideoRenderUiState(true);
@@ -3853,6 +4614,7 @@ approveButton.addEventListener("click", async () => {
       addStatus("✓ Episode files written");
       isEpisodeGenerated = true;
       setProcessActionsVisibility();
+      renderPublishChecklist();
       renderTranscriptFixSection();
       if (result.mp3ChapterImages && result.mp3ChapterImages.completed) {
         addStatus(
@@ -3903,14 +4665,6 @@ approveButton.addEventListener("click", async () => {
       approveButton.disabled = false;
     }
   }
-});
-
-toggleOverridesButton.addEventListener("click", () => {
-  const showing = form.style.display !== "none";
-  form.style.display = showing ? "none" : "block";
-  toggleOverridesButton.textContent = showing
-    ? "Show Overrides"
-    : "Hide Overrides";
 });
 
 generateClipVideosButton.addEventListener("click", async () => {
