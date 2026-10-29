@@ -170,7 +170,7 @@ async function main() {
     formatClipCaptionBlock("Wild moment! #bees"),
     [
       "Wild moment!",
-      "From The Harvest Season, a podcast about farming and cottagecore games — new episodes every Wednesday.",
+      "From The Harvest Season, a podcast about farming and cottagecore games - new episodes every Wednesday.",
       "#theharvestseason #cottagecore #farminggames #bees",
     ].join("\n"),
   );

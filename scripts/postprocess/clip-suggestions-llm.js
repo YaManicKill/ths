@@ -31,7 +31,7 @@ const REQUIRED_CLIP_HASHTAGS = [
 // One line of show identity on every caption: feed viewers often can't tell what a
 // clip is from, and this is the slot that converts them into listeners.
 const CAPTION_IDENTITY_LINE =
-  "From The Harvest Season, a podcast about farming and cottagecore games — new episodes every Wednesday.";
+  "From The Harvest Season, a podcast about farming and cottagecore games - new episodes every Wednesday.";
 
 function splitCaptionHashtags(caption) {
   const tags = [];
