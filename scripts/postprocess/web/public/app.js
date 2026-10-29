@@ -3116,9 +3116,24 @@ async function renderBufferSchedulePanel() {
 
   const clipJob = data?.exists ? data.jobs?.clipGeneration : null;
   const outputs = clipJob?.status === "completed" ? clipJob.outputs || [] : [];
+  // Open where the work is: suggestions until the videos exist, then the
+  // scheduler until the posts are booked. Manual toggling still works - this only
+  // runs at the transitions (discover, render completion, after scheduling).
+  const clipDetails = clipSuggestionsSection.querySelector("details");
+  const bufferDetails = bufferScheduleSection.querySelector("details");
   if (outputs.length === 0) {
+    if (clipDetails) {
+      clipDetails.open = true;
+    }
     bufferScheduleSection.style.display = "none";
     return;
+  }
+  const hasSchedule = (data.clipSchedule || []).length > 0;
+  if (clipDetails) {
+    clipDetails.open = false;
+  }
+  if (bufferDetails) {
+    bufferDetails.open = !hasSchedule;
   }
 
   bufferScheduleSection.style.display = "block";
