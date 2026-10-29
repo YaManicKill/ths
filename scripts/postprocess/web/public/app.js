@@ -731,22 +731,28 @@ function renderChapterPreviews(discovered) {
 }
 
 function renderStatus() {
+  // The dock shows the tail of the log; stay pinned to the newest line unless the
+  // user has deliberately scrolled up to read something.
+  const pinned =
+    resultBox.scrollTop + resultBox.clientHeight >= resultBox.scrollHeight - 24;
   resultBox.textContent = statusLines.map((line) => line.text).join("\n");
   // Per-line elements only so secondary lines can be styled; the plain text above is
   // what the box reads as (and what the UI tests read).
-  if (typeof resultBox.replaceChildren !== "function") {
-    return;
+  if (typeof resultBox.replaceChildren === "function") {
+    resultBox.replaceChildren(
+      ...statusLines.map((line) => {
+        const element = document.createElement("span");
+        element.textContent = `${line.text}\n`;
+        if (line.secondary) {
+          element.className = "status-secondary";
+        }
+        return element;
+      }),
+    );
   }
-  resultBox.replaceChildren(
-    ...statusLines.map((line) => {
-      const element = document.createElement("span");
-      element.textContent = `${line.text}\n`;
-      if (line.secondary) {
-        element.className = "status-secondary";
-      }
-      return element;
-    }),
-  );
+  if (pinned) {
+    resultBox.scrollTop = resultBox.scrollHeight;
+  }
 }
 
 function resetStatus() {
@@ -2364,6 +2370,7 @@ async function runDiscovery() {
     resumeClipStatusPollingFromDiscover(result.discovered);
     resumeAiAnalysisPollingFromDiscover(result.discovered);
     renderBufferSchedulePanel();
+    renderPublishChecklist();
     if (result.discovered?.jobs?.aiAnalysis?.status === "interrupted") {
       addStatus(
         "ℹ The last run's AI analysis was interrupted - Re-run Transcript Check and Suggest More Clips cover the same ground.",
@@ -2938,6 +2945,28 @@ let draggedBufferRow = null;
 
 // Brand icons (Simple Icons paths), inline so the page stays dependency-free.
 // Unmapped services fall back to their name as text.
+// Sized to the content up to six lines; only a longer caption scrolls. The six-line
+// cap comes from rows=6 at auto height - the browser's own line metrics - rather
+// than a computed line-height, which reads "normal" here and made a guessed cap
+// clip six real lines. A textarea on a hidden tab has no layout to measure, so it
+// keeps the six-row default until its tab is shown and resizeBufferCaptions runs.
+function sizeCaptionTextarea(caption) {
+  if (!caption.offsetParent) {
+    return;
+  }
+  caption.style.height = "auto";
+  if (caption.scrollHeight <= caption.clientHeight) {
+    const borders = caption.offsetHeight - caption.clientHeight;
+    caption.style.height = `${caption.scrollHeight + borders}px`;
+  }
+}
+
+function resizeBufferCaptions() {
+  for (const caption of bufferScheduleList.querySelectorAll("textarea")) {
+    sizeCaptionTextarea(caption);
+  }
+}
+
 const BUFFER_SERVICE_ICONS = {
   youtube:
     '<svg width="20" height="20" viewBox="0 0 24 24" fill="#FF0000" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
@@ -3292,18 +3321,7 @@ async function renderBufferSchedulePanel() {
       output.summary ||
       "";
     row.appendChild(caption);
-    // Sized to the content up to six lines; only a longer caption scrolls. The
-    // six-line cap comes from rows=6 at auto height - the browser's own line
-    // metrics - rather than a computed line-height, which reads "normal" here and
-    // made a guessed cap clip six real lines.
-    const sizeToContent = () => {
-      caption.style.height = "auto";
-      if (caption.scrollHeight <= caption.clientHeight) {
-        const borders = caption.offsetHeight - caption.clientHeight;
-        caption.style.height = `${caption.scrollHeight + borders}px`;
-      }
-    };
-    caption.addEventListener("input", sizeToContent);
+    caption.addEventListener("input", () => sizeCaptionTextarea(caption));
 
     const controls = document.createElement("div");
     controls.style.cssText =
@@ -3329,7 +3347,7 @@ async function renderBufferSchedulePanel() {
     bufferScheduleList.appendChild(row);
     // Measured after the row is in the document, since a detached node has no
     // layout to size against.
-    sizeToContent();
+    sizeCaptionTextarea(caption);
   });
   updateBufferDayLabels();
 
@@ -3390,8 +3408,158 @@ bufferScheduleButton.addEventListener("click", async () => {
     addStatus(`❌ Buffer scheduling failed: ${error.message}`);
   } finally {
     updateBufferScheduleButtonState();
+    renderPublishChecklist();
   }
 });
+
+// ---------- Tabs & status dock ----------
+// The status log is the feedback channel for actions on every tab, so it lives in
+// a dock that stays visible rather than on a tab of its own.
+
+const TAB_STORAGE_KEY = "ths-postprocess-active-tab";
+const tabPanels = {
+  generation: document.getElementById("tab-generation"),
+  clips: document.getElementById("tab-clips"),
+  publish: document.getElementById("tab-publish"),
+};
+const tabButtons = {
+  generation: document.getElementById("tab-button-generation"),
+  clips: document.getElementById("tab-button-clips"),
+  publish: document.getElementById("tab-button-publish"),
+};
+const statusDock = document.getElementById("status-dock");
+const statusDockHeader = document.getElementById("status-dock-header");
+const statusDockToggle = document.getElementById("status-dock-toggle");
+
+function setActiveTab(name) {
+  const tab = tabPanels[name] ? name : "generation";
+  for (const [key, panel] of Object.entries(tabPanels)) {
+    const active = key === tab;
+    panel.style.display = active ? "block" : "none";
+    tabButtons[key].className = active ? "tab-button active" : "tab-button";
+  }
+  try {
+    localStorage.setItem(TAB_STORAGE_KEY, tab);
+  } catch {
+    // Remembering the tab is a convenience only.
+  }
+  // Elements on a hidden tab have no layout, so anything that was rendered there
+  // re-measures on arrival, and the checklist re-reads the state file so it is
+  // never stale when looked at.
+  if (tab === "clips") {
+    resizeBufferCaptions();
+  }
+  if (tab === "publish") {
+    renderPublishChecklist();
+  }
+}
+
+for (const [key, button] of Object.entries(tabButtons)) {
+  button.addEventListener("click", () => setActiveTab(key));
+}
+document
+  .getElementById("publish-goto-clips-button")
+  .addEventListener("click", () => setActiveTab("clips"));
+
+let initialTab = "generation";
+try {
+  initialTab = localStorage.getItem(TAB_STORAGE_KEY) || "generation";
+} catch {
+  // Fall through to the default tab.
+}
+setActiveTab(initialTab);
+
+function setStatusDockExpanded(expanded) {
+  statusDock.className = expanded ? "expanded" : "";
+  statusDockToggle.textContent = expanded ? "Collapse" : "Expand";
+  resultBox.scrollTop = resultBox.scrollHeight;
+}
+
+statusDockHeader.addEventListener("click", () => {
+  setStatusDockExpanded(statusDock.className !== "expanded");
+});
+
+// ---------- Publish readiness checklist ----------
+// Each row reads its state from the episode's state file, so the tab answers
+// "what is left to do before Wednesday" at a glance.
+
+const publishMp3State = document.getElementById("publish-mp3-state");
+const publishYoutubeState = document.getElementById("publish-youtube-state");
+const publishSocialState = document.getElementById("publish-social-state");
+const publishClipsState = document.getElementById("publish-clips-state");
+// The job state only knows about background drafting; a manual Social Posts click
+// that generated drafts this session counts as ready too.
+let socialDraftsGeneratedThisSession = false;
+
+async function renderPublishChecklist() {
+  const episodeDir = currentEpisodeDir;
+  const setAll = (text) => {
+    for (const element of [
+      publishMp3State,
+      publishYoutubeState,
+      publishSocialState,
+      publishClipsState,
+    ]) {
+      element.textContent = text;
+    }
+  };
+  if (!episodeDir) {
+    setAll("Load an episode to see its state.");
+    return;
+  }
+
+  let data = null;
+  try {
+    data = await fetchEpisodeState(episodeDir);
+  } catch {
+    return;
+  }
+  if (episodeDir !== currentEpisodeDir) {
+    return;
+  }
+  if (!data?.exists) {
+    setAll("No processing state yet - run generation first.");
+    return;
+  }
+
+  const mp3 = data.mp3Upload;
+  publishMp3State.textContent = !mp3
+    ? "Not uploaded yet."
+    : mp3.acl === "public-read"
+      ? `✓ Public${mp3.publishedAt ? ` since ${new Date(mp3.publishedAt).toLocaleString("en-GB")}` : ""}.`
+      : `Uploaded privately${mp3.size ? ` (${(mp3.size / (1024 * 1024)).toFixed(1)} MB)` : ""} - make it public at release time.`;
+
+  const youtube = data.youtubeUpload;
+  publishYoutubeState.textContent = youtube?.videoId
+    ? `✓ Uploaded${youtube.publishAt ? ` - goes public ${new Date(youtube.publishAt).toLocaleString("en-GB")}` : ""}.`
+    : "Not uploaded yet - needs the finished MP4.";
+
+  const drafted = data.jobs?.aiAnalysis?.socialDrafted;
+  publishSocialState.textContent =
+    drafted === true || socialDraftsGeneratedThisSession
+      ? "✓ Drafts ready - the button opens prefilled compose tabs."
+      : drafted === false
+        ? "⚠ NOT drafted - the button will generate fresh drafts first, which can take a while."
+        : "Drafts are made during generation - run the process first.";
+
+  const clipJob = data.jobs?.clipGeneration;
+  const rendered =
+    clipJob?.status === "completed" ? (clipJob.outputs || []).length : 0;
+  const schedule = data.clipSchedule || [];
+  if (rendered === 0 && schedule.length === 0) {
+    publishClipsState.textContent = "No clip videos rendered yet.";
+  } else {
+    const lastDue = schedule
+      .map((entry) => entry.dueAt)
+      .sort()
+      .at(-1);
+    publishClipsState.textContent = `${rendered} rendered, ${
+      schedule.length
+        ? `${schedule.length} scheduled on Buffer through ${formatScheduledDue(lastDue)}.`
+        : "none scheduled on Buffer yet."
+    }`;
+  }
+}
 
 // The run's AI analysis (transcript check + clip picks) finishes in the background;
 // this poller watches the job and puts its results on screen when they land.
@@ -3474,6 +3642,7 @@ async function pollAiAnalysis(episodeDir) {
           );
         }
         setSocialDraftsFailed(job.socialDrafted === false);
+        renderPublishChecklist();
         if (currentTranscriptFindings.length > 0) {
           addStatus(
             `⚠ ${currentTranscriptFindings.length} medium-confidence transcript suggestion(s) - review below`,
@@ -4019,6 +4188,8 @@ socialPostsButton.addEventListener("click", async () => {
       `✓ Social drafts opened in Bluesky and Tumblr compose tabs (${body.blueskyLength}/300 chars)${copied ? " - Bluesky text also on the clipboard" : ""}`,
     );
     setSocialDraftsFailed(false);
+    socialDraftsGeneratedThisSession = true;
+    renderPublishChecklist();
     if (!opensInSystemBrowser && (!blueskyWindow || !tumblrWindow)) {
       addStatus(
         "⚠ A popup was blocked - allow popups for this app to get both compose tabs.",
@@ -4079,6 +4250,7 @@ uploadMp3Button.addEventListener("click", async () => {
     addStatus(`❌ MP3 upload failed: ${error.message}`);
   } finally {
     setProcessActionsVisibility();
+    renderPublishChecklist();
   }
 });
 
@@ -4118,6 +4290,7 @@ publishMp3Button.addEventListener("click", async () => {
     addStatus(`❌ Making the MP3 public failed: ${error.message}`);
   } finally {
     setProcessActionsVisibility();
+    renderPublishChecklist();
   }
 });
 
@@ -4169,6 +4342,7 @@ uploadYoutubeButton.addEventListener("click", async () => {
     addStatus(`❌ YouTube upload failed: ${error.message}`);
   } finally {
     setProcessActionsVisibility();
+    renderPublishChecklist();
   }
 });
 
