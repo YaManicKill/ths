@@ -2359,6 +2359,21 @@ async function runDiscovery() {
         "ℹ The last run's AI analysis was interrupted - Re-run Transcript Check and Suggest More Clips cover the same ground.",
       );
     }
+    // A failed background draft is otherwise invisible until posting day: the
+    // warning only shows live at run completion, and the button quietly
+    // regenerates on click without ever saying the pre-drafts were missing.
+    const lastAnalysis = result.discovered?.jobs?.aiAnalysis;
+    const socialDraftsMissing =
+      lastAnalysis?.status === "completed" &&
+      lastAnalysis.socialDrafted === false;
+    setSocialDraftsFailed(socialDraftsMissing);
+    if (socialDraftsMissing) {
+      addStatus(
+        `⚠ The last run did NOT draft the social posts${
+          lastAnalysis.socialWarning ? ` (${lastAnalysis.socialWarning})` : ""
+        } - click Social Posts now so the drafts are ready before posting day.`,
+      );
+    }
 
     currentDiscoveryData = {
       discoveryData: result.discoveryData,
@@ -2977,6 +2992,7 @@ async function pollAiAnalysis(episodeDir) {
             `⚠ Social post drafting: ${job.socialWarning} - the Social Posts button will retry when clicked`,
           );
         }
+        setSocialDraftsFailed(job.socialDrafted === false);
         if (currentTranscriptFindings.length > 0) {
           addStatus(
             `⚠ ${currentTranscriptFindings.length} medium-confidence transcript suggestion(s) - review below`,
@@ -3436,6 +3452,15 @@ async function postTranscriptReview({ recheck }) {
   }
 }
 
+// The button doubles as the standing alert: a run whose social drafts failed marks
+// it, so the failure is still visible days later when it is time to post.
+function setSocialDraftsFailed(failed) {
+  socialPostsButton.textContent = failed ? "Social Posts ⚠" : "Social Posts";
+  socialPostsButton.title = failed
+    ? "The background drafts failed - clicking will generate them fresh, which can take a while"
+    : "";
+}
+
 socialPostsButton.addEventListener("click", async () => {
   if (!currentDiscoveryData?.discoveryData) {
     addStatus("Run discovery first.");
@@ -3512,6 +3537,7 @@ socialPostsButton.addEventListener("click", async () => {
     addStatus(
       `✓ Social drafts opened in Bluesky and Tumblr compose tabs (${body.blueskyLength}/300 chars)${copied ? " - Bluesky text also on the clipboard" : ""}`,
     );
+    setSocialDraftsFailed(false);
     if (!opensInSystemBrowser && (!blueskyWindow || !tumblrWindow)) {
       addStatus(
         "⚠ A popup was blocked - allow popups for this app to get both compose tabs.",
