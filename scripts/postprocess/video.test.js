@@ -126,7 +126,7 @@ generateClipVideos({ clipSuggestions, ...renderOptions })
       "utf8",
     );
     const identityLine =
-      "From The Harvest Season, a podcast about farming and cottagecore games — new episodes every Wednesday.";
+      "From The Harvest Season, a podcast about farming and cottagecore games - new episodes every Wednesday.";
     assert.ok(
       captions.includes(
         `${path.basename(outputs[0].outputPath)}\nYou will not believe this one 🐝\n${identityLine}\n#theharvestseason #cottagecore #farminggames #podcast\n`,

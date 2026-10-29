@@ -58,6 +58,14 @@ const titleSuggestionsSection = document.getElementById(
 const titleSuggestionsList = document.getElementById("title-suggestions-list");
 
 let currentDiscoveryData = null;
+let currentEpisodeDir = "";
+const bufferScheduleSection = document.getElementById(
+  "buffer-schedule-section",
+);
+const bufferScheduleNote = document.getElementById("buffer-schedule-note");
+const bufferChannelList = document.getElementById("buffer-channel-list");
+const bufferScheduleList = document.getElementById("buffer-schedule-list");
+const bufferScheduleButton = document.getElementById("buffer-schedule-button");
 // One fetch per session: re-discoveries (every input tweak) must not re-ask the LLM,
 // and the endpoint's content cache covers restarts.
 let titleSuggestionsPromise = null;
@@ -2351,9 +2359,11 @@ async function runDiscovery() {
       payload.transcriptMdPath,
     );
     renderAudioQc(result.discovered?.audioQc);
+    currentEpisodeDir = String(result.discovered?.episodeDir || "").trim();
     resumeVideoStatusPollingFromDiscover(result.discovered);
     resumeClipStatusPollingFromDiscover(result.discovered);
     resumeAiAnalysisPollingFromDiscover(result.discovered);
+    renderBufferSchedulePanel();
     if (result.discovered?.jobs?.aiAnalysis?.status === "interrupted") {
       addStatus(
         "ℹ The last run's AI analysis was interrupted - Re-run Transcript Check and Suggest More Clips cover the same ground.",
@@ -2856,6 +2866,12 @@ function startClipStatusPolling(episodeDir, { startMessage = "" } = {}) {
     promise: pollPromise,
   };
 
+  pollPromise.then((outcome) => {
+    if (outcome?.status === "completed") {
+      renderBufferSchedulePanel();
+    }
+  });
+
   return pollPromise;
 }
 
@@ -2911,6 +2927,438 @@ function resumeClipStatusPollingFromDiscover(discovered) {
       "⏳ Reconnected to queued/in-progress clip generation from server status",
   });
 }
+
+// ---------- Buffer clip scheduling ----------
+// One dated video post per clip per channel; Buffer holds the schedule once
+// created, so nothing here needs to be running when the posts go out.
+
+let bufferChannelsCache = null;
+let bufferDayOptionsCache = [];
+let draggedBufferRow = null;
+
+// Brand icons (Simple Icons paths), inline so the page stays dependency-free.
+// Unmapped services fall back to their name as text.
+const BUFFER_SERVICE_ICONS = {
+  youtube:
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="#FF0000" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
+  bluesky:
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="#0285FF" aria-hidden="true"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8Z"/></svg>',
+};
+
+// Days are positional: the first ticked row posts Thursday, the next Friday, and so
+// on through Tuesday. Unticked rows take no slot. The date each row will post on is
+// stamped onto the row here, so the label the user reads and the date that gets
+// submitted can never disagree.
+function updateBufferDayLabels() {
+  let slot = 0;
+  for (const row of bufferScheduleList.querySelectorAll("[data-file-name]")) {
+    const dayLabel = row.querySelector(".buffer-day");
+    if (!dayLabel) {
+      continue;
+    }
+    if (!row.querySelector(".buffer-include")?.checked) {
+      dayLabel.textContent = "not scheduled";
+      dayLabel.style.color = "#94a3b8";
+      delete row.dataset.date;
+      continue;
+    }
+    const option =
+      bufferDayOptionsCache[Math.min(slot, bufferDayOptionsCache.length - 1)];
+    slot += 1;
+    dayLabel.textContent = `posts ${option.label}, 7pm`;
+    dayLabel.style.color = "";
+    row.dataset.date = option.value;
+  }
+}
+
+async function fetchBufferChannels() {
+  if (bufferChannelsCache) {
+    return bufferChannelsCache;
+  }
+  const response = await fetch("/api/buffer-channels");
+  const body = await response.json();
+  if (!response.ok || !body.success) {
+    throw new Error(body.error || "Buffer channels request failed");
+  }
+  bufferChannelsCache = body.channels || [];
+  return bufferChannelsCache;
+}
+
+// The episode goes out on a Wednesday; the clips fill the following
+// Thursday through Tuesday, one per day.
+function bufferDayOptions() {
+  const publishValue = String(
+    form.elements.namedItem("publishDate")?.value || "",
+  ).trim();
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(publishValue);
+  if (!match) {
+    return [];
+  }
+  const baseNoonUtc = Date.UTC(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3]),
+    12,
+  );
+  const options = [];
+  for (let offset = 1; offset <= 6; offset += 1) {
+    const day = new Date(baseNoonUtc + offset * 86_400_000);
+    options.push({
+      value: day.toISOString().slice(0, 10),
+      label: day.toLocaleDateString("en-GB", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        timeZone: "UTC",
+      }),
+    });
+  }
+  return options;
+}
+
+function formatScheduledDue(dueAt) {
+  try {
+    return new Date(dueAt).toLocaleString("en-GB", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Europe/London",
+    });
+  } catch {
+    return String(dueAt);
+  }
+}
+
+async function renderBufferSchedulePanel() {
+  const episodeDir = currentEpisodeDir;
+  if (!episodeDir) {
+    bufferScheduleSection.style.display = "none";
+    return;
+  }
+
+  let data = null;
+  try {
+    data = await fetchEpisodeState(episodeDir);
+  } catch {
+    return;
+  }
+  // The fetches are slow enough that the user may have loaded another episode.
+  if (episodeDir !== currentEpisodeDir) {
+    return;
+  }
+
+  const clipJob = data?.exists ? data.jobs?.clipGeneration : null;
+  const outputs = clipJob?.status === "completed" ? clipJob.outputs || [] : [];
+  if (outputs.length === 0) {
+    bufferScheduleSection.style.display = "none";
+    return;
+  }
+
+  bufferScheduleSection.style.display = "block";
+  bufferScheduleNote.textContent = "";
+  bufferChannelList.innerHTML = "";
+  bufferScheduleList.innerHTML = "";
+  bufferScheduleButton.style.display = "none";
+
+  const dayOptions = bufferDayOptions();
+  if (dayOptions.length === 0) {
+    bufferScheduleNote.textContent =
+      "Set the publish date above to pick posting days.";
+    return;
+  }
+  bufferDayOptionsCache = dayOptions;
+  bufferScheduleNote.textContent =
+    "Drag to reorder - the top ticked clip posts Thursday, then one per day through Tuesday.";
+
+  let channels;
+  try {
+    channels = await fetchBufferChannels();
+  } catch (error) {
+    bufferScheduleNote.textContent = `⚠ ${error.message}`;
+    return;
+  }
+  if (episodeDir !== currentEpisodeDir) {
+    return;
+  }
+  if (channels.length === 0) {
+    bufferScheduleNote.textContent =
+      "The Buffer account has no connected channels.";
+    return;
+  }
+
+  // The full paste-ready captions live in captions.txt, not in the clip job's
+  // outputs (whose caption is the model's raw text, without the identity line and
+  // hashtags). Prefill from the file so the panel matches what gets pasted
+  // everywhere else.
+  let fileCaptions = {};
+  try {
+    const captionsResponse = await fetch(
+      `/api/clip-captions?mp3Path=${encodeURIComponent(
+        buildDiscoverPayload().mp3Path || "",
+      )}`,
+    );
+    const captionsBody = await captionsResponse.json();
+    if (captionsBody.success) {
+      fileCaptions = captionsBody.captions || {};
+    }
+  } catch {
+    // The state captions below are a usable fallback.
+  }
+  if (episodeDir !== currentEpisodeDir) {
+    return;
+  }
+
+  bufferChannelList.style.cssText = "display: flex; gap: 20px";
+  for (const channel of channels) {
+    const label = document.createElement("label");
+    label.className = "checkbox";
+    label.style.cursor = "pointer";
+    // It's all The Harvest Season - the network is the only thing worth showing.
+    label.title = `${channel.service}: ${channel.name}`;
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = true;
+    checkbox.value = channel.id;
+    label.appendChild(checkbox);
+    const icon =
+      BUFFER_SERVICE_ICONS[String(channel.service || "").toLowerCase()];
+    if (icon) {
+      const iconSpan = document.createElement("span");
+      iconSpan.style.cssText = "display: inline-flex; align-items: center";
+      iconSpan.innerHTML = icon;
+      label.appendChild(iconSpan);
+    } else {
+      label.appendChild(document.createTextNode(channel.service));
+    }
+    bufferChannelList.appendChild(label);
+  }
+
+  const scheduledByFile = new Map(
+    (data.clipSchedule || []).map((entry) => [entry.fileName, entry]),
+  );
+
+  outputs.forEach((output) => {
+    const fileName =
+      String(output.outputPath || "")
+        .split("/")
+        .pop() || "";
+    const existing = scheduledByFile.get(fileName);
+
+    const row = document.createElement("div");
+    row.dataset.fileName = fileName;
+    row.style.cssText =
+      "border: 1px solid #334155; border-radius: 8px; padding: 10px; margin-top: 10px";
+
+    const header = document.createElement("div");
+    header.style.cssText = "display: flex; gap: 8px; align-items: center";
+
+    // Dragging is armed only from the handle, matching the shownotes rows: a
+    // draggable row would hijack text selection inside the caption.
+    const handle = document.createElement("span");
+    handle.textContent = "⠿";
+    handle.title = "Drag to reorder - top posts Thursday, bottom Tuesday";
+    handle.style.cssText =
+      "cursor: grab; color: #94a3b8; user-select: none; padding: 0 2px;";
+    handle.addEventListener("mousedown", () => {
+      row.draggable = true;
+    });
+    handle.addEventListener("mouseup", () => {
+      row.draggable = false;
+    });
+
+    row.addEventListener("dragstart", (event) => {
+      draggedBufferRow = row;
+      event.dataTransfer.effectAllowed = "move";
+      row.style.opacity = "0.4";
+    });
+    const dropsBelow = (event) => {
+      const rect = row.getBoundingClientRect();
+      return event.clientY >= rect.top + rect.height / 2;
+    };
+    row.addEventListener("dragend", () => {
+      row.draggable = false;
+      row.style.opacity = "";
+      draggedBufferRow = null;
+      for (const sibling of bufferScheduleList.children) {
+        sibling.style.boxShadow = "";
+      }
+    });
+    row.addEventListener("dragover", (event) => {
+      if (!draggedBufferRow || draggedBufferRow === row) {
+        return;
+      }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      for (const sibling of bufferScheduleList.children) {
+        sibling.style.boxShadow = "";
+      }
+      row.style.boxShadow = dropsBelow(event)
+        ? "0 2px 0 var(--accent)"
+        : "0 -2px 0 var(--accent)";
+    });
+    row.addEventListener("dragleave", () => {
+      row.style.boxShadow = "";
+    });
+    row.addEventListener("drop", (event) => {
+      event.preventDefault();
+      if (!draggedBufferRow || draggedBufferRow === row) {
+        return;
+      }
+      // The live nodes move rather than re-rendering, so unsaved caption edits
+      // survive the reorder.
+      bufferScheduleList.insertBefore(
+        draggedBufferRow,
+        dropsBelow(event) ? row.nextSibling : row,
+      );
+      row.style.boxShadow = "";
+      updateBufferDayLabels();
+    });
+
+    const includeLabel = document.createElement("label");
+    includeLabel.style.cssText =
+      "display: flex; gap: 8px; align-items: center; cursor: pointer";
+    const include = document.createElement("input");
+    include.type = "checkbox";
+    include.className = "buffer-include";
+    // Already-booked clips start unticked so a repeat visit can't double-post.
+    include.checked = !existing;
+    include.addEventListener("change", updateBufferDayLabels);
+    const title = document.createElement("strong");
+    title.textContent = output.title || fileName;
+    includeLabel.appendChild(include);
+    includeLabel.appendChild(title);
+    header.appendChild(handle);
+    header.appendChild(includeLabel);
+    row.appendChild(header);
+
+    if (existing) {
+      const note = document.createElement("div");
+      note.style.cssText = "color: #4ade80; margin: 4px 0";
+      note.textContent = `✓ Scheduled for ${formatScheduledDue(existing.dueAt)} - ticking it again creates new posts (the old ones stay on Buffer)`;
+      row.appendChild(note);
+    }
+
+    const caption = document.createElement("textarea");
+    caption.style.cssText =
+      "width: 100%; margin-top: 6px; box-sizing: border-box";
+    caption.value =
+      existing?.caption ||
+      fileCaptions[fileName] ||
+      output.caption ||
+      output.summary ||
+      "";
+    row.appendChild(caption);
+    // Sized to the content up to six lines; only a longer caption scrolls. The
+    // border-box height must include padding and borders, or the last line gets
+    // clipped and the scrollbar appears anyway.
+    const sizeToContent = () => {
+      caption.style.height = "auto";
+      const style = getComputedStyle(caption);
+      const borders =
+        (parseFloat(style.borderTopWidth) || 0) +
+        (parseFloat(style.borderBottomWidth) || 0);
+      const maxHeight =
+        (parseFloat(style.lineHeight) || 20) * 6 +
+        (parseFloat(style.paddingTop) || 0) +
+        (parseFloat(style.paddingBottom) || 0) +
+        borders;
+      caption.style.height = `${Math.min(caption.scrollHeight + borders, maxHeight)}px`;
+    };
+    caption.addEventListener("input", sizeToContent);
+
+    const controls = document.createElement("div");
+    controls.style.cssText =
+      "display: flex; gap: 12px; align-items: center; margin-top: 6px";
+    const dayLabel = document.createElement("span");
+    dayLabel.className = "buffer-day";
+    dayLabel.style.fontWeight = "600";
+    const count = document.createElement("span");
+    const updateCount = () => {
+      const length = caption.value.trim().length;
+      count.textContent = `${length}/300`;
+      count.style.color = length > 300 ? "#f87171" : "#94a3b8";
+    };
+    caption.addEventListener("input", updateCount);
+    updateCount();
+    controls.appendChild(dayLabel);
+    controls.appendChild(count);
+    row.appendChild(controls);
+
+    bufferScheduleList.appendChild(row);
+    // Measured after the row is in the document, since a detached node has no
+    // layout to size against.
+    sizeToContent();
+  });
+  updateBufferDayLabels();
+
+  bufferScheduleButton.style.display = "inline-block";
+  bufferScheduleButton.disabled = false;
+}
+
+bufferScheduleButton.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+
+  const channelIds = [
+    ...bufferChannelList.querySelectorAll("input:checked"),
+  ].map((checkbox) => checkbox.value);
+  if (channelIds.length === 0) {
+    addStatus("Pick at least one Buffer channel.");
+    return;
+  }
+
+  const clips = [];
+  for (const row of bufferScheduleList.querySelectorAll("[data-file-name]")) {
+    if (!row.querySelector(".buffer-include")?.checked) {
+      continue;
+    }
+    clips.push({
+      fileName: row.dataset.fileName,
+      caption: row.querySelector("textarea").value.trim(),
+      date: row.dataset.date,
+    });
+  }
+  if (clips.length === 0) {
+    addStatus("Tick at least one clip to schedule.");
+    return;
+  }
+  const overLimit = clips.filter((clip) => clip.caption.length > 300);
+  if (overLimit.length > 0) {
+    addStatus(
+      `⚠ ${overLimit.length} caption(s) are over Bluesky's 300-character limit - trim them before scheduling.`,
+    );
+    return;
+  }
+
+  bufferScheduleButton.disabled = true;
+  try {
+    const result = await postWithProgress(
+      "/api/schedule-clips",
+      {
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+        channelIds,
+        clips,
+      },
+      (msg) => addStatus(`• ${msg}`),
+    );
+    if (result.type === "error" || !result.success) {
+      throw new Error(result.error || "Scheduling failed");
+    }
+    addStatus(
+      `✓ ${result.scheduled.length} clip(s) scheduled on Buffer across ${channelIds.length} channel(s)`,
+    );
+    renderBufferSchedulePanel();
+  } catch (error) {
+    addStatus(`❌ Buffer scheduling failed: ${error.message}`);
+  } finally {
+    bufferScheduleButton.disabled = false;
+  }
+});
 
 // The run's AI analysis (transcript check + clip picks) finishes in the background;
 // this poller watches the job and puts its results on screen when they land.

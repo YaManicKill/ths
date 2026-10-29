@@ -63,6 +63,12 @@ const {
   uploadFileToSpaces,
 } = require("../spaces");
 const {
+  createBufferVideoPost,
+  listBufferChannels,
+  resolveBuffer,
+  ukEveningToUtcIso,
+} = require("../buffer");
+const {
   buildAuthUrl,
   exchangeCodeForToken,
   refreshAccessToken,
@@ -1878,6 +1884,243 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
         });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // The paste-ready caption blocks from clip-videos/captions.txt, keyed by clip
+    // file name: the Buffer schedule panel prefills from the same text the user
+    // pastes everywhere else (caption body, identity line, hashtags).
+    if (req.method === "GET" && pathname === "/api/clip-captions") {
+      const mp3Path = String(
+        parsedUrl.searchParams.get("mp3Path") || "",
+      ).trim();
+      if (!mp3Path || !path.isAbsolute(mp3Path)) {
+        sendJson(res, 400, {
+          success: false,
+          error: "Missing or invalid mp3Path",
+        });
+        return;
+      }
+      const captionsPath = path.join(
+        path.dirname(mp3Path),
+        "clip-videos",
+        "captions.txt",
+      );
+      const captions = {};
+      if (fs.existsSync(captionsPath)) {
+        for (const raw of fs
+          .readFileSync(captionsPath, "utf8")
+          .split(/\n{2,}/)) {
+          const [fileName, ...rest] = raw.trim().split("\n");
+          if (fileName && rest.length > 0) {
+            // The file packs each block tight (blank lines separate blocks); the
+            // posted caption wants its parts - text, identity line, hashtags -
+            // visually separated.
+            captions[fileName.trim()] = rest.join("\n\n").trim();
+          }
+        }
+      }
+      sendJson(res, 200, { success: true, captions });
+      return;
+    }
+
+    // Buffer channels for the clip schedule panel: queried live, so a network
+    // connected or removed in Buffer shows up without a config change.
+    if (req.method === "GET" && pathname === "/api/buffer-channels") {
+      try {
+        const buffer = resolveBuffer(loadPostprocessConfig(repoRoot));
+        if (!buffer) {
+          sendJson(res, 400, {
+            success: false,
+            error:
+              "Buffer is not configured - add buffer.apiKey to postprocess.config.local.json",
+          });
+          return;
+        }
+        const channels = await listBufferChannels(buffer);
+        sendJson(res, 200, { success: true, channels });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Schedules rendered clips as dated video posts on Buffer: each clip's MP4 goes
+    // up to Spaces public (Buffer has no upload endpoint - it fetches the URL when
+    // the post goes out, days from now), then one post per selected channel is
+    // created with dueAt set. Buffer does the publishing, so nothing needs to be
+    // running here at post time. Streamed NDJSON: the uploads are the slow part and
+    // their progress should reach the UI live.
+    if (req.method === "POST" && pathname === "/api/schedule-clips") {
+      const body = await readRequestBody(req);
+      const stream = startNdjsonStream(res);
+      try {
+        const payload = JSON.parse(body || "{}");
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          stream.error("Missing or invalid discoveryData");
+          return;
+        }
+        const mp3Path = String(payload.mp3Path || "").trim();
+        if (!mp3Path || !path.isAbsolute(mp3Path)) {
+          stream.error("Missing or invalid mp3Path");
+          return;
+        }
+        const channelIds = Array.isArray(payload.channelIds)
+          ? payload.channelIds.map((id) => String(id)).filter(Boolean)
+          : [];
+        if (channelIds.length === 0) {
+          stream.error("Pick at least one Buffer channel");
+          return;
+        }
+        const clips = Array.isArray(payload.clips) ? payload.clips : [];
+        if (clips.length === 0) {
+          stream.error("Pick at least one clip to schedule");
+          return;
+        }
+
+        const config = loadPostprocessConfig(repoRoot);
+        const buffer = resolveBuffer(config);
+        if (!buffer) {
+          stream.error(
+            "Buffer is not configured - add buffer.apiKey to postprocess.config.local.json",
+          );
+          return;
+        }
+        const spaces = resolveSpaces(config);
+        if (!spaces) {
+          stream.error(
+            "Spaces credentials are not configured - add spaces.accessKeyId and spaces.secretAccessKey to postprocess.config.local.json",
+          );
+          return;
+        }
+
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path,
+        });
+        const clipDir = path.join(path.dirname(mp3Path), "clip-videos");
+
+        // The channel's service picks the per-network metadata (YouTube requires a
+        // video title and category), and the clip job's outputs carry each clip's
+        // title.
+        const channelsById = new Map(
+          (await listBufferChannels(buffer)).map((channel) => [
+            channel.id,
+            channel,
+          ]),
+        );
+        for (const channelId of channelIds) {
+          if (!channelsById.has(channelId)) {
+            stream.error(`Unknown Buffer channel: ${channelId}`);
+            return;
+          }
+        }
+        const existingState = await episodeState.readState(episodeDir);
+        const outputsByFile = new Map(
+          (existingState?.jobs?.clipGeneration?.outputs || []).map((output) => [
+            path.basename(String(output.outputPath || "")),
+            output,
+          ]),
+        );
+
+        // All validation happens before the first upload, so a bad row can't leave
+        // the batch half-scheduled.
+        const plans = clips.map((clip) => {
+          const fileName = path.basename(String(clip.fileName || "").trim());
+          const filePath = path.join(clipDir, fileName);
+          if (!fileName || !fs.existsSync(filePath)) {
+            throw new Error(`Clip file not found: ${fileName || "(empty)"}`);
+          }
+          const caption = String(clip.caption || "").trim();
+          if (!caption) {
+            throw new Error(`Clip ${fileName} has an empty caption`);
+          }
+          return {
+            fileName,
+            filePath,
+            caption,
+            title:
+              outputsByFile.get(fileName)?.title ||
+              fileName.replace(/\.mp4$/i, ""),
+            dueAt: ukEveningToUtcIso(String(clip.date || "").trim()),
+          };
+        });
+
+        const scheduled = [];
+        for (const plan of plans) {
+          const sizeMb = (
+            fs.statSync(plan.filePath).size /
+            (1024 * 1024)
+          ).toFixed(1);
+          const key = `clips/${path.basename(episodeDir)}/${plan.fileName}`;
+          stream.progress(
+            `Uploading ${plan.fileName} (${sizeMb} MB) to ${spaces.bucket}/${key}...`,
+          );
+          const uploaded = await uploadFileToSpaces({
+            filePath: plan.filePath,
+            key,
+            ...spaces,
+            contentType: "video/mp4",
+            acl: "public-read",
+          });
+
+          const posts = [];
+          for (const channelId of channelIds) {
+            const channel = channelsById.get(channelId);
+            const post = await createBufferVideoPost({
+              ...buffer,
+              channelId,
+              service: channel.service,
+              title: plan.title,
+              text: plan.caption,
+              dueAt: plan.dueAt,
+              videoUrl: uploaded.url,
+            });
+            posts.push({
+              channelId,
+              service: channel.service,
+              postId: post.id,
+            });
+          }
+
+          const entry = {
+            fileName: plan.fileName,
+            caption: plan.caption,
+            videoUrl: uploaded.url,
+            dueAt: plan.dueAt,
+            posts,
+            scheduledAt: new Date().toISOString(),
+          };
+          scheduled.push(entry);
+          // Recorded clip by clip, so a failure partway still leaves an accurate
+          // record of every post now sitting on Buffer and every video URL on
+          // Spaces (the user wants those for cleaning up later).
+          await episodeState.updateState(episodeDir, (current) =>
+            current
+              ? {
+                  ...current,
+                  clipSchedule: [
+                    ...(current.clipSchedule || []).filter(
+                      (existing) => existing.fileName !== entry.fileName,
+                    ),
+                    entry,
+                  ],
+                }
+              : null,
+          );
+          stream.progress(
+            `✓ ${plan.fileName} scheduled on ${posts.length} channel(s)`,
+          );
+        }
+
+        stream.result({ success: true, scheduled });
+      } catch (error) {
+        stream.error(error.message);
       }
       return;
     }

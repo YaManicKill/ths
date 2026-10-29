@@ -80,6 +80,16 @@ episode title, burned-in subtitles and a progress bar.
 - **Social Posts** drafts Bluesky and Tumblr announcements from the episode
   description and clip hooks, then opens both platforms' compose pages prefilled -
   posting stays a manual click there. The Bluesky text also lands on the clipboard.
+- **Schedule Clips on Buffer** (needs `buffer.apiKey` in the local config) appears
+  once clip videos are rendered: one row per clip with its caption (editable, with a
+  Bluesky character count). Posting days are positional — drag rows to reorder; the
+  top ticked clip posts the Thursday after the episode's Wednesday, then one per day
+  through Tuesday. Scheduling uploads each MP4 to Spaces publicly (Buffer fetches
+  the file when the post goes out) and creates the dated posts, at 7pm UK, on every
+  ticked Buffer channel. Buffer owns the schedule from there — nothing needs to be
+  running locally when the posts publish. What was scheduled (including each video's
+  Spaces URL, for later cleanup) is recorded in the episode state, and booked clips
+  start unticked so a revisit can't double-post.
 - Suggestions, links, unapplied fixes and run/job status all live in the episode's
   `postprocess-state.json` and are restored after a refresh or restart — including
   review-phase edits (title, topic, description, links), which save as you type, so
@@ -106,21 +116,22 @@ on the site:
 Main config is `postprocess.config.json` at the repo root; every key is optional, with
 defaults in `config.js`.
 
-| Key                  | Default                       | What it does                                                                                                     |
-| -------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `episodesRoot`       | `~/Google Drive/.../Episodes` | Where source assets are searched for (MP3, transcripts). `~` is expanded. Searched up to 4 directories deep.     |
-| `outputRoot`         | `content/episode`             | Where generated episode folders are written, relative to the repo root. Also where episode inference reads from. |
-| `defaultAuthor`      | `Al McKinlay`                 | The `author` field in generated `index.md` frontmatter.                                                          |
-| `releaseTimeLocal`   | `19:00:00`                    | Local time of day used for inferred publish dates.                                                               |
-| `timezone`           | `Europe/London`               | IANA zone the release time is interpreted in. The UTC offset is computed per date, so DST is handled.            |
-| `profanityWords`     | built-in list                 | Word list for the warning-only transcript check; setting it replaces the defaults. Wildcards like `shit*` work.  |
-| `hostNames`          | the five regulars             | Correct spellings of the recurring hosts. The AI transcript check flags any other spelling of them as a mistake. |
-| `llm.provider`       | `gemini`                      | Which LLM backs the AI features. Only `gemini` is implemented so far.                                            |
-| `llm.model`          | `gemini-3.6-flash`            | The model used for the AI features.                                                                              |
-| `llm.fallbackModels` | `["gemini-3.6-flash"]`        | Tried in order when the main model is rate limited (quotas are per model); `[]` disables the failover.           |
-| `llm.apiKey`         | unset                         | API key for the LLM provider. **Never put this in the main config** — see below.                                 |
-| `spaces.bucket`      | `ymk`                         | DigitalOcean Space the MP3 uploads to; `spaces.region` (default `nyc3`) picks the endpoint.                      |
-| `spaces.accessKeyId` | unset                         | Spaces credentials, with `spaces.secretAccessKey`. **Local config only** — see below.                            |
+| Key                  | Default                       | What it does                                                                                                                                                              |
+| -------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `episodesRoot`       | `~/Google Drive/.../Episodes` | Where source assets are searched for (MP3, transcripts). `~` is expanded. Searched up to 4 directories deep.                                                              |
+| `outputRoot`         | `content/episode`             | Where generated episode folders are written, relative to the repo root. Also where episode inference reads from.                                                          |
+| `defaultAuthor`      | `Al McKinlay`                 | The `author` field in generated `index.md` frontmatter.                                                                                                                   |
+| `releaseTimeLocal`   | `19:00:00`                    | Local time of day used for inferred publish dates.                                                                                                                        |
+| `timezone`           | `Europe/London`               | IANA zone the release time is interpreted in. The UTC offset is computed per date, so DST is handled.                                                                     |
+| `profanityWords`     | built-in list                 | Word list for the warning-only transcript check; setting it replaces the defaults. Wildcards like `shit*` work.                                                           |
+| `hostNames`          | the five regulars             | Correct spellings of the recurring hosts. The AI transcript check flags any other spelling of them as a mistake.                                                          |
+| `llm.provider`       | `gemini`                      | Which LLM backs the AI features. Only `gemini` is implemented so far.                                                                                                     |
+| `llm.model`          | `gemini-3.6-flash`            | The model used for the AI features.                                                                                                                                       |
+| `llm.fallbackModels` | `["gemini-3.6-flash"]`        | Tried in order when the main model is rate limited (quotas are per model); `[]` disables the failover.                                                                    |
+| `llm.apiKey`         | unset                         | API key for the LLM provider. **Never put this in the main config** — see below.                                                                                          |
+| `spaces.bucket`      | `ymk`                         | DigitalOcean Space the MP3 uploads to; `spaces.region` (default `nyc3`) picks the endpoint.                                                                               |
+| `spaces.accessKeyId` | unset                         | Spaces credentials, with `spaces.secretAccessKey`. **Local config only** — see below.                                                                                     |
+| `buffer.apiKey`      | unset                         | Buffer API key (create one at publish.buffer.com/settings/api) for scheduling clip posts. **Local config only.** `BUFFER_API_KEY` in the environment works as a fallback. |
 
 Secrets go in `postprocess.config.local.json` (gitignored — the main config is committed
 to a public repo). It is deep-merged over the main config:
