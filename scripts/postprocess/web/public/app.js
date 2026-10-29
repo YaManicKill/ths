@@ -2949,6 +2949,42 @@ const BUFFER_SERVICE_ICONS = {
 // on through Tuesday. Unticked rows take no slot. The date each row will post on is
 // stamped onto the row here, so the label the user reads and the date that gets
 // submitted can never disagree.
+// The button is only clickable when the click would actually work; the tooltip
+// names what's in the way. The 300 limit is Bluesky's, so it only blocks while a
+// Bluesky channel is ticked.
+function updateBufferScheduleButtonState() {
+  const tickedChannels = [
+    ...bufferChannelList.querySelectorAll("input:checked"),
+  ];
+  const rows = [...bufferScheduleList.querySelectorAll("[data-file-name]")];
+  const ticked = rows.filter(
+    (row) => row.querySelector(".buffer-include")?.checked,
+  );
+  const captionOf = (row) => row.querySelector("textarea")?.value.trim() || "";
+
+  const problems = [];
+  if (tickedChannels.length === 0) {
+    problems.push("no channel is ticked");
+  }
+  if (ticked.length === 0) {
+    problems.push("no clip is ticked");
+  }
+  if (ticked.some((row) => !captionOf(row))) {
+    problems.push("a ticked clip has an empty caption");
+  }
+  if (
+    tickedChannels.some((box) => box.dataset.service === "bluesky") &&
+    ticked.some((row) => captionOf(row).length > 300)
+  ) {
+    problems.push("a caption is over Bluesky's 300-character limit");
+  }
+
+  bufferScheduleButton.disabled = problems.length > 0;
+  bufferScheduleButton.title = problems.length
+    ? `Fix first: ${problems.join("; ")}`
+    : "";
+}
+
 function updateBufferDayLabels() {
   let slot = 0;
   for (const row of bufferScheduleList.querySelectorAll("[data-file-name]")) {
@@ -3121,6 +3157,8 @@ async function renderBufferSchedulePanel() {
     checkbox.type = "checkbox";
     checkbox.checked = true;
     checkbox.value = channel.id;
+    checkbox.dataset.service = String(channel.service || "").toLowerCase();
+    checkbox.addEventListener("change", updateBufferScheduleButtonState);
     label.appendChild(checkbox);
     const icon =
       BUFFER_SERVICE_ICONS[String(channel.service || "").toLowerCase()];
@@ -3224,7 +3262,10 @@ async function renderBufferSchedulePanel() {
     include.className = "buffer-include";
     // Already-booked clips start unticked so a repeat visit can't double-post.
     include.checked = !existing;
-    include.addEventListener("change", updateBufferDayLabels);
+    include.addEventListener("change", () => {
+      updateBufferDayLabels();
+      updateBufferScheduleButtonState();
+    });
     const title = document.createElement("strong");
     title.textContent = output.title || fileName;
     includeLabel.appendChild(include);
@@ -3241,6 +3282,7 @@ async function renderBufferSchedulePanel() {
     }
 
     const caption = document.createElement("textarea");
+    caption.rows = 6;
     caption.style.cssText =
       "width: 100%; margin-top: 6px; box-sizing: border-box";
     caption.value =
@@ -3251,20 +3293,15 @@ async function renderBufferSchedulePanel() {
       "";
     row.appendChild(caption);
     // Sized to the content up to six lines; only a longer caption scrolls. The
-    // border-box height must include padding and borders, or the last line gets
-    // clipped and the scrollbar appears anyway.
+    // six-line cap comes from rows=6 at auto height - the browser's own line
+    // metrics - rather than a computed line-height, which reads "normal" here and
+    // made a guessed cap clip six real lines.
     const sizeToContent = () => {
       caption.style.height = "auto";
-      const style = getComputedStyle(caption);
-      const borders =
-        (parseFloat(style.borderTopWidth) || 0) +
-        (parseFloat(style.borderBottomWidth) || 0);
-      const maxHeight =
-        (parseFloat(style.lineHeight) || 20) * 6 +
-        (parseFloat(style.paddingTop) || 0) +
-        (parseFloat(style.paddingBottom) || 0) +
-        borders;
-      caption.style.height = `${Math.min(caption.scrollHeight + borders, maxHeight)}px`;
+      if (caption.scrollHeight <= caption.clientHeight) {
+        const borders = caption.offsetHeight - caption.clientHeight;
+        caption.style.height = `${caption.scrollHeight + borders}px`;
+      }
     };
     caption.addEventListener("input", sizeToContent);
 
@@ -3280,7 +3317,10 @@ async function renderBufferSchedulePanel() {
       count.textContent = `${length}/300`;
       count.style.color = length > 300 ? "#f87171" : "#94a3b8";
     };
-    caption.addEventListener("input", updateCount);
+    caption.addEventListener("input", () => {
+      updateCount();
+      updateBufferScheduleButtonState();
+    });
     updateCount();
     controls.appendChild(dayLabel);
     controls.appendChild(count);
@@ -3294,7 +3334,7 @@ async function renderBufferSchedulePanel() {
   updateBufferDayLabels();
 
   bufferScheduleButton.style.display = "inline-block";
-  bufferScheduleButton.disabled = false;
+  updateBufferScheduleButtonState();
 }
 
 bufferScheduleButton.addEventListener("click", async () => {
@@ -3326,13 +3366,6 @@ bufferScheduleButton.addEventListener("click", async () => {
     addStatus("Tick at least one clip to schedule.");
     return;
   }
-  const overLimit = clips.filter((clip) => clip.caption.length > 300);
-  if (overLimit.length > 0) {
-    addStatus(
-      `⚠ ${overLimit.length} caption(s) are over Bluesky's 300-character limit - trim them before scheduling.`,
-    );
-    return;
-  }
 
   bufferScheduleButton.disabled = true;
   try {
@@ -3356,7 +3389,7 @@ bufferScheduleButton.addEventListener("click", async () => {
   } catch (error) {
     addStatus(`❌ Buffer scheduling failed: ${error.message}`);
   } finally {
-    bufferScheduleButton.disabled = false;
+    updateBufferScheduleButtonState();
   }
 });
 
