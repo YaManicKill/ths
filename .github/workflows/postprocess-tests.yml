@@ -1,0 +1,35 @@
+# The Netlify check only builds the Hugo site; the postprocess tool's tests run
+# here. The suite shells out to real ffmpeg (fixture renders need drawtext/libass,
+# which Ubuntu's build ships) and embeds MP3 chapters via python3 + mutagen.
+name: Postprocess tests
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "scripts/postprocess/**"
+      - ".github/workflows/postprocess-tests.yml"
+  pull_request:
+    paths:
+      - "scripts/postprocess/**"
+      - ".github/workflows/postprocess-tests.yml"
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ffmpeg and the clip subtitle font
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core
+      - name: Install mutagen
+        run: python3 -m pip install mutagen
+      # The tool is zero-dependency, so there is no npm ci to run first.
+      - run: npm run test:postprocess

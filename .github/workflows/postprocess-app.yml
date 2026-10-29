@@ -1,0 +1,38 @@
+# Nothing else builds the Electron wrapper, so a dependency bump (Renovate's
+# Electron majors in particular) was only ever tested by the next manual
+# `npm run package`. This builds the real .app on the runner Renovate's PRs touch.
+name: Postprocess app build
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "scripts/postprocess/app/**"
+      - ".github/workflows/postprocess-app.yml"
+  pull_request:
+    paths:
+      - "scripts/postprocess/app/**"
+      - ".github/workflows/postprocess-app.yml"
+
+jobs:
+  build:
+    # The packaged app is mac-arm64; macos-15 runners are Apple Silicon.
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: scripts/postprocess/app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: scripts/postprocess/app/package-lock.json
+      - run: npm ci
+      - name: Build the app
+        run: npm run dist
+        env:
+          # No signing identity on CI; the build config already sets identity null.
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - name: Confirm the .app was produced
+        run: test -d "dist/mac-arm64/THS Post-Process.app"
