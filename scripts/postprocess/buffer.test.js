@@ -88,7 +88,7 @@ test("a youtube channel's post carries the required video metadata", async () =>
   });
 
   const input = JSON.parse(requests[0].options.body).variables.input;
-  assert.strictEqual(input.metadata.youtube.categoryId, 20);
+  assert.strictEqual(input.metadata.youtube.categoryId, "20");
   assert.strictEqual(input.metadata.youtube.title.length, 100);
   assert.ok(input.metadata.youtube.title.startsWith("A very long clip title"));
 });

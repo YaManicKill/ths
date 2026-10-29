@@ -115,7 +115,7 @@ async function createBufferVideoPost({
     input.metadata = {
       youtube: {
         title: String(title || text || "").slice(0, 100),
-        categoryId: 20,
+        categoryId: "20",
       },
     };
   }
