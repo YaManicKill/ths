@@ -1,0 +1,292 @@
+{
+  "version": "1.2.0",
+  "chapters": [
+    {
+      "startTime": 0,
+      "title": "Theme Tune"
+    },
+    {
+      "startTime": 30.224,
+      "title": "Intro"
+    },
+    {
+      "startTime": 85.993,
+      "title": "What Have We Been Up To"
+    },
+    {
+      "startTime": 772.166,
+      "title": "I Know What You Released Last Month"
+    },
+    {
+      "startTime": 832.03,
+      "title": "Game News"
+    },
+    {
+      "startTime": 836.237,
+      "title": "Spirit Crossing",
+      "toc": false
+    },
+    {
+      "startTime": 967.581,
+      "title": "Witchbrook",
+      "toc": false
+    },
+    {
+      "startTime": 1042.671,
+      "title": "Petite Planet",
+      "toc": false
+    },
+    {
+      "startTime": 1103.271,
+      "title": "Emberville",
+      "toc": false
+    },
+    {
+      "startTime": 1359.012,
+      "title": "Moonlight Peaks",
+      "toc": false
+    },
+    {
+      "startTime": 1807.102,
+      "title": "Harvest Moon: Echoes Of Teradea",
+      "toc": false
+    },
+    {
+      "startTime": 2313.798,
+      "title": "Village In The Shade",
+      "toc": false
+    },
+    {
+      "startTime": 2402.636,
+      "title": "Cozy Caravan",
+      "toc": false
+    },
+    {
+      "startTime": 2508.061,
+      "title": "Welcome To Elderfield",
+      "toc": false
+    },
+    {
+      "startTime": 2580.78,
+      "title": "Bitter Harvest",
+      "toc": false
+    },
+    {
+      "startTime": 2684.398,
+      "title": "Abyss: New Dawn",
+      "toc": false
+    },
+    {
+      "startTime": 2828.995,
+      "title": "Dinkum",
+      "toc": false
+    },
+    {
+      "startTime": 2918.539,
+      "title": "New Games"
+    },
+    {
+      "startTime": 2922.184,
+      "title": "Weavercraft",
+      "toc": false
+    },
+    {
+      "startTime": 3028.593,
+      "title": "Outlanders VR",
+      "toc": false
+    },
+    {
+      "startTime": 3159.028,
+      "title": "Animal Tier Lists"
+    },
+    {
+      "startTime": 3207.778,
+      "title": "Stardew Animals Tier List",
+      "toc": false
+    },
+    {
+      "startTime": 3266.623,
+      "title": "White Chicken",
+      "toc": false
+    },
+    {
+      "startTime": 3297.745,
+      "title": "Brown Chicken",
+      "toc": false
+    },
+    {
+      "startTime": 3307.138,
+      "title": "Blue Chicken",
+      "toc": false
+    },
+    {
+      "startTime": 3334.667,
+      "title": "Golden Chicken",
+      "toc": false
+    },
+    {
+      "startTime": 3368.234,
+      "title": "Void Chicken",
+      "toc": false
+    },
+    {
+      "startTime": 3455.024,
+      "title": "White Cow",
+      "toc": false
+    },
+    {
+      "startTime": 3498.121,
+      "title": "Brown Cow",
+      "toc": false
+    },
+    {
+      "startTime": 3534.373,
+      "title": "Sheep",
+      "toc": false
+    },
+    {
+      "startTime": 3538.323,
+      "title": "Goat",
+      "toc": false
+    },
+    {
+      "startTime": 3589.71,
+      "title": "Pig",
+      "toc": false
+    },
+    {
+      "startTime": 3625.066,
+      "title": "Duck",
+      "toc": false
+    },
+    {
+      "startTime": 3677.353,
+      "title": "Rabbit",
+      "toc": false
+    },
+    {
+      "startTime": 3689.982,
+      "title": "Dino",
+      "toc": false
+    },
+    {
+      "startTime": 3755.575,
+      "title": "Horse",
+      "toc": false
+    },
+    {
+      "startTime": 3770.616,
+      "title": "Pets",
+      "toc": false
+    },
+    {
+      "startTime": 4110.901,
+      "title": "Finalised Stardew Tier List",
+      "toc": false
+    },
+    {
+      "startTime": 4163.295,
+      "title": "Harvest Moon Animals Tier List",
+      "toc": false
+    },
+    {
+      "startTime": 4213.913,
+      "title": "Cow/Sheep/Chicken",
+      "toc": false
+    },
+    {
+      "startTime": 4328.002,
+      "title": "Horses",
+      "toc": false
+    },
+    {
+      "startTime": 4429.465,
+      "title": "Zebra",
+      "toc": false
+    },
+    {
+      "startTime": 4439.238,
+      "title": "Unicorns",
+      "toc": false
+    },
+    {
+      "startTime": 4491.259,
+      "title": "Dromedary Camel",
+      "toc": false
+    },
+    {
+      "startTime": 4517.759,
+      "title": "Reindeer",
+      "toc": false
+    },
+    {
+      "startTime": 4538.1,
+      "title": "Dogs",
+      "toc": false
+    },
+    {
+      "startTime": 4678.133,
+      "title": "Wild Dogs",
+      "toc": false
+    },
+    {
+      "startTime": 4789.098,
+      "title": "Cats",
+      "toc": false
+    },
+    {
+      "startTime": 5031.456,
+      "title": "Big Cats",
+      "toc": false
+    },
+    {
+      "startTime": 5082.417,
+      "title": "Hares/Rabbits",
+      "toc": false
+    },
+    {
+      "startTime": 5112.558,
+      "title": "Bears",
+      "toc": false
+    },
+    {
+      "startTime": 5185.001,
+      "title": "Birds",
+      "toc": false
+    },
+    {
+      "startTime": 5223.574,
+      "title": "Owls",
+      "toc": false
+    },
+    {
+      "startTime": 5246.012,
+      "title": "Small Mammals",
+      "toc": false
+    },
+    {
+      "startTime": 5320.447,
+      "title": "Alpaca/Llama",
+      "toc": false
+    },
+    {
+      "startTime": 5392.449,
+      "title": "Velociraptors",
+      "toc": false
+    },
+    {
+      "startTime": 5414.697,
+      "title": "Sasquatches",
+      "toc": false
+    },
+    {
+      "startTime": 5480.202,
+      "title": "Finalised Harvest Moon Tier List",
+      "toc": false
+    },
+    {
+      "startTime": 5562.519,
+      "title": "Outro"
+    }
+  ]
+}
