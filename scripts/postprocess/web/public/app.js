@@ -1817,11 +1817,22 @@ function renderClipSuggestions(suggestions) {
   generateClipVideosButton.disabled = isRunRequestInFlight;
 
   if (currentClipSuggestions.length === 0) {
-    clipSuggestionsSection.style.display = "none";
+    // No suggestions is still a workable state - the AI job may have failed - so
+    // once an episode is loaded the section stays up with the suggest/find
+    // controls as the way back in.
+    if (!currentDiscoveryData) {
+      clipSuggestionsSection.style.display = "none";
+      return;
+    }
+    clipSuggestionsSection.style.display = "block";
+    updateClipSuggestionsSummary();
+    moreClipSuggestionsButton.textContent = "Suggest Clips";
+    generateClipVideosButton.style.display = "none";
     return;
   }
 
   clipSuggestionsSection.style.display = "block";
+  moreClipSuggestionsButton.textContent = "Suggest More Clips";
   updateClipSuggestionsSummary();
 
   const chapters = getDiscoverySnapshot()?.chapters || [];
@@ -3510,13 +3521,9 @@ document
   .getElementById("publish-goto-clips-button")
   .addEventListener("click", () => setActiveTab("clips"));
 
-let initialTab = "generation";
-try {
-  initialTab = localStorage.getItem(TAB_STORAGE_KEY) || "generation";
-} catch {
-  // Fall through to the default tab.
-}
-setActiveTab(initialTab);
+// The initial setActiveTab call lives at the end of the file: restoring the
+// publish tab runs renderPublishChecklist, whose element consts are declared
+// below this block and would still be in their temporal dead zone here.
 
 function setStatusDockExpanded(expanded) {
   statusDock.className = expanded ? "expanded" : "";
@@ -3532,6 +3539,14 @@ statusDockHeader.addEventListener("click", () => {
 // Each row reads its state from the episode's state file, so the tab answers
 // "what is left to do before Wednesday" at a glance.
 
+const youtubeStudioButton = document.getElementById("youtube-studio-button");
+const createPlaylistButton = document.getElementById("create-playlist-button");
+const publishGotoClipsButton = document.getElementById(
+  "publish-goto-clips-button",
+);
+const generateSocialPostsButton = document.getElementById(
+  "generate-social-posts-button",
+);
 const publishMp3State = document.getElementById("publish-mp3-state");
 const publishYoutubeState = document.getElementById("publish-youtube-state");
 const publishSocialState = document.getElementById("publish-social-state");
@@ -3546,7 +3561,9 @@ async function renderPublishChecklist() {
     uploadMp3Button,
     publishMp3Button,
     uploadYoutubeButton,
+    youtubeStudioButton,
     socialPostsButton,
+    generateSocialPostsButton,
   ];
   const setAll = (text) => {
     for (const element of [
@@ -3561,7 +3578,22 @@ async function renderPublishChecklist() {
     for (const button of publishButtons) {
       button.style.display = "none";
     }
+    uploadMp3Button.className = "";
+    publishGotoClipsButton.className = "";
   };
+  // A season's first episode means its podcast playlist does not exist yet; the
+  // reminder shows regardless of how far through the process the episode is.
+  const snapshot = getDiscoverySnapshot();
+  const seasonOpener = Number(snapshot?.episodeMeta?.episodeCode) === 1;
+  const seasonTitle = snapshot?.seasonInfo
+    ? `Year ${snapshot.seasonInfo.year}, ${snapshot.seasonInfo.seasonName}`
+    : "";
+  createPlaylistButton.style.display = seasonOpener ? "inline-block" : "none";
+  createPlaylistButton.title =
+    seasonOpener && seasonTitle
+      ? `New season - create the "${seasonTitle}" podcast in Studio so uploads land in it`
+      : "";
+
   if (!episodeDir) {
     setAll("Load an episode to see its state.");
     return;
@@ -3601,6 +3633,9 @@ async function renderPublishChecklist() {
     generated && !mp3Public ? "inline-block" : "none";
   publishMp3Button.style.display =
     generated && mp3 && !mp3Public ? "inline-block" : "none";
+  // Once the file is staged the needed click is Make MP3 Public; re-uploading
+  // stays possible (the file may have changed) but parks itself.
+  uploadMp3Button.className = mp3 && !mp3Public ? "secondary" : "";
 
   const youtube = data.youtubeUpload;
   publishYoutubeState.textContent = youtube?.videoId
@@ -3609,17 +3644,57 @@ async function renderPublishChecklist() {
   markDone(publishYoutubeState, Boolean(youtube?.videoId));
   uploadYoutubeButton.style.display =
     generated && !youtube?.videoId ? "inline-block" : "none";
+  youtubeStudioButton.dataset.videoId = youtube?.videoId || "";
+  youtubeStudioButton.style.display = youtube?.videoId
+    ? "inline-block"
+    : "none";
 
   const drafted = data.jobs?.aiAnalysis?.socialDrafted;
-  const draftsReady = drafted === true || socialDraftsGeneratedThisSession;
+  const socialDraftWarning = data.jobs?.aiAnalysis?.socialWarning;
+  // "Drafted once" is not "drafts ready": the Social Posts button reads a cache
+  // keyed on the episode's current material (title, description, clip hooks), so
+  // the cache itself is what gets asked. Editing material after drafting
+  // deliberately invalidates it, and the row must say so rather than promise an
+  // instant click.
+  let draftsReady = drafted === true || socialDraftsGeneratedThisSession;
+  if (generated && currentDiscoveryData?.discoveryData) {
+    try {
+      const probeResponse = await fetch("/api/social-posts", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          mp3Path: buildDiscoverPayload().mp3Path,
+          discoveryData: currentDiscoveryData.discoveryData,
+          probe: true,
+        }),
+      });
+      const probeBody = await probeResponse.json();
+      if (probeResponse.ok && probeBody.success) {
+        draftsReady = Boolean(probeBody.cached);
+      }
+    } catch {
+      // The flag-based guess above stands.
+    }
+    if (episodeDir !== currentEpisodeDir) {
+      return;
+    }
+  }
   publishSocialState.textContent = draftsReady
     ? "✓ Drafts ready - the button opens prefilled compose tabs."
-    : drafted === false
-      ? "⚠ NOT drafted - the button will generate fresh drafts first, which can take a while."
-      : "Drafts are made during generation - run the process first.";
+    : drafted === true || socialDraftsGeneratedThisSession
+      ? "⚠ The episode material changed since the drafts were made - regenerate them."
+      : drafted === false
+        ? `⚠ Drafting failed during the run${socialDraftWarning ? ` (${socialDraftWarning})` : ""} - generate the drafts now.`
+        : generated
+          ? "Not drafted yet - generate the drafts now."
+          : "Drafts are made during generation - run the process first.";
   markDone(publishSocialState, draftsReady);
-  // Posting social is always a manual act, so its button never disappears.
-  socialPostsButton.style.display = generated ? "inline-block" : "none";
+  // One button at a time: generate until the drafts exist, then the compose
+  // opener (posting is always a manual act, so that one never disappears).
+  socialPostsButton.style.display =
+    generated && draftsReady ? "inline-block" : "none";
+  generateSocialPostsButton.style.display =
+    generated && !draftsReady ? "inline-block" : "none";
 
   const clipJob = data.jobs?.clipGeneration;
   const rendered =
@@ -3640,6 +3715,8 @@ async function renderPublishChecklist() {
     }`;
     markDone(publishClipsState, schedule.length > 0);
   }
+  // With the clips booked, there is nothing left to do over there.
+  publishGotoClipsButton.className = schedule.length > 0 ? "secondary" : "";
 }
 
 // The run's AI analysis (transcript check + clip picks) finishes in the background;
@@ -4192,6 +4269,70 @@ function setSocialDraftsFailed(failed) {
     : "";
 }
 
+// Straight to Studio's Podcasts page when the channel id is configured; podcast
+// playlists cannot be created through the API, so the person does this part.
+let youtubeChannelIdPromise = null;
+createPlaylistButton.addEventListener("click", async () => {
+  if (!youtubeChannelIdPromise) {
+    youtubeChannelIdPromise = fetch("/api/youtube-channel")
+      .then((response) => response.json())
+      .then((body) => body.channelId || null)
+      .catch(() => null);
+  }
+  const channelId = await youtubeChannelIdPromise;
+  window.open(
+    channelId
+      ? `https://studio.youtube.com/channel/${channelId}/podcasts`
+      : "https://studio.youtube.com/",
+  );
+});
+
+youtubeStudioButton.addEventListener("click", () => {
+  const videoId = youtubeStudioButton.dataset.videoId;
+  if (videoId) {
+    window.open(`https://studio.youtube.com/video/${videoId}/edit`);
+  }
+});
+
+// Drafting without posting: warms the same cache the Social Posts button reads, so
+// a failed background draft can be repaired ahead of posting day without compose
+// tabs popping up.
+generateSocialPostsButton.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+  generateSocialPostsButton.disabled = true;
+  const stopSpinner = startStatusSpinner("Drafting social posts...");
+  try {
+    const response = await fetch("/api/social-posts", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+      }),
+    });
+    const body = await response.json();
+    if (!response.ok || !body.success) {
+      throw new Error(body.error || "Social posts request failed");
+    }
+    socialDraftsGeneratedThisSession = true;
+    setSocialDraftsFailed(false);
+    stopSpinner(
+      `✓ Social drafts generated (${body.blueskyLength}/300 chars) - the Social Posts button is ready`,
+    );
+  } catch (error) {
+    stopSpinner();
+    addStatus(`❌ Social post drafting failed: ${error.message}`);
+  } finally {
+    generateSocialPostsButton.disabled = false;
+    renderPublishChecklist();
+  }
+});
+
 socialPostsButton.addEventListener("click", async () => {
   if (!currentDiscoveryData?.discoveryData) {
     addStatus("Run discovery first.");
@@ -4404,12 +4545,28 @@ uploadYoutubeButton.addEventListener("click", async () => {
       window.open(body.authUrl, "_blank");
       return;
     }
+    const reportPlaylistOutcome = () => {
+      if (body.playlist) {
+        addStatus(
+          body.playlist.status === "added"
+            ? `✓ Added to the "${body.playlist.title}" playlist`
+            : `✓ Already in the "${body.playlist.title}" playlist`,
+        );
+      }
+      if (body.playlistWarning) {
+        addStatus(`⚠ ${body.playlistWarning}`);
+        if (body.authUrl) {
+          window.open(body.authUrl, "_blank");
+        }
+      }
+    };
     if (body.alreadyUploaded) {
       stopSpinner("ℹ Episode already uploaded to YouTube");
       addStatus(`ℹ ${body.url}`);
       if (body.warning) {
         addStatus(`⚠ ${body.warning}`);
       }
+      reportPlaylistOutcome();
       return;
     }
     stopSpinner(`✓ Uploaded to YouTube as "${body.title}"`);
@@ -4418,6 +4575,7 @@ uploadYoutubeButton.addEventListener("click", async () => {
         ? `✓ ${body.url} - scheduled to go public ${new Date(body.publishAt).toLocaleString()}`
         : `✓ ${body.url} - public now (the publish date has passed)`,
     );
+    reportPlaylistOutcome();
   } catch (error) {
     stopSpinner();
     addStatus(`❌ YouTube upload failed: ${error.message}`);
@@ -4760,3 +4918,13 @@ runDiscovery().finally(() => {
   resumeVideoStatusPollingIfNeeded();
   resumeClipStatusPollingIfNeeded();
 });
+
+// Last, after every element const above exists: restoring the publish tab runs
+// renderPublishChecklist immediately.
+let initialTab = "generation";
+try {
+  initialTab = localStorage.getItem(TAB_STORAGE_KEY) || "generation";
+} catch {
+  // Fall through to the default tab.
+}
+setActiveTab(initialTab);
