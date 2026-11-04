@@ -7976,7 +7976,7 @@
 
 (1h 21m 37s) **Al:**
 
-> why why is an ocelot why is an ocelot got the same model as the siamese cat and the calico cat
+> why does an ocelot got the same model as the siamese cat and the calico cat
 
 (1h 21m 38s) **Kevin:**
 

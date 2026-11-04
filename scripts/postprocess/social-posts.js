@@ -193,16 +193,35 @@ function buildSocialEpisode({
   };
 }
 
-// Same shape as the other LLM caches: repeated clicks are free until the episode's
-// material actually changes.
-async function generateSocialPostsCached({ cacheDir, ...options }) {
+function socialCachePath({ cacheDir, llm, episode }) {
+  if (!cacheDir) {
+    return null;
+  }
   const cacheKey = crypto
     .createHash("sha1")
     .update(
-      `${SOCIAL_PROMPT_VERSION}:${options.llm ? `${options.llm.provider}:${options.llm.model}` : "fallback"}:${JSON.stringify(options.episode)}`,
+      `${SOCIAL_PROMPT_VERSION}:${llm ? `${llm.provider}:${llm.model}` : "fallback"}:${JSON.stringify(episode)}`,
     )
     .digest("hex");
-  const cachePath = cacheDir ? path.join(cacheDir, `${cacheKey}.json`) : null;
+  return path.join(cacheDir, `${cacheKey}.json`);
+}
+
+// Whether a click on Social Posts would be served from the cache. "Drafted once"
+// is not the same thing: any change to the episode's material since then means
+// the next click regenerates, and the UI should say so beforehand.
+function hasCachedSocialPosts({ cacheDir, llm, episode }) {
+  const cachePath = socialCachePath({ cacheDir, llm, episode });
+  return Boolean(cachePath && fileExists(cachePath));
+}
+
+// Same shape as the other LLM caches: repeated clicks are free until the episode's
+// material actually changes.
+async function generateSocialPostsCached({ cacheDir, ...options }) {
+  const cachePath = socialCachePath({
+    cacheDir,
+    llm: options.llm,
+    episode: options.episode,
+  });
 
   if (cachePath && fileExists(cachePath)) {
     const cached = readJson(cachePath, false);
@@ -224,4 +243,5 @@ module.exports = {
   composeTumblrPost,
   generateSocialPosts,
   generateSocialPostsCached,
+  hasCachedSocialPosts,
 };

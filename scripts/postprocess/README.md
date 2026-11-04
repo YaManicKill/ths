@@ -75,8 +75,15 @@ episode title, burned-in subtitles and a progress bar.
   episode's current index.md (chapters in YouTube's timestamp format, links included —
   so run it after any final shownotes edits), titled from `youtube.titleTemplate` and
   the editable **Main topic** field (which also drives the derived podcast
-  description), and scheduled to go public at the episode's publish time. First use
-  opens a one-time Google authorization; see YouTube Setup below.
+  description), and scheduled to go public at the episode's publish time. After the
+  upload it adds the video to the season's podcast playlist on the channel (named
+  "Year 3, Winter" style, from the episode's season); a repeat click on an
+  already-uploaded episode re-checks the playlist, so older uploads can be repaired
+  the same way. The playlist must already exist in Studio - the tool reports it
+  rather than creating a plain (non-podcast) one, and on a season's first episode a
+  **Create Season Playlist** button appears beside Upload, deep-linking to Studio's
+  Podcasts page (via `youtube.channelId` in the main config). First use opens a
+  one-time Google authorization; see YouTube Setup below.
 - **Social Posts** drafts Bluesky and Tumblr announcements from the episode
   description and clip hooks, then opens both platforms' compose pages prefilled -
   posting stays a manual click there. The Bluesky text also lands on the clipboard.
@@ -159,7 +166,9 @@ OAuth client of type **Desktop app**. Put both halves in the local config:
 The first **Upload to YouTube** click opens a Google sign-in; after authorizing, the
 refresh token lands in `data/youtube-oauth.json` (gitignored) and later uploads are one
 click. `youtube.titleTemplate` (default `{mainTopic} Review`) also understands `{title}`
-and `{code}`.
+and `{code}`. The grant covers uploading and playlist management; a token saved before
+playlist management was requested still uploads, and the playlist step opens a fresh
+authorization tab instead.
 
 Persistent per-chapter image overrides live in `data/chapter-image-overrides.json`, with
 the images in `.cache/postprocess/manual-images/`. Everything else under

@@ -55,6 +55,7 @@ const {
 const {
   buildSocialEpisode,
   generateSocialPostsCached,
+  hasCachedSocialPosts,
 } = require("../social-posts");
 const {
   resolveSpaces,
@@ -69,7 +70,9 @@ const {
   ukEveningToUtcIso,
 } = require("../buffer");
 const {
+  MANAGE_SCOPE,
   buildAuthUrl,
+  ensureVideoInPlaylist,
   exchangeCodeForToken,
   refreshAccessToken,
   renderTitleTemplate,
@@ -1422,16 +1425,28 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           clipSuggestions: state?.clipSuggestions,
           mainTopic: discovered.mainTopic,
         });
+        const cacheDir = path.join(
+          repoRoot,
+          ".cache",
+          "postprocess",
+          "social-posts",
+        );
+        const llm = resolveLlm(loadPostprocessConfig(repoRoot));
+
+        // The checklist asks whether a click would be free before claiming the
+        // drafts are ready; probing the cache never touches the LLM.
+        if (payload.probe) {
+          sendJson(res, 200, {
+            success: true,
+            cached: hasCachedSocialPosts({ cacheDir, llm, episode }),
+          });
+          return;
+        }
 
         const result = await generateSocialPostsCached({
-          cacheDir: path.join(
-            repoRoot,
-            ".cache",
-            "postprocess",
-            "social-posts",
-          ),
+          cacheDir,
           episode,
-          llm: resolveLlm(loadPostprocessConfig(repoRoot)),
+          llm,
         });
 
         sendJson(res, 200, {
@@ -1932,6 +1947,14 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
       return;
     }
 
+    // The Studio deep link for the create-season-playlist button: the channel id
+    // is public, it just is not derivable client-side.
+    if (req.method === "GET" && pathname === "/api/youtube-channel") {
+      const youtubeConfig = loadPostprocessConfig(repoRoot).youtube || {};
+      sendJson(res, 200, { channelId: youtubeConfig.channelId || null });
+      return;
+    }
+
     // Buffer channels for the clip schedule panel: queried live, so a network
     // connected or removed in Buffer shows up without a config change.
     if (req.method === "GET" && pathname === "/api/buffer-channels") {
@@ -2342,8 +2365,101 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           return;
         }
 
+        const redirectUri = `http://127.0.0.1:${port}/api/youtube-oauth-callback`;
+        // Each show season has a podcast playlist on the channel ("Year 3,
+        // Winter"); membership is ensured after an upload AND on a repeat click,
+        // so older uploads are repaired by pressing Upload to YouTube again.
+        const seasonPlaylistTitle =
+          discovered?.seasonInfo?.seasonName && discovered?.seasonInfo?.year
+            ? `Year ${discovered.seasonInfo.year}, ${discovered.seasonInfo.seasonName}`
+            : null;
+        const playlistStep = async ({
+          youtube,
+          videoId,
+          accessToken = null,
+          grantedScope = null,
+        }) => {
+          if (!seasonPlaylistTitle) {
+            return {
+              playlistWarning:
+                "Could not derive the season playlist name from the discovery data",
+            };
+          }
+          let token = accessToken;
+          let scope = grantedScope;
+          if (!token) {
+            const stored = fs.existsSync(youtubeTokenPath)
+              ? readJson(youtubeTokenPath, {})
+              : null;
+            if (!stored?.refreshToken) {
+              return {
+                playlistWarning: `Not added to "${seasonPlaylistTitle}" - YouTube is not authorized yet`,
+              };
+            }
+            try {
+              const refreshed = await refreshAccessToken({
+                clientId: youtube.clientId,
+                clientSecret: youtube.clientSecret,
+                refreshToken: stored.refreshToken,
+              });
+              token = refreshed.access_token;
+              scope = refreshed.scope || null;
+            } catch (error) {
+              return {
+                playlistWarning: `Not added to "${seasonPlaylistTitle}" - YouTube token refresh failed: ${error.message}`,
+              };
+            }
+          }
+          // A token granted before playlist management was requested can upload
+          // but not edit playlists; only a fresh consent fixes that.
+          if (scope && !String(scope).split(/\s+/).includes(MANAGE_SCOPE)) {
+            return {
+              playlistWarning: `Not added to "${seasonPlaylistTitle}" - the saved YouTube authorization predates playlist management. Authorize again in the tab that opens, then press Upload to YouTube once more.`,
+              authUrl: buildAuthUrl({
+                clientId: youtube.clientId,
+                redirectUri,
+              }),
+            };
+          }
+          stream.progress(`Checking the "${seasonPlaylistTitle}" playlist...`);
+          try {
+            const membership = await ensureVideoInPlaylist({
+              accessToken: token,
+              playlistTitle: seasonPlaylistTitle,
+              videoId,
+            });
+            if (membership.status === "missing-playlist") {
+              return {
+                playlistWarning: `No playlist called "${seasonPlaylistTitle}" on the channel - create the season's podcast in Studio, then press Upload to YouTube again.`,
+              };
+            }
+            return {
+              playlist: {
+                title: seasonPlaylistTitle,
+                status: membership.status,
+              },
+            };
+          } catch (error) {
+            return {
+              playlistWarning: `Adding to "${seasonPlaylistTitle}" failed: ${error.message}`,
+            };
+          }
+        };
+
         if (state.youtubeUpload?.videoId) {
           const currentSha = await sha256FileHex(videoPath);
+          const configuredYoutube = resolveYoutube(
+            loadPostprocessConfig(repoRoot),
+          );
+          const playlistOutcome = configuredYoutube
+            ? await playlistStep({
+                youtube: configuredYoutube,
+                videoId: state.youtubeUpload.videoId,
+              })
+            : {
+                playlistWarning:
+                  "YouTube is not configured, so the season playlist was not checked",
+              };
           stream.result({
             success: true,
             alreadyUploaded: true,
@@ -2354,6 +2470,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
                     "The local MP4 differs from the uploaded video. YouTube cannot replace a video's file - delete it on YouTube and Clear & Restart to upload again.",
                 }
               : {}),
+            ...playlistOutcome,
           });
           return;
         }
@@ -2371,7 +2488,6 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
         const storedToken = fs.existsSync(youtubeTokenPath)
           ? readJson(youtubeTokenPath, {})
           : null;
-        const redirectUri = `http://127.0.0.1:${port}/api/youtube-oauth-callback`;
         if (!storedToken?.refreshToken) {
           stream.result({
             success: true,
@@ -2383,6 +2499,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
 
         stream.progress("Refreshing YouTube access token...");
         let accessToken;
+        let grantedScope = null;
         try {
           const refreshed = await refreshAccessToken({
             clientId: youtube.clientId,
@@ -2390,6 +2507,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
             refreshToken: storedToken.refreshToken,
           });
           accessToken = refreshed.access_token;
+          grantedScope = refreshed.scope || null;
         } catch (error) {
           // A revoked or expired grant means re-authorizing, not failing.
           if (/invalid_grant/.test(error.message)) {
@@ -2487,12 +2605,19 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
                 }
               : null,
           );
+          const playlistOutcome = await playlistStep({
+            youtube,
+            videoId: uploaded.videoId,
+            accessToken,
+            grantedScope,
+          });
           stream.result({
             success: true,
             url: uploaded.url,
             title,
             scheduled,
             publishAt: scheduled ? publishDate.toISOString() : null,
+            ...playlistOutcome,
           });
         } catch (error) {
           await episodeState

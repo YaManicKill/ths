@@ -121,6 +121,21 @@ button:hover {
   filter: brightness(1.04);
 }
 
+/* Still clickable, visually parked: for actions that work but are not part of the
+   remaining release work, so the bright buttons read as the to-do list. */
+button.secondary {
+  background: var(--panel);
+  border-color: var(--line);
+  color: var(--muted);
+  box-shadow: none;
+}
+
+button.secondary:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+  filter: none;
+}
+
 button.danger {
   background: linear-gradient(180deg, #dc2626, #b91c1c);
   border-color: #7f1d1d;

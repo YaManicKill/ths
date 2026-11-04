@@ -4,6 +4,9 @@
   "timezone": "Europe/London",
   "outputRoot": "content/episode",
   "episodesRoot": "~/Google Drive/My Drive/Projects/ths/Episodes",
+  "youtube": {
+    "channelId": "UCQFJD0AzhVTQCAlHTQS7RMQ"
+  },
   "profanityWords": [
     "fuck*",
     "shit*",

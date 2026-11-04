@@ -39,6 +39,9 @@ const DEFAULT_CONFIG = {
     clientSecret: null,
     titleTemplate: "{mainTopic} Review",
     categoryId: "20",
+    // The channel's public UC… id, only used to deep-link into YouTube Studio
+    // (there is no Studio URL without it).
+    channelId: null,
   },
   // Correct spellings of the recurring hosts. The AI transcript check treats any other
   // spelling of these names as a mistranscription.
