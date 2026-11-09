@@ -2235,21 +2235,40 @@ function maybeOfferTitleSuggestions(episodeTitle) {
       }
       renderTitleSuggestions(body.titles || []);
     } catch (error) {
-      titleSuggestionsList.textContent = `Could not fetch title suggestions: ${error.message}`;
-      // A failed fetch (quota, network) may as well be retryable on the next
-      // discovery pass.
+      // A failed fetch (quota, network) must be retryable on the spot, not only
+      // when some future discovery pass happens to re-trigger the offer.
       titleSuggestionsPromise = null;
+      renderTitleSuggestionsRetry(
+        `Could not fetch title suggestions: ${error.message}`,
+      );
     } finally {
       clearInterval(ticker);
     }
   })();
 }
 
+function renderTitleSuggestionsRetry(message) {
+  titleSuggestionsList.textContent = "";
+  const note = document.createElement("span");
+  note.textContent = message;
+  const retry = document.createElement("button");
+  retry.type = "button";
+  retry.textContent = "Try Again";
+  retry.style.marginLeft = "10px";
+  retry.addEventListener("click", () => {
+    maybeOfferTitleSuggestions(
+      form.elements.namedItem("episodeTitle")?.value || "",
+    );
+  });
+  titleSuggestionsList.appendChild(note);
+  titleSuggestionsList.appendChild(retry);
+}
+
 function renderTitleSuggestions(titles) {
   titleSuggestionsList.textContent = "";
   if (!titles.length) {
-    titleSuggestionsList.textContent =
-      "The AI returned no usable title suggestions.";
+    titleSuggestionsPromise = null;
+    renderTitleSuggestionsRetry("The AI returned no usable title suggestions.");
     return;
   }
 

@@ -102,7 +102,9 @@ async function suggestTitlesLlmCached({ cacheDir, ...options }) {
   }
 
   const result = await suggestTitlesLlm(options);
-  if (cachePath) {
+  // An empty list is a failure to produce, not an answer worth remembering: caching
+  // it would make the UI's Try Again serve the same nothing forever.
+  if (cachePath && result.titles.length > 0) {
     writeJson(cachePath, result);
   }
   return { ...result, fromCache: false };
