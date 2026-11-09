@@ -2186,10 +2186,13 @@ function scheduleReviewOverridesSave() {
   }, 1500);
 }
 
-// The recording tool names sessions "THS XX-YY"; that surviving as the episode title
-// means nobody picked a real one yet.
+// The recording tool names sessions "THS XX-YY" - sometimes only partially ("THS",
+// "THS 12", via the MP3's ID3 tag); any of those surviving as the episode title
+// means nobody picked a real one yet. Mirrors the pipeline's isPlaceholderTitle.
 function isPlaceholderEpisodeTitle(title) {
-  return /^ths[\s_-]*\d{1,3}\s*-\s*\d{1,3}$/i.test(String(title || "").trim());
+  return /^ths([\s_-]*\d{1,3}(\s*-\s*\d{1,3})?)?$/i.test(
+    String(title || "").trim(),
+  );
 }
 
 // Shown only while the title is still a placeholder: the AI mines the transcript for
@@ -2232,21 +2235,40 @@ function maybeOfferTitleSuggestions(episodeTitle) {
       }
       renderTitleSuggestions(body.titles || []);
     } catch (error) {
-      titleSuggestionsList.textContent = `Could not fetch title suggestions: ${error.message}`;
-      // A failed fetch (quota, network) may as well be retryable on the next
-      // discovery pass.
+      // A failed fetch (quota, network) must be retryable on the spot, not only
+      // when some future discovery pass happens to re-trigger the offer.
       titleSuggestionsPromise = null;
+      renderTitleSuggestionsRetry(
+        `Could not fetch title suggestions: ${error.message}`,
+      );
     } finally {
       clearInterval(ticker);
     }
   })();
 }
 
+function renderTitleSuggestionsRetry(message) {
+  titleSuggestionsList.textContent = "";
+  const note = document.createElement("span");
+  note.textContent = message;
+  const retry = document.createElement("button");
+  retry.type = "button";
+  retry.textContent = "Try Again";
+  retry.style.marginLeft = "10px";
+  retry.addEventListener("click", () => {
+    maybeOfferTitleSuggestions(
+      form.elements.namedItem("episodeTitle")?.value || "",
+    );
+  });
+  titleSuggestionsList.appendChild(note);
+  titleSuggestionsList.appendChild(retry);
+}
+
 function renderTitleSuggestions(titles) {
   titleSuggestionsList.textContent = "";
   if (!titles.length) {
-    titleSuggestionsList.textContent =
-      "The AI returned no usable title suggestions.";
+    titleSuggestionsPromise = null;
+    renderTitleSuggestionsRetry("The AI returned no usable title suggestions.");
     return;
   }
 

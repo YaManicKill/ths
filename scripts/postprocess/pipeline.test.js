@@ -6,6 +6,7 @@ const {
   discoverEpisodeData,
   runPipeline,
   isDailyExhaustion,
+  isPlaceholderTitle,
 } = require("./pipeline");
 const { runCommand } = require("./utils");
 
@@ -582,6 +583,16 @@ async function main() {
     isDailyExhaustion("Gemini request failed (429): rate limited"),
     false,
   );
+
+  // The recorder's session name is a placeholder even when partial: an MP3 whose
+  // ID3 tag is bare "THS" must not be mistaken for a chosen episode title (it
+  // silently suppressed the AI title suggestions).
+  assert.equal(isPlaceholderTitle("THS 12-19"), true);
+  assert.equal(isPlaceholderTitle("THS 12"), true);
+  assert.equal(isPlaceholderTitle("THS"), true);
+  assert.equal(isPlaceholderTitle("ths_12-19"), true);
+  assert.equal(isPlaceholderTitle("Why Did The Water Make Me Wet"), false);
+  assert.equal(isPlaceholderTitle("THS Special"), false);
 
   fs.rmSync(repoRoot, { recursive: true, force: true });
   fs.rmSync(runRoot, { recursive: true, force: true });

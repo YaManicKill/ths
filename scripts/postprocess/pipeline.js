@@ -243,9 +243,13 @@ function computeMp4RenderInputsHash({ mp3Sha256, chapters }) {
     .digest("hex");
 }
 
-// Mirrors the UI's placeholder check: the recorder names sessions "THS XX-YY".
+// Mirrors the UI's placeholder check: the recorder names sessions "THS XX-YY",
+// but sometimes only partially ("THS", "THS 12") - a session name is never a real
+// title, so the code part is optional.
 function isPlaceholderTitle(title) {
-  return /^ths[\s_-]*\d{1,3}\s*-\s*\d{1,3}$/i.test(String(title || "").trim());
+  return /^ths([\s_-]*\d{1,3}(\s*-\s*\d{1,3})?)?$/i.test(
+    String(title || "").trim(),
+  );
 }
 
 function readMp3TitleTag(mp3Path) {
@@ -1541,4 +1545,5 @@ module.exports = {
   resolveSeasonInfo,
   computeMp4RenderInputsHash,
   isDailyExhaustion,
+  isPlaceholderTitle,
 };
