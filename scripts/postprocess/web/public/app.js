@@ -2186,10 +2186,13 @@ function scheduleReviewOverridesSave() {
   }, 1500);
 }
 
-// The recording tool names sessions "THS XX-YY"; that surviving as the episode title
-// means nobody picked a real one yet.
+// The recording tool names sessions "THS XX-YY" - sometimes only partially ("THS",
+// "THS 12", via the MP3's ID3 tag); any of those surviving as the episode title
+// means nobody picked a real one yet. Mirrors the pipeline's isPlaceholderTitle.
 function isPlaceholderEpisodeTitle(title) {
-  return /^ths[\s_-]*\d{1,3}\s*-\s*\d{1,3}$/i.test(String(title || "").trim());
+  return /^ths([\s_-]*\d{1,3}(\s*-\s*\d{1,3})?)?$/i.test(
+    String(title || "").trim(),
+  );
 }
 
 // Shown only while the title is still a placeholder: the AI mines the transcript for
