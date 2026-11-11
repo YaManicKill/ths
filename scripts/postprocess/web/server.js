@@ -74,6 +74,7 @@ const {
   buildAuthUrl,
   ensureVideoInPlaylist,
   exchangeCodeForToken,
+  getTokenChannel,
   refreshAccessToken,
   renderTitleTemplate,
   resolveYoutube,
@@ -2414,12 +2415,35 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           // but not edit playlists; only a fresh consent fixes that.
           if (scope && !String(scope).split(/\s+/).includes(MANAGE_SCOPE)) {
             return {
-              playlistWarning: `Not added to "${seasonPlaylistTitle}" - the saved YouTube authorization predates playlist management. Authorize again in the tab that opens, then press Upload to YouTube once more.`,
+              playlistWarning: `Not added to "${seasonPlaylistTitle}" - the saved YouTube authorization predates playlist management. Authorize again in the tab that opens, then press Add to Season Playlist.`,
               authUrl: buildAuthUrl({
                 clientId: youtube.clientId,
                 redirectUri,
               }),
             };
+          }
+          // Consent can silently bind the grant to the personal channel instead of
+          // the show's brand channel; that token sees the wrong playlists (and
+          // would upload to the wrong channel), so it is useless - drop it.
+          if (youtube.channelId) {
+            try {
+              const tokenChannel = await getTokenChannel({
+                accessToken: token,
+              });
+              if (tokenChannel && tokenChannel.id !== youtube.channelId) {
+                fs.rmSync(youtubeTokenPath, { force: true });
+                return {
+                  playlistWarning: `The saved authorization is for the "${tokenChannel.title}" channel, not the show's - sign in again in the tab that opens and pick The Harvest Season at the channel step.`,
+                  authUrl: buildAuthUrl({
+                    clientId: youtube.clientId,
+                    redirectUri,
+                  }),
+                };
+              }
+            } catch {
+              // Verification is best effort; the playlist lookup fails on its own
+              // terms if the token really is wrong.
+            }
           }
           stream.progress(`Checking the "${seasonPlaylistTitle}" playlist...`);
           try {
@@ -2446,6 +2470,23 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
           }
         };
 
+        // The playlist outcome is remembered on the episode, so the UI can tell a
+        // repaired episode from one still missing from its season playlist without
+        // asking YouTube on every render.
+        const recordPlaylistOutcome = (outcome) =>
+          episodeState.updateState(episodeDir, (current) =>
+            current?.youtubeUpload
+              ? {
+                  ...current,
+                  youtubeUpload: {
+                    ...current.youtubeUpload,
+                    playlist: outcome.playlist || null,
+                    playlistWarning: outcome.playlistWarning || null,
+                  },
+                }
+              : current,
+          );
+
         if (state.youtubeUpload?.videoId) {
           const currentSha = await sha256FileHex(videoPath);
           const configuredYoutube = resolveYoutube(
@@ -2460,6 +2501,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
                 playlistWarning:
                   "YouTube is not configured, so the season playlist was not checked",
               };
+          await recordPlaylistOutcome(playlistOutcome);
           stream.result({
             success: true,
             alreadyUploaded: true,
@@ -2523,6 +2565,30 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
             return;
           }
           throw error;
+        }
+
+        // A wrong-channel token would not fail the upload - it would succeed onto
+        // the personal channel - so the check must happen before anything is sent.
+        if (youtube.channelId) {
+          try {
+            const tokenChannel = await getTokenChannel({ accessToken });
+            if (tokenChannel && tokenChannel.id !== youtube.channelId) {
+              fs.rmSync(youtubeTokenPath, { force: true });
+              stream.result({
+                success: true,
+                needsAuth: true,
+                warning: `The saved authorization is for the "${tokenChannel.title}" channel, not the show's - sign in again and pick The Harvest Season at the channel step.`,
+                authUrl: buildAuthUrl({
+                  clientId: youtube.clientId,
+                  redirectUri,
+                }),
+              });
+              return;
+            }
+          } catch {
+            // Verification is best effort; a transient lookup failure must not
+            // block an upload with a healthy token.
+          }
         }
 
         const { description } = buildEpisodeYoutubeDescription({
@@ -2611,6 +2677,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
             accessToken,
             grantedScope,
           });
+          await recordPlaylistOutcome(playlistOutcome);
           stream.result({
             success: true,
             url: uploaded.url,

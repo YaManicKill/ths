@@ -29,7 +29,24 @@ function resolveYoutube(config) {
     clientSecret: youtube.clientSecret,
     titleTemplate: youtube.titleTemplate || "{mainTopic} Review",
     categoryId: String(youtube.categoryId || "20"),
+    channelId: youtube.channelId || null,
   };
+}
+
+// Which channel a token acts as. Google's consent flow offers the personal account
+// alongside the show's brand channel, and picking the wrong one silently binds the
+// grant to it - everything then operates on the wrong channel.
+async function getTokenChannel({ accessToken, endpoint, fetchImpl }) {
+  const url = new URL(
+    endpoint || "https://www.googleapis.com/youtube/v3/channels",
+  );
+  url.searchParams.set("part", "snippet");
+  url.searchParams.set("mine", "true");
+  const data = await youtubeApiRequest({ url, accessToken, fetchImpl });
+  const channel = (data.items || [])[0];
+  return channel
+    ? { id: channel.id, title: channel.snippet?.title || "" }
+    : null;
 }
 
 function renderTitleTemplate(template, values) {
@@ -316,6 +333,7 @@ module.exports = {
   ensureVideoInPlaylist,
   exchangeCodeForToken,
   findPlaylistByTitle,
+  getTokenChannel,
   refreshAccessToken,
   renderTitleTemplate,
   resolveYoutube,

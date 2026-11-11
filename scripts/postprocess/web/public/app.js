@@ -3562,6 +3562,7 @@ statusDockHeader.addEventListener("click", () => {
 // "what is left to do before Wednesday" at a glance.
 
 const youtubeStudioButton = document.getElementById("youtube-studio-button");
+const addToPlaylistButton = document.getElementById("add-to-playlist-button");
 const createPlaylistButton = document.getElementById("create-playlist-button");
 const publishGotoClipsButton = document.getElementById(
   "publish-goto-clips-button",
@@ -3583,6 +3584,7 @@ async function renderPublishChecklist() {
     uploadMp3Button,
     publishMp3Button,
     uploadYoutubeButton,
+    addToPlaylistButton,
     youtubeStudioButton,
     socialPostsButton,
     generateSocialPostsButton,
@@ -3660,12 +3662,21 @@ async function renderPublishChecklist() {
   uploadMp3Button.className = mp3 && !mp3Public ? "secondary" : "";
 
   const youtube = data.youtubeUpload;
+  // The playlist outcome is recorded by the upload endpoint; an uploaded episode
+  // without a recorded membership still has playlist work to do.
+  const inPlaylist = Boolean(youtube?.playlist);
   publishYoutubeState.textContent = youtube?.videoId
-    ? `✓ Uploaded${youtube.publishAt ? ` - goes public ${new Date(youtube.publishAt).toLocaleString("en-GB")}` : ""}.`
+    ? `✓ Uploaded${youtube.publishAt ? ` - goes public ${new Date(youtube.publishAt).toLocaleString("en-GB")}` : ""}.${
+        inPlaylist
+          ? ` In "${youtube.playlist.title}".`
+          : " ⚠ Not in its season playlist yet."
+      }`
     : "Not uploaded yet - needs the finished MP4.";
-  markDone(publishYoutubeState, Boolean(youtube?.videoId));
+  markDone(publishYoutubeState, Boolean(youtube?.videoId) && inPlaylist);
   uploadYoutubeButton.style.display =
     generated && !youtube?.videoId ? "inline-block" : "none";
+  addToPlaylistButton.style.display =
+    generated && youtube?.videoId && !inPlaylist ? "inline-block" : "none";
   youtubeStudioButton.dataset.videoId = youtube?.videoId || "";
   youtubeStudioButton.style.display = youtube?.videoId
     ? "inline-block"
@@ -4309,6 +4320,53 @@ createPlaylistButton.addEventListener("click", async () => {
   );
 });
 
+// The same endpoint as Upload to YouTube: for an already-uploaded episode it skips
+// the upload and just ensures the season playlist membership, recording the
+// outcome - which is exactly the repair this button exists for.
+addToPlaylistButton.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+  addToPlaylistButton.disabled = true;
+  const stopSpinner = startStatusSpinner(
+    "Adding the episode to its season playlist...",
+  );
+  try {
+    const body = await postWithProgress(
+      "/api/upload-youtube",
+      {
+        mp3Path: buildDiscoverPayload().mp3Path,
+        discoveryData: currentDiscoveryData.discoveryData,
+      },
+      (message) => addStatus(`• ${message}`),
+    );
+    if (body.type === "error" || !body.success) {
+      throw new Error(body.error || "Request failed");
+    }
+    if (body.playlist) {
+      stopSpinner(
+        body.playlist.status === "added"
+          ? `✓ Added to the "${body.playlist.title}" playlist`
+          : `✓ Already in the "${body.playlist.title}" playlist`,
+      );
+    } else if (body.playlistWarning) {
+      stopSpinner(`⚠ ${body.playlistWarning}`);
+      if (body.authUrl) {
+        window.open(body.authUrl, "_blank");
+      }
+    } else {
+      stopSpinner("ℹ No playlist outcome reported");
+    }
+  } catch (error) {
+    stopSpinner();
+    addStatus(`❌ Season playlist: ${error.message}`);
+  } finally {
+    addToPlaylistButton.disabled = false;
+    renderPublishChecklist();
+  }
+});
+
 youtubeStudioButton.addEventListener("click", () => {
   const videoId = youtubeStudioButton.dataset.videoId;
   if (videoId) {
@@ -4561,6 +4619,9 @@ uploadYoutubeButton.addEventListener("click", async () => {
 
     if (body.needsAuth) {
       stopSpinner("🔑 YouTube needs a one-time authorization");
+      if (body.warning) {
+        addStatus(`⚠ ${body.warning}`);
+      }
       addStatus(
         "🔑 A Google sign-in tab is opening - authorize, then press Upload to YouTube again.",
       );
