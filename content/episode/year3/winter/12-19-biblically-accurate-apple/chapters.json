@@ -1,0 +1,64 @@
+{
+  "version": "1.2.0",
+  "chapters": [
+    {
+      "startTime": 0,
+      "title": "Theme Tune"
+    },
+    {
+      "startTime": 30.224,
+      "title": "Intro"
+    },
+    {
+      "startTime": 112.892,
+      "title": "What Have We Been Up To"
+    },
+    {
+      "startTime": 501.087,
+      "title": "Game News"
+    },
+    {
+      "startTime": 506.883,
+      "title": "Farm & Feast",
+      "toc": false
+    },
+    {
+      "startTime": 983.497,
+      "title": "Hammer & Harvest: Dwarven Roots",
+      "toc": false
+    },
+    {
+      "startTime": 1027.827,
+      "title": "Ova Magica",
+      "toc": false
+    },
+    {
+      "startTime": 1151.627,
+      "title": "Pokopia",
+      "toc": false
+    },
+    {
+      "startTime": 1750.111,
+      "title": "Let's Build A Zoo",
+      "toc": false
+    },
+    {
+      "startTime": 1989.451,
+      "title": "Wholesome Snack",
+      "toc": false
+    },
+    {
+      "startTime": 2188.825,
+      "title": "Humble Bundle",
+      "toc": false
+    },
+    {
+      "startTime": 2303.564,
+      "title": "Plants Vs Zombies"
+    },
+    {
+      "startTime": 3714.614,
+      "title": "Outro"
+    }
+  ]
+}
