@@ -1,0 +1,66 @@
+{
+  "version": "1.2.0",
+  "chapters": [
+    {
+      "startTime": 0,
+      "title": "Theme Tune"
+    },
+    {
+      "startTime": 30.224,
+      "title": "Intro"
+    },
+    {
+      "startTime": 96.156,
+      "title": "What Have We Been Up To"
+    },
+    {
+      "startTime": 889.651,
+      "title": "Filler Tangent"
+    },
+    {
+      "startTime": 1619.833,
+      "title": "What Has Al Been Up To"
+    },
+    {
+      "startTime": 1918.573,
+      "title": "Game News"
+    },
+    {
+      "startTime": 1933.736,
+      "title": "Spirit Crossing",
+      "toc": false
+    },
+    {
+      "startTime": 2010.596,
+      "title": "Starsand Island",
+      "toc": false
+    },
+    {
+      "startTime": 2171.171,
+      "title": "Outbound",
+      "toc": false
+    },
+    {
+      "startTime": 2392.76,
+      "title": "Merch News",
+      "toc": false
+    },
+    {
+      "startTime": 2792.59,
+      "title": "New Games"
+    },
+    {
+      "startTime": 2795.924,
+      "title": "Outcity",
+      "toc": false
+    },
+    {
+      "startTime": 3015.298,
+      "title": "Ova Magica"
+    },
+    {
+      "startTime": 5812.875,
+      "title": "Outro"
+    }
+  ]
+}
