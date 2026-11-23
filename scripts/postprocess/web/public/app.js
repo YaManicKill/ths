@@ -2441,6 +2441,8 @@ async function runDiscovery() {
     resumeAiAnalysisPollingFromDiscover(result.discovered);
     renderBufferSchedulePanel();
     renderPublishChecklist();
+    // The Social tab refetches its drafts the next time it is opened.
+    socialTabLoadedFor = "";
     if (result.discovered?.jobs?.aiAnalysis?.status === "interrupted") {
       addStatus(
         "ℹ The last run's AI analysis was interrupted - Re-run Transcript Check and Suggest More Clips cover the same ground.",
@@ -3502,11 +3504,13 @@ const TAB_STORAGE_KEY = "ths-postprocess-active-tab";
 const tabPanels = {
   generation: document.getElementById("tab-generation"),
   clips: document.getElementById("tab-clips"),
+  social: document.getElementById("tab-social"),
   publish: document.getElementById("tab-publish"),
 };
 const tabButtons = {
   generation: document.getElementById("tab-button-generation"),
   clips: document.getElementById("tab-button-clips"),
+  social: document.getElementById("tab-button-social"),
   publish: document.getElementById("tab-button-publish"),
 };
 const statusDock = document.getElementById("status-dock");
@@ -3530,6 +3534,9 @@ function setActiveTab(name) {
   // never stale when looked at.
   if (tab === "clips") {
     resizeBufferCaptions();
+  }
+  if (tab === "social") {
+    renderSocialTab();
   }
   if (tab === "publish") {
     renderPublishChecklist();
@@ -3690,6 +3697,7 @@ async function renderPublishChecklist() {
   // deliberately invalidates it, and the row must say so rather than promise an
   // instant click.
   let draftsReady = drafted === true || socialDraftsGeneratedThisSession;
+  let draftsEdited = false;
   if (generated && currentDiscoveryData?.discoveryData) {
     try {
       const probeResponse = await fetch("/api/social-posts", {
@@ -3704,6 +3712,7 @@ async function renderPublishChecklist() {
       const probeBody = await probeResponse.json();
       if (probeResponse.ok && probeBody.success) {
         draftsReady = Boolean(probeBody.cached);
+        draftsEdited = Boolean(probeBody.edited);
       }
     } catch {
       // The flag-based guess above stands.
@@ -3713,7 +3722,7 @@ async function renderPublishChecklist() {
     }
   }
   publishSocialState.textContent = draftsReady
-    ? "✓ Drafts ready - the button opens prefilled compose tabs."
+    ? `✓ Drafts ready${draftsEdited ? " (hand-edited)" : ""} - the button opens prefilled compose tabs.`
     : drafted === true || socialDraftsGeneratedThisSession
       ? "⚠ The episode material changed since the drafts were made - regenerate them."
       : drafted === false
@@ -3751,6 +3760,196 @@ async function renderPublishChecklist() {
   // With the clips booked, there is nothing left to do over there.
   publishGotoClipsButton.className = schedule.length > 0 ? "secondary" : "";
 }
+
+// ---------- Social drafts editor ----------
+// The tab shows the effective drafts - hand edits when saved, the AI draft
+// otherwise - and saves edits as they are typed, like the review overrides. The
+// compose buttons read the same server-side merge, so what is shown here is
+// exactly what gets posted.
+
+const socialTabNote = document.getElementById("social-tab-note");
+const socialEditor = document.getElementById("social-editor");
+const socialGenerateButton = document.getElementById("social-generate-button");
+const socialBlueskyText = document.getElementById("social-bluesky-text");
+const socialBlueskyCount = document.getElementById("social-bluesky-count");
+const socialTumblrTitle = document.getElementById("social-tumblr-title");
+const socialTumblrBody = document.getElementById("social-tumblr-body");
+const socialResetButton = document.getElementById("social-reset-button");
+
+let socialEditsSaveTimer = null;
+// Which episode's drafts the editor holds; re-entering the tab for the same
+// episode must not stomp what is on screen.
+let socialTabLoadedFor = "";
+
+function socialRequestPayload() {
+  return {
+    mp3Path: buildDiscoverPayload().mp3Path,
+    discoveryData: currentDiscoveryData.discoveryData,
+  };
+}
+
+function updateSocialBlueskyCount() {
+  const length = socialBlueskyText.value.trim().length;
+  socialBlueskyCount.textContent = `${length}/300`;
+  socialBlueskyCount.style.color = length > 300 ? "#f87171" : "#94a3b8";
+}
+
+function scheduleSocialEditsSave() {
+  if (!currentDiscoveryData?.discoveryData) {
+    return;
+  }
+  clearTimeout(socialEditsSaveTimer);
+  socialEditsSaveTimer = setTimeout(async () => {
+    try {
+      await fetch("/api/social-edits", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...socialRequestPayload(),
+          edits: {
+            bluesky: socialBlueskyText.value,
+            tumblrTitle: socialTumblrTitle.value,
+            tumblrBody: socialTumblrBody.value,
+          },
+        }),
+      });
+      socialResetButton.style.display = "inline-block";
+      socialTabNote.textContent =
+        "Edited by hand - posting uses exactly this text.";
+      renderPublishChecklist();
+    } catch {
+      // Retried by the next edit.
+    }
+  }, 1200);
+}
+
+for (const field of [socialBlueskyText, socialTumblrTitle, socialTumblrBody]) {
+  field.addEventListener("input", () => {
+    updateSocialBlueskyCount();
+    scheduleSocialEditsSave();
+  });
+}
+
+async function loadSocialDrafts() {
+  const response = await fetch("/api/social-posts", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(socialRequestPayload()),
+  });
+  const body = await response.json();
+  if (!response.ok || !body.success) {
+    throw new Error(body.error || "Social posts request failed");
+  }
+  socialBlueskyText.value = String(body.bluesky || "").trim();
+  socialTumblrTitle.value = body.tumblrParts?.title || "";
+  socialTumblrBody.value = body.tumblrParts?.body || "";
+  updateSocialBlueskyCount();
+  socialResetButton.style.display = body.edited ? "inline-block" : "none";
+  socialTabNote.textContent = body.edited
+    ? "Edited by hand - posting uses exactly this text."
+    : "The AI draft - edits save as you type and become what gets posted.";
+  socialEditor.style.display = "block";
+  socialGenerateButton.style.display = "none";
+}
+
+async function renderSocialTab() {
+  const episodeDir = currentEpisodeDir;
+  if (!episodeDir || !currentDiscoveryData?.discoveryData) {
+    socialTabNote.textContent = "Load an episode to see its drafts.";
+    socialEditor.style.display = "none";
+    socialGenerateButton.style.display = "none";
+    return;
+  }
+  if (
+    socialTabLoadedFor === episodeDir &&
+    socialEditor.style.display === "block"
+  ) {
+    return;
+  }
+
+  socialTabNote.textContent = "Checking the drafts...";
+  socialEditor.style.display = "none";
+  socialGenerateButton.style.display = "none";
+  try {
+    // Probe first: just opening the tab must never spend LLM quota.
+    const probeResponse = await fetch("/api/social-posts", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...socialRequestPayload(), probe: true }),
+    });
+    const probeBody = await probeResponse.json();
+    if (episodeDir !== currentEpisodeDir) {
+      return;
+    }
+    if (!probeResponse.ok || !probeBody.success) {
+      throw new Error(probeBody.error || "Probe failed");
+    }
+    if (!probeBody.cached) {
+      socialTabNote.textContent =
+        "No drafts yet - they are made during generation, or generate them now.";
+      socialGenerateButton.style.display = "inline-block";
+      return;
+    }
+    await loadSocialDrafts();
+    if (episodeDir !== currentEpisodeDir) {
+      return;
+    }
+    socialTabLoadedFor = episodeDir;
+  } catch (error) {
+    socialTabNote.textContent = `Could not load the drafts: ${error.message}`;
+  }
+}
+
+socialGenerateButton.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    addStatus("Run discovery first.");
+    return;
+  }
+  socialGenerateButton.disabled = true;
+  const stopSpinner = startStatusSpinner("Drafting social posts...");
+  try {
+    await loadSocialDrafts();
+    socialTabLoadedFor = currentEpisodeDir;
+    socialDraftsGeneratedThisSession = true;
+    setSocialDraftsFailed(false);
+    stopSpinner("✓ Social drafts generated");
+    renderPublishChecklist();
+  } catch (error) {
+    stopSpinner();
+    addStatus(`❌ Social post drafting failed: ${error.message}`);
+    socialGenerateButton.style.display = "inline-block";
+  } finally {
+    socialGenerateButton.disabled = false;
+  }
+});
+
+socialResetButton.addEventListener("click", async () => {
+  if (!currentDiscoveryData?.discoveryData) {
+    return;
+  }
+  // A save already in flight (or pending) would resurrect the edits.
+  clearTimeout(socialEditsSaveTimer);
+  socialResetButton.disabled = true;
+  try {
+    const response = await fetch("/api/social-edits", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...socialRequestPayload(), edits: null }),
+    });
+    const body = await response.json();
+    if (!response.ok || !body.success) {
+      throw new Error(body.error || "Reset failed");
+    }
+    addStatus("✓ Social drafts reset to the AI draft");
+    socialTabLoadedFor = "";
+    await renderSocialTab();
+    renderPublishChecklist();
+  } catch (error) {
+    addStatus(`❌ Resetting the social drafts failed: ${error.message}`);
+  } finally {
+    socialResetButton.disabled = false;
+  }
+});
 
 // The run's AI analysis (transcript check + clip picks) finishes in the background;
 // this poller watches the job and puts its results on screen when they land.

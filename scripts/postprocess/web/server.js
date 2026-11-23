@@ -54,6 +54,8 @@ const {
 } = require("../youtube-description");
 const {
   buildSocialEpisode,
+  buildTumblrTags,
+  composeTumblrPost,
   generateSocialPostsCached,
   hasCachedSocialPosts,
 } = require("../social-posts");
@@ -1434,12 +1436,44 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
         );
         const llm = resolveLlm(loadPostprocessConfig(repoRoot));
 
+        // Hand edits (from the Social tab) are the final word: they are served
+        // without touching the LLM or the cache, and they survive material changes
+        // that would otherwise invalidate the generated drafts.
+        const socialEdits = state?.socialEdits || null;
+
         // The checklist asks whether a click would be free before claiming the
-        // drafts are ready; probing the cache never touches the LLM.
+        // drafts are ready; probing never touches the LLM.
         if (payload.probe) {
           sendJson(res, 200, {
             success: true,
-            cached: hasCachedSocialPosts({ cacheDir, llm, episode }),
+            cached:
+              Boolean(socialEdits) ||
+              hasCachedSocialPosts({ cacheDir, llm, episode }),
+            edited: Boolean(socialEdits),
+          });
+          return;
+        }
+
+        if (socialEdits) {
+          const bluesky = String(socialEdits.bluesky || "");
+          sendJson(res, 200, {
+            success: true,
+            edited: true,
+            bluesky,
+            tumblr: composeTumblrPost({
+              title: socialEdits.tumblrTitle,
+              body: socialEdits.tumblrBody,
+              episodeUrl: episode.episodeUrl,
+              mainTopic: episode.mainTopic,
+            }),
+            tumblrParts: {
+              title: String(socialEdits.tumblrTitle || "").trim(),
+              body: String(socialEdits.tumblrBody || "").trim(),
+              url: episode.episodeUrl,
+              tags: buildTumblrTags(episode.mainTopic),
+            },
+            blueskyLength: bluesky.trim().length,
+            blueskyOverLimit: bluesky.trim().length > 300,
           });
           return;
         }
@@ -1452,12 +1486,69 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
 
         sendJson(res, 200, {
           success: true,
+          edited: false,
           bluesky: result.bluesky,
           tumblr: result.tumblr,
           tumblrParts: result.tumblrParts || null,
           blueskyLength: result.blueskyLength,
           blueskyOverLimit: result.blueskyOverLimit,
         });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
+      return;
+    }
+
+    // Hand edits to the social drafts from the Social tab. Saved on the episode so
+    // they survive refreshes and win over the generated drafts everywhere; null
+    // edits means "back to the AI draft".
+    if (req.method === "POST" && pathname === "/api/social-edits") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || "{}");
+        const discovered = payload.discoveryData
+          ? JSON.parse(payload.discoveryData)
+          : null;
+        if (!discovered || !discovered.episodeMeta) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid discoveryData",
+          });
+          return;
+        }
+        const mp3Path = String(payload.mp3Path || "").trim();
+        if (!mp3Path || !path.isAbsolute(mp3Path)) {
+          sendJson(res, 400, {
+            success: false,
+            error: "Missing or invalid mp3Path",
+          });
+          return;
+        }
+        const { episodeDir } = deriveEpisodeOutputPaths({
+          repoRoot,
+          discovered,
+          mp3Path,
+        });
+
+        const edits = payload.edits
+          ? {
+              bluesky: String(payload.edits.bluesky || ""),
+              tumblrTitle: String(payload.edits.tumblrTitle || ""),
+              tumblrBody: String(payload.edits.tumblrBody || ""),
+              editedAt: new Date().toISOString(),
+            }
+          : null;
+        await episodeState.updateState(episodeDir, (current) => {
+          if (!current) {
+            return current;
+          }
+          if (!edits) {
+            const { socialEdits, ...rest } = current;
+            return rest;
+          }
+          return { ...current, socialEdits: edits };
+        });
+        sendJson(res, 200, { success: true, edited: Boolean(edits) });
       } catch (error) {
         sendJson(res, 400, { success: false, error: error.message });
       }

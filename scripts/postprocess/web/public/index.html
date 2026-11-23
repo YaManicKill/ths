@@ -19,6 +19,9 @@
         <button type="button" id="tab-button-clips" class="tab-button">
           Clips
         </button>
+        <button type="button" id="tab-button-social" class="tab-button">
+          Social
+        </button>
         <button type="button" id="tab-button-publish" class="tab-button">
           Publish
         </button>
@@ -267,6 +270,67 @@
               Schedule on Buffer
             </button>
           </details>
+        </section>
+      </div>
+
+      <div id="tab-social" class="tab-panel" style="display: none">
+        <section>
+          <h2>Social Posts</h2>
+          <p class="tab-blurb" id="social-tab-note"></p>
+          <button
+            type="button"
+            id="social-generate-button"
+            style="display: none"
+          >
+            Generate Drafts
+          </button>
+          <div id="social-editor" style="display: none">
+            <h3 style="margin-bottom: 6px">
+              Bluesky
+              <span
+                id="social-bluesky-count"
+                style="font-weight: normal; color: #94a3b8; margin-left: 10px"
+              ></span>
+            </h3>
+            <p class="tab-blurb" style="margin: 4px 0 8px">
+              The whole post, exactly as it will be composed - hashtags and link
+              included.
+            </p>
+            <textarea
+              id="social-bluesky-text"
+              rows="7"
+              style="width: 100%; box-sizing: border-box"
+            ></textarea>
+
+            <h3 style="margin: 20px 0 6px">Tumblr</h3>
+            <p class="tab-blurb" style="margin: 4px 0 8px">
+              Posted as a link post - the episode link and tags are attached
+              automatically.
+            </p>
+            <input
+              type="text"
+              id="social-tumblr-title"
+              placeholder="Post title"
+              style="width: 100%; box-sizing: border-box; margin-bottom: 8px"
+            />
+            <textarea
+              id="social-tumblr-body"
+              rows="5"
+              style="width: 100%; box-sizing: border-box"
+            ></textarea>
+
+            <div style="display: flex; gap: 10px; margin-top: 16px">
+              <button
+                type="button"
+                id="social-reset-button"
+                class="secondary"
+                style="display: none"
+                title="Discard the edits and go back to the AI draft"
+              >
+                Reset to AI Draft
+              </button>
+            </div>
+          </div>
         </section>
       </div>
 

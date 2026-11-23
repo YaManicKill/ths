@@ -239,6 +239,7 @@ async function generateSocialPostsCached({ cacheDir, ...options }) {
 
 module.exports = {
   buildSocialEpisode,
+  buildTumblrTags,
   composeBlueskyPost,
   composeTumblrPost,
   generateSocialPosts,
