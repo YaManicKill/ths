@@ -1,0 +1,58 @@
+{
+  "version": "1.2.0",
+  "chapters": [
+    {
+      "startTime": 0,
+      "title": "Theme Tune"
+    },
+    {
+      "startTime": 30.224,
+      "title": "Intro"
+    },
+    {
+      "startTime": 109.244,
+      "title": "What Have We Been Up To"
+    },
+    {
+      "startTime": 2293.889,
+      "title": "Marvel Chat"
+    },
+    {
+      "startTime": 4465.714,
+      "title": "Game News"
+    },
+    {
+      "startTime": 4472.671,
+      "title": "Out And About",
+      "toc": false
+    },
+    {
+      "startTime": 4529.334,
+      "title": "Cinnabunny",
+      "toc": false
+    },
+    {
+      "startTime": 4622.586,
+      "title": "Disney Dreamlight Valley",
+      "toc": false
+    },
+    {
+      "startTime": 5126.448,
+      "title": "Coral Island",
+      "toc": false
+    },
+    {
+      "startTime": 5440.035,
+      "title": "Hello Kitty Island Adventure",
+      "toc": false
+    },
+    {
+      "startTime": 5588.351,
+      "title": "Harvest Moon: Echoes Of Teradea"
+    },
+    {
+      "startTime": 12109.676,
+      "title": "Outro"
+    }
+  ]
+}
