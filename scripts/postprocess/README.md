@@ -87,6 +87,10 @@ episode title, burned-in subtitles and a progress bar.
 - **Social Posts** drafts Bluesky and Tumblr announcements from the episode
   description and clip hooks, then opens both platforms' compose pages prefilled -
   posting stays a manual click there. The Bluesky text also lands on the clipboard.
+  The **Social tab** shows the drafts for editing: changes save as you type onto the
+  episode and become exactly what gets posted (hand edits win over the AI draft
+  everywhere, and survive material changes that would regenerate it); **Reset to AI
+  Draft** discards them.
 - **Schedule Clips on Buffer** (needs `buffer.apiKey` in the local config) appears
   once clip videos are rendered: one row per clip with its caption (editable, with a
   Bluesky character count). Posting days are positional — drag rows to reorder; the

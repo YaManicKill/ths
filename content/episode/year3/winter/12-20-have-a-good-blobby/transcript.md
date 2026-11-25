@@ -478,7 +478,7 @@
 
 (4m 12s)
 
-> it was largely developed by Poe Tecmo.
+> it was largely developed by Koei Tecmo.
 
 (4m 15s)
 
@@ -1406,11 +1406,11 @@
 
 (13m 57s)
 
-> I was googling when yusup was first in in one piece and I just find this hilarious because
+> I was googling when Usopp was first in in one piece and I just find this hilarious because
 
 (14m 3s)
 
-> it was chapter 23 of the manga when yusup is introduced which is episode 8 of the anime and
+> it was chapter 23 of the manga when Usopp is introduced which is episode 8 of the anime and
 
 (14m 9s) **Kevin:**
 
@@ -1580,7 +1580,7 @@
 
 (15m 11s)
 
-> among a chapter is not that long so like uh I don't like honestly from what I know and i've
+> a manga chapter is not that long so like uh I don't like honestly from what I know and i've
 
 (15m 20s)
 
@@ -2706,7 +2706,7 @@
 
 (30m 21s)
 
-> kind of like how Fields of Mystery did as well
+> kind of like how Fields of Mistria did as well
 
 (30m 23s)
 
@@ -3080,7 +3080,7 @@
 
 (33m 30s) **Al:**
 
-> next up star sound island is available on mac now
+> next up Starsand Island is available on mac now
 
 (33m 34s)
 
@@ -3252,7 +3252,7 @@
 
 (35m)
 
-> was very interested in a game called Beltmatic,
+> he was very interested in a game called Beltmatic,
 
 (35m 2s)
 
@@ -3264,7 +3264,7 @@
 
 (35m 6s)
 
-> It's a factorial.
+> It's a factorio.
 
 (35m 7s) **Kevin:**
 
@@ -3396,7 +3396,7 @@
 
 (36m 4s) **Al:**
 
-> Star Sound Island, now on Mac.
+> Starsand Island, now on Mac.
 
 (36m 6s)
 
@@ -3602,7 +3602,7 @@
 
 (37m 58s)
 
-> The Pottage Corps folks
+> The cottagecore folks
 
 (38m)
 
@@ -5314,11 +5314,11 @@
 
 (58m 48s)
 
-> It is willy.
+> It is woolly.
 
 (58m 50s)
 
-> It's clearly willy.
+> It's clearly woolly.
 
 (58m 50s) **Kevin:**
 
@@ -5330,7 +5330,7 @@
 
 (58m 51s)
 
-> It's clearly willy.
+> It's clearly woolly.
 
 (58m 53s)
 
@@ -5390,7 +5390,7 @@
 
 (59m 30s)
 
-> turtle with a little shell on top uh there cody there is in fact a b blob um and so on uh yeah
+> turtle with a little shell on top uh there Codey there is in fact a b blob um and so on uh yeah
 
 (59m 36s) **Al:**
 
@@ -5402,7 +5402,7 @@
 
 (59m 38s) **Al:**
 
-> Although Cody will probably say it's not a bee
+> Although Codey will probably say it's not a bee
 
 (59m 39s) **Kevin:**
 
@@ -9540,7 +9540,7 @@
 
 (1h 38m 4s) **Kevin:**
 
-> the the inside baseball i'm gonna tell them uh that was an improp to greenhouse that was not
+> the the inside baseball i'm gonna tell them uh that was an impromptu greenhouse that was not
 
 (1h 38m 7s) **Al:**
 
