@@ -263,6 +263,90 @@ function discoverEpisodeInputs({ episodesRoot, season, episode }) {
   };
 }
 
+// A source folder named "SS-EE - Name" is the user's declaration that the episode
+// exists; the files inside may arrive later. One entry per episode code, each
+// reporting which of the required inputs are present so the UI can show what's
+// missing rather than failing on a click.
+const EPISODE_FOLDER_PATTERN = /^(\d{2})-(\d{2})\s*[\-–—]\s*(.+)$/;
+
+function listEpisodeSourceFolders({ episodesRoot }) {
+  const root = expandHome(episodesRoot);
+  if (!isDirectory(root)) {
+    throw new Error(`Episodes root was not found: ${root}`);
+  }
+
+  const episodes = [];
+  const seenCodes = new Set();
+
+  for (const dir of walkDirectories(root, 2)) {
+    const match = EPISODE_FOLDER_PATTERN.exec(path.basename(dir));
+    if (!match) {
+      continue;
+    }
+    const seasonCode = match[1];
+    const episodeCode = match[2];
+    const code = `${seasonCode}-${episodeCode}`;
+    if (seenCodes.has(code)) {
+      continue;
+    }
+    seenCodes.add(code);
+
+    let entries = [];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      entries = [];
+    }
+    const files = entries.filter((entry) => entry.isFile());
+
+    const mp3Name = `ths-${code}.mp3`;
+    const hasMp3 = files.some((entry) => entry.name === mp3Name);
+
+    const chapterEntry = files.find((entry) =>
+      isChapterInfoFilename(entry.name),
+    );
+    const chapterBaseName = chapterEntry
+      ? chapterTitleFromFilename(chapterEntry.name)
+      : "";
+
+    // Same preference order as resolveTranscriptPair, but each side resolved
+    // independently so a missing one can be named instead of failing the pair.
+    const pickTranscript = (extension) => {
+      const candidates = files
+        .map((entry) => entry.name)
+        .filter(
+          (name) =>
+            name.toLowerCase().endsWith(extension) &&
+            !/^readme\.md$/i.test(name),
+        );
+      const preferred = chapterBaseName
+        ? candidates.find((name) => name === `${chapterBaseName}${extension}`)
+        : null;
+      const pick = preferred || candidates[0];
+      return pick ? path.join(dir, pick) : null;
+    };
+
+    episodes.push({
+      code,
+      seasonCode,
+      episodeCode,
+      seasonNumber: Number(seasonCode),
+      episodeNumber: Number(episodeCode),
+      name: match[3].trim(),
+      folderPath: dir,
+      mp3Path: hasMp3 ? path.join(dir, mp3Name) : null,
+      transcriptMdPath: pickTranscript(".md"),
+      transcriptVttPath: pickTranscript(".vtt"),
+      hasChapterInfo: Boolean(chapterEntry),
+    });
+  }
+
+  episodes.sort(
+    (a, b) => a.seasonNumber - b.seasonNumber || a.episodeNumber - b.episodeNumber,
+  );
+  return episodes;
+}
+
 function discoverLatestEpisodeInputs({ episodesRoot }) {
   const latest = findLatestAvailableEpisode(episodesRoot);
   return discoverEpisodeInputs({
@@ -276,4 +360,5 @@ module.exports = {
   discoverEpisodeInputs,
   discoverLatestEpisodeInputs,
   expandHome,
+  listEpisodeSourceFolders,
 };

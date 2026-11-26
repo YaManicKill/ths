@@ -127,7 +127,7 @@ function setVideoRenderUiState(inProgress) {
     rerenderMp4Button.disabled = true;
     restartProcessButton.disabled = true;
   } else {
-    approveButton.disabled = false;
+    approveButton.disabled = Boolean(approveBlockedByGit);
     rerenderMp4Button.disabled = false;
     restartProcessButton.disabled = false;
   }
@@ -2311,6 +2311,31 @@ function renderTitleSuggestions(titles) {
 // than restored from the saved overrides on the next discovery.
 let descriptionRederivePending = false;
 
+// When the tree has uncommitted changes from some other branch, approving would
+// carry them onto the episode branch and into its PR. The server enforces this;
+// the flag keeps the button's refusal instant and explained.
+let approveBlockedByGit = "";
+
+function applyGitStatus(git) {
+  if (!git) {
+    return;
+  }
+  if (git.switched) {
+    addStatus(`✓ Switched to branch ${git.episodeBranch}`);
+  }
+  approveBlockedByGit =
+    !git.clean && git.branch !== git.episodeBranch
+      ? `Uncommitted changes on "${git.branch}" - commit them before approving, so ${git.episodeBranch} starts clean.`
+      : "";
+  approveButton.title = approveBlockedByGit;
+  if (approveBlockedByGit) {
+    approveButton.disabled = true;
+    addStatus(`⚠ ${approveBlockedByGit} (Approve is disabled.)`);
+  } else if (!isVideoRenderInProgress && !isVideoRenderCompleted) {
+    approveButton.disabled = false;
+  }
+}
+
 function buildDiscoverPayload() {
   const formData = new FormData(form);
   return {
@@ -2436,6 +2461,7 @@ async function runDiscovery() {
     );
     renderAudioQc(result.discovered?.audioQc);
     currentEpisodeDir = String(result.discovered?.episodeDir || "").trim();
+    applyGitStatus(result.discovered?.git);
     resumeVideoStatusPollingFromDiscover(result.discovered);
     resumeClipStatusPollingFromDiscover(result.discovered);
     resumeAiAnalysisPollingFromDiscover(result.discovered);
@@ -3586,6 +3612,9 @@ const publishClipsState = document.getElementById("publish-clips-state");
 let socialDraftsGeneratedThisSession = false;
 
 async function renderPublishChecklist() {
+  // Every action that can change release state re-renders this checklist, so the
+  // episode picker's status chips ride along instead of waiting for a reload.
+  refreshEpisodePicker();
   const episodeDir = currentEpisodeDir;
   const publishButtons = [
     uploadMp3Button,
@@ -3696,9 +3725,15 @@ async function renderPublishChecklist() {
   // the cache itself is what gets asked. Editing material after drafting
   // deliberately invalidates it, and the row must say so rather than promise an
   // instant click.
+  // Pressing Social Posts records the moment on the episode; from then on the row
+  // is done and the compose button just parks as a re-open.
+  const socialPosted =
+    data.jobs?.socialPosts?.status === "completed"
+      ? data.jobs.socialPosts
+      : null;
   let draftsReady = drafted === true || socialDraftsGeneratedThisSession;
   let draftsEdited = false;
-  if (generated && currentDiscoveryData?.discoveryData) {
+  if (!socialPosted && generated && currentDiscoveryData?.discoveryData) {
     try {
       const probeResponse = await fetch("/api/social-posts", {
         method: "POST",
@@ -3721,22 +3756,26 @@ async function renderPublishChecklist() {
       return;
     }
   }
-  publishSocialState.textContent = draftsReady
-    ? `✓ Drafts ready${draftsEdited ? " (hand-edited)" : ""} - the button opens prefilled compose tabs.`
-    : drafted === true || socialDraftsGeneratedThisSession
-      ? "⚠ The episode material changed since the drafts were made - regenerate them."
-      : drafted === false
-        ? `⚠ Drafting failed during the run${socialDraftWarning ? ` (${socialDraftWarning})` : ""} - generate the drafts now.`
-        : generated
-          ? "Not drafted yet - generate the drafts now."
-          : "Drafts are made during generation - run the process first.";
-  markDone(publishSocialState, draftsReady);
+  publishSocialState.textContent = socialPosted
+    ? `✓ Posted${socialPosted.finishedAt ? ` ${new Date(socialPosted.finishedAt).toLocaleString("en-GB")}` : ""}.`
+    : draftsReady
+      ? `✓ Drafts ready${draftsEdited ? " (hand-edited)" : ""} - the button opens prefilled compose tabs.`
+      : drafted === true || socialDraftsGeneratedThisSession
+        ? "⚠ The episode material changed since the drafts were made - regenerate them."
+        : drafted === false
+          ? `⚠ Drafting failed during the run${socialDraftWarning ? ` (${socialDraftWarning})` : ""} - generate the drafts now.`
+          : generated
+            ? "Not drafted yet - generate the drafts now."
+            : "Drafts are made during generation - run the process first.";
+  markDone(publishSocialState, Boolean(socialPosted) || draftsReady);
   // One button at a time: generate until the drafts exist, then the compose
-  // opener (posting is always a manual act, so that one never disappears).
+  // opener (posting is always a manual act, so that one never disappears - once
+  // posted it parks as a secondary re-open).
   socialPostsButton.style.display =
-    generated && draftsReady ? "inline-block" : "none";
+    generated && (socialPosted || draftsReady) ? "inline-block" : "none";
+  socialPostsButton.className = socialPosted ? "secondary" : "";
   generateSocialPostsButton.style.display =
-    generated && !draftsReady ? "inline-block" : "none";
+    generated && !socialPosted && !draftsReady ? "inline-block" : "none";
 
   const clipJob = data.jobs?.clipGeneration;
   const rendered =
@@ -4641,6 +4680,7 @@ socialPostsButton.addEventListener("click", async () => {
       body: JSON.stringify({
         mp3Path: buildDiscoverPayload().mp3Path,
         discoveryData: currentDiscoveryData.discoveryData,
+        posted: true,
       }),
     });
     const body = await response.json();
@@ -4909,6 +4949,11 @@ recheckTranscriptButton.addEventListener("click", () => {
 });
 
 approveButton.addEventListener("click", async () => {
+  // The server refuses too; this just explains it without burning a request.
+  if (approveBlockedByGit) {
+    addStatus(`⚠ ${approveBlockedByGit}`);
+    return;
+  }
   approveButton.disabled = true;
   isRunRequestInFlight = true;
   setProcessActionsVisibility();
@@ -5195,7 +5240,152 @@ async function pollServerLog() {
 pollServerLog();
 setInterval(pollServerLog, 4000);
 
+// ---------- Episode picker ----------
+// Every episode with a "SS-EE - Name" source folder in the episodes root, clickable
+// to load. The list is navigation sugar on top of the path fields: picking a row
+// fills them and re-discovers, exactly as typing the paths would.
+const episodePickerSection = document.getElementById("episode-picker");
+const episodePickerSummary = document.getElementById(
+  "episode-picker-summary",
+);
+const episodePickerList = document.getElementById("episode-picker-list");
+
+let episodePickerEpisodes = [];
+
+async function refreshEpisodePicker() {
+  try {
+    const response = await fetch("/api/episode-list");
+    const body = await response.json();
+    if (!response.ok || !body.success) {
+      throw new Error(body.error || "Episode list failed");
+    }
+    episodePickerEpisodes = body.episodes || [];
+  } catch {
+    return; // A failed scan never blocks the form - the paths still work by hand.
+  }
+  renderEpisodePicker();
+}
+
+function formatPickerDate(value) {
+  const date = new Date(String(value || ""));
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  return date.toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+}
+
+function appendEpisodeRowContent(target, episode) {
+  const code = document.createElement("span");
+  code.className = "episode-pick-code";
+  code.textContent = episode.code;
+  target.appendChild(code);
+
+  const name = document.createElement("span");
+  name.className = "episode-pick-name";
+  name.textContent = episode.name;
+  target.appendChild(name);
+
+  const dateText = formatPickerDate(episode.releaseDate);
+  if (dateText) {
+    const date = document.createElement("span");
+    date.className = "episode-pick-date";
+    date.textContent = dateText;
+    target.appendChild(date);
+  }
+
+  const status = document.createElement("span");
+  status.className = `episode-pick-status ${episode.status?.kind || "ready"}`;
+  status.textContent = episode.status?.label || "";
+  target.appendChild(status);
+}
+
+function renderEpisodePicker() {
+  const currentMp3 = String(
+    form.elements.namedItem("mp3Path")?.value || "",
+  ).trim();
+  const currentEpisode = episodePickerEpisodes.find(
+    (episode) => episode.mp3Path && episode.mp3Path === currentMp3,
+  );
+
+  // Collapsed, the summary is just the current episode's row. Expanded, that row
+  // also sits highlighted in the list, so repeating it in the summary reads as a
+  // confusing extra entry - CSS swaps it for a plain label while open.
+  episodePickerSummary.innerHTML = "";
+  const chevron = document.createElement("span");
+  chevron.className = "episode-pick-chevron";
+  chevron.textContent = "▸";
+  episodePickerSummary.appendChild(chevron);
+
+  const openLabel = document.createElement("span");
+  openLabel.className = "episode-pick-summary-label";
+  openLabel.textContent = "Episodes";
+  episodePickerSummary.appendChild(openLabel);
+
+  const closedContent = document.createElement("span");
+  closedContent.className = "episode-pick-summary-current";
+  if (currentEpisode) {
+    appendEpisodeRowContent(closedContent, currentEpisode);
+  } else {
+    const label = document.createElement("span");
+    label.className = "episode-pick-name";
+    label.textContent = `Episodes (${episodePickerEpisodes.length})`;
+    closedContent.appendChild(label);
+  }
+  episodePickerSummary.appendChild(closedContent);
+
+  episodePickerList.innerHTML = "";
+  for (const episode of episodePickerEpisodes) {
+    const loadable = Boolean(
+      episode.mp3Path && episode.transcriptMdPath && episode.transcriptVttPath,
+    );
+    const isCurrent = episode === currentEpisode;
+
+    const row = document.createElement("div");
+    row.className = `episode-pick-row${loadable ? " loadable" : ""}${isCurrent ? " current" : ""}`;
+    appendEpisodeRowContent(row, episode);
+
+    if (loadable && !isCurrent) {
+      row.title = `Load ${episode.code} - ${episode.name}`;
+      row.addEventListener("click", () => loadEpisodeFromPicker(episode));
+    } else if (!loadable) {
+      row.title = "Required source files are missing from the episode folder";
+    }
+
+    episodePickerList.appendChild(row);
+  }
+  episodePickerSection.style.display = episodePickerEpisodes.length
+    ? "block"
+    : "none";
+}
+
+function loadEpisodeFromPicker(episode) {
+  // Pending debounced saves belong to the episode being left; firing them after
+  // the paths change would write its edits into the new episode's state.
+  clearTimeout(reviewOverridesSaveTimer);
+  clearTimeout(socialEditsSaveTimer);
+  currentDiscoveryData = null;
+  descriptionRederivePending = false;
+  // The override fields on screen belong to the old episode too - cleared, so
+  // discovery restores the new episode's own saved values instead.
+  setInputValue("episodeTitle", "");
+  setInputValue("mainTopic", "");
+  setInputValue("description", "");
+  setInputValue("publishDate", "");
+  setInputValue("mp3Path", episode.mp3Path);
+  setInputValue("transcriptMdPath", episode.transcriptMdPath);
+  setInputValue("transcriptVttPath", episode.transcriptVttPath);
+  setActiveTab("generation");
+  episodePickerSection.open = false;
+  renderEpisodePicker();
+  runDiscovery();
+}
+
 prefillFromQuery();
+refreshEpisodePicker();
 runDiscovery().finally(() => {
   resumeVideoStatusPollingIfNeeded();
   resumeClipStatusPollingIfNeeded();

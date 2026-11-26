@@ -69,6 +69,26 @@ for (const day of wednesdaySamples) {
   assert.equal(new Date(stamp).getUTCDay(), 3, `${stamp} is not a Wednesday`);
 }
 
+// A run on the release Wednesday itself - even after the 7pm release time -
+// still belongs to that Wednesday, not the following week's.
+assert.equal(
+  getUpcomingWednesdayDateString({
+    now: new Date("2026-11-25T22:30:00Z"),
+    time: "19:00:00",
+    timezone: "Europe/London",
+  }).slice(0, 10),
+  "2026-11-25",
+);
+// The day after, it rolls to the next Wednesday.
+assert.equal(
+  getUpcomingWednesdayDateString({
+    now: new Date("2026-11-26T09:00:00Z"),
+    time: "19:00:00",
+    timezone: "Europe/London",
+  }).slice(0, 10),
+  "2026-12-02",
+);
+
 // GMT and BST must produce different offsets for the same wall-clock time.
 assert.equal(
   formatZonedTimestamp({
@@ -216,17 +236,83 @@ console.log("utils test passed", {
     "reusing a stale episode branch must not revert the working tree",
   );
 
-  // A branch with its own commits is resumed as-is, never force-moved.
-  fs.writeFileSync(path.join(repo, "episode.txt"), "episode work");
+  // A branch with its own commits is resumed as-is, never force-moved. Episode
+  // work lives under content/ - the only paths a resume checkout may change.
+  fs.mkdirSync(path.join(repo, "content"), { recursive: true });
+  fs.writeFileSync(path.join(repo, "content", "episode.txt"), "episode work");
   git("add", "-A");
   git("commit", "-qm", "episode work");
   git("checkout", "-q", "feature");
   createOrCheckoutEpisodeBranch(repo, "99", "07");
   assert.ok(
-    fs.existsSync(path.join(repo, "episode.txt")),
+    fs.existsSync(path.join(repo, "content", "episode.txt")),
     "episode commits must survive a re-checkout",
   );
 
   fs.rmSync(repo, { recursive: true, force: true });
   console.log("episode branch test passed");
+})();
+
+// A new episode branch is cut from master even when approved from another
+// episode's unmerged branch, so that branch's files never leak into the new
+// episode's PR. The exception: a HEAD carrying tool changes master lacks is
+// refused, because basing on master would revert the running tool's files.
+(() => {
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), "ths-branch-base-"));
+  const git = (...args) => {
+    const result = runCommand("git", args, { cwd: repo });
+    assert.equal(result.status, 0, `git ${args[0]} failed: ${result.stderr}`);
+    return result;
+  };
+  const currentBranch = () =>
+    runCommand("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
+      cwd: repo,
+    }).stdout.trim();
+
+  git("init", "-q", "-b", "master");
+  git("config", "user.email", "t@example.com");
+  git("config", "user.name", "T");
+  fs.writeFileSync(path.join(repo, "tool.txt"), "tool");
+  fs.mkdirSync(path.join(repo, "content"));
+  fs.writeFileSync(path.join(repo, "content", "old.txt"), "old episode");
+  git("add", "-A");
+  git("commit", "-qm", "base");
+
+  // Another episode's unmerged branch: content-only changes.
+  git("checkout", "-qb", "ep-99-01");
+  fs.writeFileSync(path.join(repo, "content", "ep1.txt"), "episode 1");
+  git("add", "-A");
+  git("commit", "-qm", "episode 1 files");
+
+  const created = createOrCheckoutEpisodeBranch(repo, "99", "02");
+  assert.equal(created.created, true);
+  assert.equal(currentBranch(), "ep-99-02");
+  assert.ok(
+    !fs.existsSync(path.join(repo, "content", "ep1.txt")),
+    "the new episode branch must not carry the other episode's files",
+  );
+
+  // A tooling branch (tool.txt differs from master) refuses to cut from master.
+  git("checkout", "-q", "master");
+  git("checkout", "-qb", "tooling");
+  fs.writeFileSync(path.join(repo, "tool.txt"), "changed tool");
+  git("commit", "-aqm", "tool change");
+  assert.throws(
+    () => createOrCheckoutEpisodeBranch(repo, "99", "03"),
+    /tool/,
+    "a tooling branch must refuse rather than revert the tool on disk",
+  );
+  assert.equal(currentBranch(), "tooling", "the refusal must not move HEAD");
+
+  // Resuming an existing episode branch from the tooling branch is the same
+  // revert hazard, and refuses the same way.
+  assert.throws(
+    () => createOrCheckoutEpisodeBranch(repo, "99", "01"),
+    /tool/,
+    "resuming from a tooling branch must refuse too",
+  );
+  assert.equal(currentBranch(), "tooling", "the refusal must not move HEAD");
+
+  fs.rmSync(repo, { recursive: true, force: true });
+  console.log("episode branch base test passed");
 })();

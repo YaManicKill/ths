@@ -85,6 +85,8 @@ const {
 const { parseVttCues } = require("../vtt");
 const { generateClipVideos, generateVideoFromChapters } = require("../video");
 const { loadPostprocessConfig } = require("../config");
+const { listEpisodeSourceFolders } = require("../episode-discovery");
+const { inferPublishDateForEpisode } = require("../sequence-inference");
 const episodeState = require("../episode-state");
 const {
   chapterImageOverridesPath,
@@ -591,6 +593,123 @@ function deriveEpisodeOutputPaths({ repoRoot, discovered, mp3Path }) {
   };
 }
 
+// Loading an episode should also mean being on its branch: an in-flight episode's
+// generated files and state live only there. The switch only happens when it is
+// safe - a clean tree (uncommitted work must never bleed across branches, and a
+// dirty tree also means jobs may be mid-write) and a branch that actually carries
+// unmerged work (a merged branch's stale tip would resurrect pre-merge files).
+// Dirt that must not ride onto an episode branch. The episode's own folder is
+// exactly what Approve is about to (re)write, and postprocess-state.json churn on
+// other episodes (release-day bookkeeping after their PRs merged) rides into the
+// next episode's PR by design - so neither blocks. Anything else - tool changes,
+// hand edits to another episode's transcripts, a different episode's uncommitted
+// generation - does.
+function gitBlockingDirt(repoRoot, episodeCodePrefix) {
+  return runCommand("git", ["status", "--porcelain"], { cwd: repoRoot })
+    .stdout.split("\n")
+    // The XY status columns are stripped by pattern, not position - runCommand
+    // trims stdout, which eats the first line's leading status space.
+    .map((line) => line.replace(/^[ MADRCU?!]{1,2}\s+/, "").replace(/"/g, ""))
+    .filter(Boolean)
+    .filter((entryPath) => {
+      if (entryPath.endsWith("postprocess-state.json")) {
+        return false;
+      }
+      if (episodeCodePrefix && entryPath.includes(`/${episodeCodePrefix}`)) {
+        return false;
+      }
+      return true;
+    });
+}
+
+function gitEpisodeBranchStatus({
+  repoRoot,
+  branchName,
+  episodeCodePrefix,
+  onProgress,
+}) {
+  const current = runCommand("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
+    cwd: repoRoot,
+  }).stdout.trim();
+  const clean = gitBlockingDirt(repoRoot, episodeCodePrefix).length === 0;
+  const exists =
+    runCommand("git", ["rev-parse", "--verify", "--quiet", branchName], {
+      cwd: repoRoot,
+    }).status === 0;
+
+  let switched = false;
+  if (
+    exists &&
+    clean &&
+    current !== branchName &&
+    !episodeState.hasActiveJobs()
+  ) {
+    const merged =
+      runCommand("git", ["merge-base", "--is-ancestor", branchName, "HEAD"], {
+        cwd: repoRoot,
+      }).status === 0;
+    // Switching may only move content/ - if the branch's tool files differ from
+    // HEAD's (a tooling branch is checked out), the switch would revert the
+    // running tool's own files on disk, so it is skipped.
+    const toolSafe =
+      merged ||
+      runCommand(
+        "git",
+        ["diff", "--quiet", branchName, "HEAD", "--", ".", ":(exclude)content"],
+        { cwd: repoRoot },
+      ).status === 0;
+    if (!merged && toolSafe) {
+      const checkout = runCommand("git", ["checkout", branchName], {
+        cwd: repoRoot,
+      });
+      if (checkout.status === 0) {
+        switched = true;
+        onProgress?.(`Switched to branch ${branchName}`);
+      }
+    }
+  }
+
+  return {
+    branch: switched ? branchName : current,
+    clean,
+    branchExists: exists,
+    switched,
+    episodeBranch: branchName,
+  };
+}
+
+// The picker needs an episode's output folder without knowing its title slug:
+// output folders are named "SS-EE-slug" somewhere under outputRoot's year/season
+// tree, so the code prefix alone identifies one.
+function findEpisodeOutputDirByCode(repoRoot, codePrefix) {
+  const outputRoot = path.join(
+    repoRoot,
+    loadPostprocessConfig(repoRoot).outputRoot,
+  );
+  const queue = [{ dir: outputRoot, depth: 0 }];
+  while (queue.length > 0) {
+    const { dir, depth } = queue.shift();
+    let entries = [];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      if (!entry.isDirectory()) {
+        continue;
+      }
+      if (entry.name.startsWith(codePrefix)) {
+        return path.join(dir, entry.name);
+      }
+      if (depth + 1 < 3) {
+        queue.push({ dir: path.join(dir, entry.name), depth: depth + 1 });
+      }
+    }
+  }
+  return null;
+}
+
 function pidIsAlive(pid) {
   try {
     process.kill(pid, 0);
@@ -989,6 +1108,21 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
       try {
         const payload = JSON.parse(body || "{}");
 
+        // Being on the episode's branch comes first, so the overrides and state
+        // read below describe the branch's version of the episode.
+        let gitStatus = null;
+        try {
+          const meta = parseEpisodeFromMp3Path(payload.mp3Path);
+          gitStatus = gitEpisodeBranchStatus({
+            repoRoot,
+            branchName: `ep-${meta.seasonCode}-${meta.episodeCode}`,
+            episodeCodePrefix: `${meta.seasonCode}-${meta.episodeCode}-`,
+            onProgress: stream.progress,
+          });
+        } catch {
+          // No parseable episode code - nothing to switch to.
+        }
+
         // Review-phase edits saved before any generation (title, topic, description,
         // links) come back into the derived values, so a restart or crash never
         // loses them. The empty form fields on a fresh page defer to the overrides;
@@ -1089,6 +1223,7 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
             },
             audioQc: discovered.audioQc,
             episodeDir,
+            git: gitStatus,
             phase: state?.phase || null,
             jobs: state?.jobs || {},
             mp3Upload: state?.mp3Upload || null,
@@ -1440,6 +1575,27 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
         // without touching the LLM or the cache, and they survive material changes
         // that would otherwise invalidate the generated drafts.
         const socialEdits = state?.socialEdits || null;
+
+        // Only the compose-tab click sends posted - drafting alone doesn't count
+        // as having announced the episode, which the picker's Done check needs.
+        // An instant step: nothing runs, so it records straight into jobs in the
+        // terminal shape finishJob would leave.
+        if (payload.posted) {
+          await episodeState.updateState(episodeDir, (current) =>
+            current
+              ? {
+                  ...current,
+                  jobs: {
+                    ...current.jobs,
+                    socialPosts: {
+                      status: "completed",
+                      finishedAt: new Date().toISOString(),
+                    },
+                  },
+                }
+              : null,
+          );
+        }
 
         // The checklist asks whether a click would be free before claiming the
         // drafts are ready; probing never touches the LLM.
@@ -2044,6 +2200,144 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
     if (req.method === "GET" && pathname === "/api/youtube-channel") {
       const youtubeConfig = loadPostprocessConfig(repoRoot).youtube || {};
       sendJson(res, 200, { channelId: youtubeConfig.channelId || null });
+      return;
+    }
+
+    // Every episode the user has created a source folder for ("SS-EE - Name" in the
+    // episodes root), with enough status for the picker: done, in progress, not
+    // started, or missing inputs. The release date comes from the generated
+    // index.md, the saved review override, or the episode's slot in the weekly
+    // sequence, in that order.
+    if (req.method === "GET" && pathname === "/api/episode-list") {
+      try {
+        const config = loadPostprocessConfig(repoRoot);
+        const sources = listEpisodeSourceFolders({
+          episodesRoot: config.episodesRoot,
+        });
+        const now = Date.now();
+        const episodes = [];
+        for (const source of sources) {
+          const outputDir = findEpisodeOutputDirByCode(
+            repoRoot,
+            `${source.code}-`,
+          );
+          const state = outputDir
+            ? await episodeState.readState(outputDir)
+            : null;
+
+          let indexDateString = null;
+          if (outputDir) {
+            try {
+              const indexText = fs.readFileSync(
+                path.join(outputDir, "index.md"),
+                "utf8",
+              );
+              const match = /^date:\s*(\S+)/m.exec(indexText);
+              if (match && !Number.isNaN(new Date(match[1]).getTime())) {
+                indexDateString = match[1];
+              }
+            } catch {
+              // Started but not generated yet - no index.md to read.
+            }
+          }
+
+          let inferredDateString = null;
+          if (!indexDateString && !state?.reviewOverrides?.publishDate) {
+            try {
+              inferredDateString = inferPublishDateForEpisode({
+                contentEpisodeRoot: path.join(repoRoot, config.outputRoot),
+                seasonNumber: source.seasonNumber,
+                episodeNumber: source.episodeNumber,
+                releaseTimeLocal: config.releaseTimeLocal,
+                timezone: config.timezone,
+              });
+            } catch {
+              inferredDateString = null;
+            }
+          }
+
+          const releaseDate =
+            indexDateString ||
+            state?.reviewOverrides?.publishDate ||
+            inferredDateString;
+
+          const missing = [];
+          if (!source.mp3Path) {
+            missing.push("MP3");
+          }
+          if (!source.transcriptMdPath) {
+            missing.push("transcript MD");
+          }
+          if (!source.transcriptVttPath) {
+            missing.push("transcript VTT");
+          }
+
+          let status;
+          if (
+            indexDateString &&
+            new Date(indexDateString).getTime() <= now
+          ) {
+            // Released by the calendar, but Done means every release step actually
+            // happened. Steps are flagged only within a week of release: older
+            // states predate some of the tracking fields (socialPosted, Buffer
+            // schedules), and a week on, the moment for fixing has passed anyway.
+            const releasedAgoMs = now - new Date(indexDateString).getTime();
+            const missedSteps = [];
+            if (state && releasedAgoMs <= 7 * 86_400_000) {
+              if (state.mp3Upload?.acl !== "public-read") {
+                missedSteps.push("MP3 public");
+              }
+              const youtube = state.youtubeUpload;
+              if (
+                !youtube?.videoId ||
+                (youtube.publishAt &&
+                  new Date(youtube.publishAt).getTime() > now)
+              ) {
+                missedSteps.push("YouTube");
+              }
+              if (state.jobs?.socialPosts?.status !== "completed") {
+                missedSteps.push("socials");
+              }
+              if (
+                (state.jobs?.clipGeneration?.outputs || []).length === 0 ||
+                (state.clipSchedule || []).length === 0
+              ) {
+                missedSteps.push("clips");
+              }
+            }
+            status =
+              missedSteps.length === 0
+                ? { kind: "done", label: "Done" }
+                : {
+                    kind: "error",
+                    label: `Live - missing: ${missedSteps.join(", ")}`,
+                  };
+          } else if (missing.length === 3) {
+            status = { kind: "error", label: "No files yet" };
+          } else if (missing.length > 0) {
+            status = { kind: "error", label: `Missing: ${missing.join(", ")}` };
+          } else if (state?.phase === "generated") {
+            status = { kind: "progress", label: "Generated" };
+          } else if (state) {
+            status = { kind: "progress", label: "In progress" };
+          } else {
+            status = { kind: "ready", label: "Not started" };
+          }
+
+          episodes.push({
+            code: source.code,
+            name: source.name,
+            mp3Path: source.mp3Path,
+            transcriptMdPath: source.transcriptMdPath,
+            transcriptVttPath: source.transcriptVttPath,
+            releaseDate: releaseDate || null,
+            status,
+          });
+        }
+        sendJson(res, 200, { success: true, episodes });
+      } catch (error) {
+        sendJson(res, 400, { success: false, error: error.message });
+      }
       return;
     }
 
@@ -3149,6 +3443,33 @@ function startServer({ port = 4173, onPortConflict, lockPath } = {}) {
       const stream = startNdjsonStream(res);
       try {
         const payload = JSON.parse(body || "{}");
+
+        // An episode run must start from the episode's own branch or a clean tree:
+        // uncommitted work from another branch would be carried onto the episode
+        // branch and end up in its PR.
+        try {
+          const meta = parseEpisodeFromMp3Path(payload.mp3Path);
+          const branchName = `ep-${meta.seasonCode}-${meta.episodeCode}`;
+          const current = runCommand(
+            "git",
+            ["rev-parse", "--abbrev-ref", "HEAD"],
+            { cwd: repoRoot },
+          ).stdout.trim();
+          const dirt = gitBlockingDirt(
+            repoRoot,
+            `${meta.seasonCode}-${meta.episodeCode}-`,
+          );
+          if (current !== branchName && dirt.length > 0) {
+            stream.error(
+              `Uncommitted changes on "${current}" (${dirt
+                .slice(0, 3)
+                .join(", ")}${dirt.length > 3 ? ", ..." : ""}) - commit (or stash) them before approving, so ${branchName} starts clean.`,
+            );
+            return;
+          }
+        } catch {
+          // No parseable episode code; the pipeline reports that properly itself.
+        }
 
         let runOptions = {
           mp3Path: payload.mp3Path,
