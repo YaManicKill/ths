@@ -161,6 +161,132 @@ section {
   padding-bottom: 14rem;
 }
 
+#episode-picker {
+  margin-top: 1rem;
+}
+
+#episode-picker summary {
+  list-style: none;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#episode-picker summary::-webkit-details-marker {
+  display: none;
+}
+
+#episode-picker summary:hover {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.episode-pick-chevron {
+  color: var(--muted);
+  font-size: 0.8em;
+  transition: transform 0.15s;
+}
+
+#episode-picker[open] .episode-pick-chevron {
+  transform: rotate(90deg);
+}
+
+/* display: contents keeps the row's spans direct flex items of the summary, so the
+   status chip's margin-left: auto still pushes to the right edge. */
+.episode-pick-summary-current {
+  display: contents;
+}
+
+.episode-pick-summary-label {
+  display: none;
+  color: var(--muted);
+}
+
+#episode-picker[open] .episode-pick-summary-current {
+  display: none;
+}
+
+#episode-picker[open] .episode-pick-summary-label {
+  display: inline;
+}
+
+#episode-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 13em;
+  overflow-y: auto;
+  margin-top: 4px;
+  /* The summary's chevron column, so the rows' codes line up under its code. */
+  padding-left: 1.35em;
+}
+
+.episode-pick-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.episode-pick-row.loadable {
+  cursor: pointer;
+}
+
+.episode-pick-row.loadable:hover {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.episode-pick-row.current {
+  border-color: var(--line-strong);
+  background: var(--panel);
+}
+
+.episode-pick-code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: var(--muted);
+}
+
+.episode-pick-name {
+  font-weight: 600;
+}
+
+.episode-pick-date {
+  color: var(--muted);
+  font-size: 0.85em;
+}
+
+.episode-pick-status {
+  margin-left: auto;
+  font-size: 0.8em;
+  padding: 1px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.episode-pick-status.done {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+}
+
+.episode-pick-status.progress {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.episode-pick-status.ready {
+  color: var(--muted);
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.episode-pick-status.error {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
+}
+
 #tab-bar {
   display: flex;
   gap: 6px;

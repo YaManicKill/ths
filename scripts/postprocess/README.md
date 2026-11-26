@@ -24,7 +24,11 @@ is touched until you press **Approve**.
 | `--new-season`                 | Force the next season, episode 01, instead of incrementing the episode number.                                                                                |
 | `--episode-number <EE\|SS-EE>` | Target a specific episode and infer its publish date from that position in the sequence. `5` keeps the inferred season; `12-05` sets both season and episode. |
 
-Pressing Approve creates the `ep-SS-EE` branch, generates `index.md`, the transcripts
+Pressing Approve creates the `ep-SS-EE` branch off master (approving from another
+episode's branch can't sweep that episode's files into this one's PR; a branch
+carrying tool changes master lacks is refused instead, since cutting from master
+would revert the running tool's files). Approving with uncommitted changes while
+on some other branch is blocked until they're committed. Approve then generates `index.md`, the transcripts
 and a podcast-namespace `chapters.json` (advertised from the feed as
 `<podcast:chapters>`), embeds chapter images into the MP3 (keeping a `.bak`, and
 syncing its ID3 title to the chosen episode title), and renders the full-episode MP4.
@@ -38,6 +42,17 @@ episode title, burned-in subtitles and a progress bar.
 
 ## The UI
 
+- **Episode picker**: every episode with a `SS-EE - Name` folder under the episodes
+  root is listed at the top, collapsed to the current episode's row until clicked -
+  past ones as Done (meaning fully released: MP3 public, YouTube live, Social Posts
+  pressed, clips scheduled - a recent release missing a step shows "Live - missing:
+  ..." instead), generated ones with their progress,
+  future ones as Not started (or what's missing when the exported files aren't there
+  yet). Clicking a row loads that episode, so a future episode (a GOTY recorded
+  weeks early, say) can be fully post-processed ahead of time without the CLI's
+  `--episode-number` flag. Loading an episode also checks out its branch when that
+  is safe: the tree is clean and the branch carries unmerged work. An episode's publish date is inferred from its slot in
+  the weekly sequence, so a future episode gets its own Wednesday, not this week's.
 - **Title Suggestions**: when the episode title is still a "THS XX-YY" placeholder,
   the AI mines the transcript for candidates in the show's style; clicking one sets
   the title.

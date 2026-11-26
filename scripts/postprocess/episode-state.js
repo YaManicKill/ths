@@ -7,6 +7,13 @@ const { readJson, writeJson } = require("./utils");
 // long-running jobs, and the accumulated run data (suggestions, links, fix memory).
 // Every read and write goes through this module, serialized per episode, so no two
 // writers can clobber each other's half of the file.
+//
+// Convention for new release steps: record them under jobs. Long-running work goes
+// through startJob/patchJob/finishJob; an instant step (a button press, like
+// socialPosts) writes just the terminal {status: "completed", finishedAt} form
+// directly. Top level is for durable artifacts and user decisions (upload records,
+// schedules, edits, approvals) - some older outcome data predates this split and
+// stays where it is.
 const STATE_FILE_NAME = "postprocess-state.json";
 const STATE_VERSION = 1;
 

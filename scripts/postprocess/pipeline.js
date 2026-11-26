@@ -27,6 +27,7 @@ const {
 } = require("./social-posts");
 const { analyzeAudioCached, buildAudioQcWarnings } = require("./audio-qc");
 const episodeState = require("./episode-state");
+const { inferPublishDateForEpisode } = require("./sequence-inference");
 const { sha256FileHex } = require("./spaces");
 const {
   assertToolAvailable,
@@ -34,7 +35,6 @@ const {
   createOrCheckoutEpisodeBranch,
   ensureDir,
   fileExists,
-  getUpcomingWednesdayDateString,
   normalizeTitle,
   readJson,
   runCommand,
@@ -711,10 +711,16 @@ async function discoverEpisodeData(inputOptions = {}) {
   const podcastBytes = stat.size;
   const podcastDuration = formatSecondsToHhmmss(audioDurationSeconds);
 
+  // The fallback date comes from the episode's position in the weekly sequence, not
+  // from today's calendar - so a future episode processed weeks early, or a regular
+  // one processed a day late, both land on their own Wednesday.
   const dateString =
     inputOptions.publishDate ||
-    getUpcomingWednesdayDateString({
-      time: config.releaseTimeLocal,
+    inferPublishDateForEpisode({
+      contentEpisodeRoot: path.join(repoRoot, config.outputRoot),
+      seasonNumber: Number(episodeMeta.seasonNumber),
+      episodeNumber: Number(episodeMeta.episodeNumber),
+      releaseTimeLocal: config.releaseTimeLocal,
       timezone: config.timezone,
     });
 

@@ -223,10 +223,9 @@ function getUpcomingWednesdayDateString({
   timezone = DEFAULT_TIMEZONE,
 } = {}) {
   const today = addCalendarDays(zonedDateParts(now, timezone), 0);
-  let diff = (3 - today.weekday + 7) % 7;
-  if (diff === 0) {
-    diff = 7;
-  }
+  // A run on a Wednesday belongs to that day's episode, even after the 7pm
+  // release time - "run by the end of the Wednesday" counts as that Wednesday.
+  const diff = (3 - today.weekday + 7) % 7;
 
   const target = addCalendarDays(today, diff);
   return formatZonedTimestamp({ ...target, time, timezone });
@@ -286,6 +285,20 @@ function parseByteRange(rangeHeader, size) {
   return { start, end };
 }
 
+function resolveMainBranch(repoRoot) {
+  for (const candidate of ["master", "main"]) {
+    const result = runCommand(
+      "git",
+      ["rev-parse", "--verify", "--quiet", candidate],
+      { cwd: repoRoot },
+    );
+    if (result.status === 0) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
 function createOrCheckoutEpisodeBranch(repoRoot, seasonCode, episodeCode) {
   const branchName = `ep-${seasonCode}-${episodeCode}`;
 
@@ -294,7 +307,34 @@ function createOrCheckoutEpisodeBranch(repoRoot, seasonCode, episodeCode) {
   });
 
   if (checkResult.status !== 0) {
-    const createResult = runCommand("git", ["checkout", "-b", branchName], {
+    // A new episode branch starts from the main branch, not HEAD - approving from
+    // another episode's unmerged branch must not sweep that episode's files into
+    // this one's PR. The exception is tool changes: episode branches only ever
+    // touch content, so if HEAD differs from main outside content/ (a tooling
+    // branch), basing on main would revert the running tool's own files on disk -
+    // that case is refused rather than risked.
+    const mainBranch = resolveMainBranch(repoRoot);
+    const createArgs = ["checkout", "-b", branchName];
+    if (mainBranch) {
+      const headIsMain =
+        runCommand("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
+          cwd: repoRoot,
+        }).stdout.trim() === mainBranch;
+      if (!headIsMain) {
+        const toolDiff = runCommand(
+          "git",
+          ["diff", "--quiet", mainBranch, "HEAD", "--", ".", ":(exclude)content"],
+          { cwd: repoRoot },
+        );
+        if (toolDiff.status !== 0) {
+          throw new Error(
+            `Creating "${branchName}" from ${mainBranch} would change the running tool's files (HEAD has tool changes ${mainBranch} lacks). Merge or switch branches first.`,
+          );
+        }
+        createArgs.push(mainBranch);
+      }
+    }
+    const createResult = runCommand("git", createArgs, {
       cwd: repoRoot,
     });
 
@@ -320,6 +360,20 @@ function createOrCheckoutEpisodeBranch(repoRoot, seasonCode, episodeCode) {
       runCommand("git", ["branch", "-f", branchName, "HEAD"], {
         cwd: repoRoot,
       });
+    } else {
+      // Resuming a branch with its own commits replaces the working tree with its
+      // tip; refused when that would change files outside content/ (HEAD carries
+      // tool changes the episode branch lacks) - the same revert hazard as above.
+      const toolDiff = runCommand(
+        "git",
+        ["diff", "--quiet", branchName, "HEAD", "--", ".", ":(exclude)content"],
+        { cwd: repoRoot },
+      );
+      if (toolDiff.status !== 0) {
+        throw new Error(
+          `Checking out "${branchName}" would change the running tool's files. Merge or switch branches first.`,
+        );
+      }
     }
 
     const checkoutResult = runCommand("git", ["checkout", branchName], {
